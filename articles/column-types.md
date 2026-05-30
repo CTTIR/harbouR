@@ -1,5 +1,7 @@
 # Column types and coercion
 
+![harbouR logo](../reference/figures/logo.png)
+
 SeaTable bases have around twenty column types. harbouR maps every one
 of them onto a predictable R type so the tibble you get back is
 analysis-ready, not raw JSON. This vignette is the reference.

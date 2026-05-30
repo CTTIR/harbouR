@@ -1,5 +1,7 @@
 # The harbouR explorer
 
+![harbouR logo](../reference/figures/logo.png)
+
 [`hb_run_explorer()`](https://r-heller.github.io/harbouR/reference/hb_run_explorer.md)
 launches a Shiny app for inspecting a SeaTable base interactively. Reach
 for it when you want to *see* what is in a base quickly; reach for the
