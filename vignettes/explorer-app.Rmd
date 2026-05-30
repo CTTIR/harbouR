@@ -11,6 +11,8 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<img src="../man/figures/logo.png" align="right" height="139" alt="harbouR logo"/>
+
 `hb_run_explorer()` launches a Shiny app for inspecting a SeaTable base
 interactively. Reach for it when you want to *see* what is in a base
 quickly; reach for the programmatic API (`hb_read_table()`,

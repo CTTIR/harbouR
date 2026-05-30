@@ -11,6 +11,8 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<img src="../man/figures/logo.png" align="right" height="139" alt="harbouR logo"/>
+
 You have a SeaTable base of patient samples and you want to pull it into
 R for analysis, push your results back, and attach the resulting PDF
 reports - all without leaving R. `harbouR` is an unofficial R client
