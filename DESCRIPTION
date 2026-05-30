@@ -1,0 +1,49 @@
+Package: harbouR
+Title: R Client for SeaTable Collaborative Databases
+Version: 0.1.0
+Authors@R:
+    person("Raban", "Heller",
+           email = "raban.heller@charite.de",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-8006-9742"))
+Description: An unofficial R client for the SeaTable REST API. Provides
+    authentication with transparent base-token refresh, tidy tibble returns
+    for tables, rows, columns and views, helpers for managing bases and
+    files, and an optional 'shiny' explorer for interactive inspection.
+    SeaTable is a trademark of SeaTable GmbH; this package is not
+    affiliated with or endorsed by SeaTable GmbH.
+License: MIT + file LICENSE
+URL: https://github.com/r-heller/harbouR, https://r-heller.github.io/harbouR/
+BugReports: https://github.com/r-heller/harbouR/issues
+Encoding: UTF-8
+Language: en-GB
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1)
+Imports:
+    cli,
+    curl,
+    httr2,
+    lubridate,
+    rlang,
+    tibble,
+    tools
+Suggests:
+    bslib,
+    covr,
+    dplyr,
+    DT,
+    ggplot2,
+    httptest2,
+    knitr,
+    pkgdown,
+    reactable,
+    rmarkdown,
+    shiny,
+    spelling,
+    testthat (>= 3.0.0),
+    tidyr,
+    withr
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

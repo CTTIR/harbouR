@@ -1,0 +1,105 @@
+---
+title: "Get started with harbouR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with harbouR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+You have a SeaTable base of patient samples and you want to pull it into
+R for analysis, push your results back, and attach the resulting PDF
+reports - all without leaving R. `harbouR` is an unofficial R client
+that lets you do exactly that.
+
+> SeaTable is a trademark of SeaTable GmbH; harbouR is not affiliated
+> with or endorsed by SeaTable GmbH.
+
+## Connect
+
+```{r connect, eval = FALSE}
+library(harbouR)
+
+client <- hb_client(
+  server    = Sys.getenv("SEATABLE_SERVER"),
+  api_token = Sys.getenv("SEATABLE_API_TOKEN")
+)
+```
+
+SeaTable uses a three-token model. You hand harbouR either an
+API-token (long-lived, per-base, generated in the SeaTable UI) or a
+username+password pair. harbouR exchanges these for a short-lived
+**base-token** the first time it needs to, caches it, and refreshes
+transparently when it expires - you never see it.
+
+## Inspect the base
+
+The remaining chunks here all run **offline**, against the bundled
+example data, so you can knit the vignette without a server.
+
+```{r inspect}
+library(harbouR)
+
+meta <- hb_example_metadata()
+meta
+
+tibble::as_tibble(meta)
+```
+
+## Read a table
+
+Against a live server this is a single call:
+
+```{r read-live, eval = FALSE}
+samples <- hb_read_table(client, "Samples")
+```
+
+The offline equivalent returns a tibble of the same shape, including
+list-columns for multi-select / collaborator / file values:
+
+```{r read-offline}
+samples <- hb_example_rows("Samples")
+samples
+```
+
+## Analyse
+
+`samples` is a regular tibble. Everything you already know about
+dplyr / ggplot2 / etc. just works:
+
+```{r analyse, message = FALSE, warning = FALSE}
+samples[samples$Status == "ready", c("Name", "Concentration", "Collected")]
+```
+
+## Write back
+
+Appending and updating accept any tibble whose columns match the schema:
+
+```{r write-live, eval = FALSE}
+new_rows <- tibble::tibble(
+  Name = "S-004",
+  Concentration = 17.2,
+  Status = "draft"
+)
+hb_append_rows(client, "Samples", new_rows)
+
+hb_update_rows(
+  client, "Samples",
+  tibble::tibble(`_id` = "r0001", Concentration = 99.9)
+)
+```
+
+## Attach a file
+
+```{r attach, eval = FALSE}
+hb_attach_file(client, "Samples", "r0001", "Reports", "report.pdf")
+```
+
+## Next steps
+
+* The `column-types` vignette explains the coercion layer in detail.
+* The `explorer-app` vignette walks through `hb_run_explorer()`.

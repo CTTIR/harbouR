@@ -1,0 +1,20 @@
+{
+  "base_name": "harbouR demo base",
+  "tables": [
+    {"name": "Samples", "columns": [
+      {"name": "Name", "type": "text"},
+      {"name": "Concentration", "type": "number"},
+      {"name": "Status", "type": "single-select"},
+      {"name": "Tags", "type": "multiple-select"},
+      {"name": "Collected", "type": "date"},
+      {"name": "Collaborators", "type": "collaborator"},
+      {"name": "Reports", "type": "file"}
+    ]},
+    {"name": "Patients", "columns": [
+      {"name": "Patient ID", "type": "text"},
+      {"name": "Age", "type": "number"},
+      {"name": "Consented", "type": "checkbox"},
+      {"name": "Last visit", "type": "date"}
+    ]}
+  ]
+}
