@@ -1,12 +1,10 @@
-url: https://r-heller.github.io/harbouR/
+url: https://cttir.github.io/harbouR/
 
 template:
-  bootstrap: 5
-  bslib:
-    primary: "#5E2C8E"
-    bg: "#121212"
-    fg: "#e8e8e8"
+  package: themakR
 
+development:
+  mode: auto
 navbar:
   bg: dark
 
