@@ -29,9 +29,9 @@ Invisibly returns the client.
 ## See also
 
 Other files:
-[`hb_attach_file()`](https://r-heller.github.io/harbouR/reference/hb_attach_file.md),
-[`hb_download_file()`](https://r-heller.github.io/harbouR/reference/hb_download_file.md),
-[`hb_upload_file()`](https://r-heller.github.io/harbouR/reference/hb_upload_file.md)
+[`hb_attach_file()`](https://cttir.github.io/harbouR/reference/hb_attach_file.md),
+[`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md),
+[`hb_upload_file()`](https://cttir.github.io/harbouR/reference/hb_upload_file.md)
 
 ## Examples
 

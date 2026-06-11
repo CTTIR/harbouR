@@ -19,7 +19,7 @@ A `harbour_metadata` object describing a tiny base with two tables:
 ## See also
 
 Other example data:
-[`hb_example_rows()`](https://r-heller.github.io/harbouR/reference/hb_example_rows.md)
+[`hb_example_rows()`](https://cttir.github.io/harbouR/reference/hb_example_rows.md)
 
 ## Examples
 

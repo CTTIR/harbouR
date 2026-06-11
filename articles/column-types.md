@@ -9,7 +9,7 @@ analysis-ready, not raw JSON. This vignette is the reference.
 ## The mapping table
 
 The table below is derived from
-[`hb_column_types()`](https://r-heller.github.io/harbouR/reference/hb_column_types.md)
+[`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md)
 so it cannot drift out of sync with the code:
 
 ``` r
@@ -123,16 +123,16 @@ samples$Reports[[1]]
 
 Each entry is a list of file objects with `name`, `size`, `type` and
 `url` - ready to be downloaded via
-[`hb_download_file()`](https://r-heller.github.io/harbouR/reference/hb_download_file.md).
+[`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md).
 
 ### Read-only columns
 
 `formula`, `auto-number`, `creator`, `last-modifier`, `ctime`, `mtime`
 and `link-formula` are read-only on SeaTable; harbouR silently drops
 them when you call
-[`hb_update_rows()`](https://r-heller.github.io/harbouR/reference/hb_update_rows.md)
+[`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
 or
-[`hb_append_rows()`](https://r-heller.github.io/harbouR/reference/hb_append_rows.md),
+[`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md),
 so you can round-trip a tibble through harbouR without writing back
 computed values by accident.
 
@@ -154,7 +154,7 @@ empty
 
 ## Next steps
 
-- [`vignette("harbouR")`](https://r-heller.github.io/harbouR/articles/harbouR.md) -
+- [`vignette("harbouR")`](https://cttir.github.io/harbouR/articles/harbouR.md) -
   the five-minute end-to-end story.
-- [`vignette("explorer-app")`](https://r-heller.github.io/harbouR/articles/explorer-app.md) -
+- [`vignette("explorer-app")`](https://cttir.github.io/harbouR/articles/explorer-app.md) -
   exploring a base interactively.

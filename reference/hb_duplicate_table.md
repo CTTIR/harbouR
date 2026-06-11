@@ -33,9 +33,9 @@ Invisibly returns the client.
 ## See also
 
 Other tables:
-[`hb_create_table()`](https://r-heller.github.io/harbouR/reference/hb_create_table.md),
-[`hb_delete_table()`](https://r-heller.github.io/harbouR/reference/hb_delete_table.md),
-[`hb_rename_table()`](https://r-heller.github.io/harbouR/reference/hb_rename_table.md)
+[`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md),
+[`hb_delete_table()`](https://cttir.github.io/harbouR/reference/hb_delete_table.md),
+[`hb_rename_table()`](https://cttir.github.io/harbouR/reference/hb_rename_table.md)
 
 ## Examples
 

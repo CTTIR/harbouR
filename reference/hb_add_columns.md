@@ -33,13 +33,13 @@ Invisibly returns the client.
 ## See also
 
 Other columns:
-[`hb_add_column()`](https://r-heller.github.io/harbouR/reference/hb_add_column.md),
-[`hb_add_select_option()`](https://r-heller.github.io/harbouR/reference/hb_add_select_option.md),
-[`hb_delete_column()`](https://r-heller.github.io/harbouR/reference/hb_delete_column.md),
-[`hb_delete_select_option()`](https://r-heller.github.io/harbouR/reference/hb_delete_select_option.md),
-[`hb_list_columns()`](https://r-heller.github.io/harbouR/reference/hb_list_columns.md),
-[`hb_update_column()`](https://r-heller.github.io/harbouR/reference/hb_update_column.md),
-[`hb_update_select_option()`](https://r-heller.github.io/harbouR/reference/hb_update_select_option.md)
+[`hb_add_column()`](https://cttir.github.io/harbouR/reference/hb_add_column.md),
+[`hb_add_select_option()`](https://cttir.github.io/harbouR/reference/hb_add_select_option.md),
+[`hb_delete_column()`](https://cttir.github.io/harbouR/reference/hb_delete_column.md),
+[`hb_delete_select_option()`](https://cttir.github.io/harbouR/reference/hb_delete_select_option.md),
+[`hb_list_columns()`](https://cttir.github.io/harbouR/reference/hb_list_columns.md),
+[`hb_update_column()`](https://cttir.github.io/harbouR/reference/hb_update_column.md),
+[`hb_update_select_option()`](https://cttir.github.io/harbouR/reference/hb_update_select_option.md)
 
 ## Examples
 

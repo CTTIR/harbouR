@@ -27,9 +27,9 @@ A single `TRUE` on success; errors otherwise.
 ## See also
 
 Other client:
-[`hb_client()`](https://r-heller.github.io/harbouR/reference/hb_client.md),
-[`hb_server_info()`](https://r-heller.github.io/harbouR/reference/hb_server_info.md),
-[`is_harbour_client()`](https://r-heller.github.io/harbouR/reference/is_harbour_client.md)
+[`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md),
+[`hb_server_info()`](https://cttir.github.io/harbouR/reference/hb_server_info.md),
+[`is_harbour_client()`](https://cttir.github.io/harbouR/reference/is_harbour_client.md)
 
 ## Examples
 

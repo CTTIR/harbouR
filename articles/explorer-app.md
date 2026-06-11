@@ -2,12 +2,12 @@
 
 ![harbouR logo](../reference/figures/logo.png)
 
-[`hb_run_explorer()`](https://r-heller.github.io/harbouR/reference/hb_run_explorer.md)
+[`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
 launches a Shiny app for inspecting a SeaTable base interactively. Reach
 for it when you want to *see* what is in a base quickly; reach for the
 programmatic API
-([`hb_read_table()`](https://r-heller.github.io/harbouR/reference/hb_read_table.md),
-[`hb_query()`](https://r-heller.github.io/harbouR/reference/hb_query.md)
+([`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+[`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)
 and friends) when you want to *do* something with the data.
 
 The app and its UI dependencies (`shiny`, `bslib`, `DT`, `reactable`,
@@ -37,7 +37,7 @@ without a network call.
   `reactable` of the tables and a small ggplot of rows-per-table.
 - **Tables.** The centrepiece. Pick a table; the app fetches it lazily
   via
-  [`hb_read_table()`](https://r-heller.github.io/harbouR/reference/hb_read_table.md),
+  [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
   caches it, and shows the typed tibble in a `reactable` with the
   column-type badges and list-column chips. A side panel lists every
   column’s SeaTable type and the R type it maps to.
@@ -62,7 +62,7 @@ prevents. The interactive demo above is the canonical reference.
 
 ## Next steps
 
-- [`vignette("harbouR")`](https://r-heller.github.io/harbouR/articles/harbouR.md) -
+- [`vignette("harbouR")`](https://cttir.github.io/harbouR/articles/harbouR.md) -
   the five-minute end-to-end story.
-- [`vignette("column-types")`](https://r-heller.github.io/harbouR/articles/column-types.md) -
+- [`vignette("column-types")`](https://cttir.github.io/harbouR/articles/column-types.md) -
   the coercion layer in detail.

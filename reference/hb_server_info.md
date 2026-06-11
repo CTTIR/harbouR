@@ -26,9 +26,9 @@ A one-row tibble with columns `server` (chr), `version` (chr) and
 ## See also
 
 Other client:
-[`hb_client()`](https://r-heller.github.io/harbouR/reference/hb_client.md),
-[`hb_ping()`](https://r-heller.github.io/harbouR/reference/hb_ping.md),
-[`is_harbour_client()`](https://r-heller.github.io/harbouR/reference/is_harbour_client.md)
+[`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md),
+[`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md),
+[`is_harbour_client()`](https://cttir.github.io/harbouR/reference/is_harbour_client.md)
 
 ## Examples
 

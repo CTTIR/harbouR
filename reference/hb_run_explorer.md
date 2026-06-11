@@ -4,9 +4,9 @@ Starts the bundled Shiny explorer app for inspecting a SeaTable base
 interactively. Pass a connected `harbour_client` to skip the connect
 screen, or run with no arguments to open the connect screen — which also
 offers a fully offline demo mode powered by
-[`hb_example_metadata()`](https://r-heller.github.io/harbouR/reference/hb_example_metadata.md)
+[`hb_example_metadata()`](https://cttir.github.io/harbouR/reference/hb_example_metadata.md)
 and
-[`hb_example_rows()`](https://r-heller.github.io/harbouR/reference/hb_example_rows.md).
+[`hb_example_rows()`](https://cttir.github.io/harbouR/reference/hb_example_rows.md).
 
 ## Usage
 

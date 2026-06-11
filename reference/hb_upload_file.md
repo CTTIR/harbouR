@@ -3,9 +3,9 @@
 Uploads `path` to the active base and returns the SeaTable file object
 (a named list with `name`, `size`, `type` and `url`) ready to be written
 into a `file`-typed cell via
-[`hb_update_rows()`](https://r-heller.github.io/harbouR/reference/hb_update_rows.md)
+[`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
 or
-[`hb_attach_file()`](https://r-heller.github.io/harbouR/reference/hb_attach_file.md).
+[`hb_attach_file()`](https://cttir.github.io/harbouR/reference/hb_attach_file.md).
 
 ## Usage
 
@@ -43,9 +43,9 @@ A named list describing the uploaded asset.
 ## See also
 
 Other files:
-[`hb_attach_file()`](https://r-heller.github.io/harbouR/reference/hb_attach_file.md),
-[`hb_delete_asset()`](https://r-heller.github.io/harbouR/reference/hb_delete_asset.md),
-[`hb_download_file()`](https://r-heller.github.io/harbouR/reference/hb_download_file.md)
+[`hb_attach_file()`](https://cttir.github.io/harbouR/reference/hb_attach_file.md),
+[`hb_delete_asset()`](https://cttir.github.io/harbouR/reference/hb_delete_asset.md),
+[`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
 
 ## Examples
 

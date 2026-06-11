@@ -1,7 +1,7 @@
 # Offline example rows
 
 Returns a tibble of example rows for one of the tables provided by
-[`hb_example_metadata()`](https://r-heller.github.io/harbouR/reference/hb_example_metadata.md).
+[`hb_example_metadata()`](https://cttir.github.io/harbouR/reference/hb_example_metadata.md).
 The rows exercise every column type harbouR supports, including
 list-columns and dates, so tests and the column-types vignette can
 demonstrate the coercion layer without a SeaTable server.
@@ -25,7 +25,7 @@ A tibble.
 ## See also
 
 Other example data:
-[`hb_example_metadata()`](https://r-heller.github.io/harbouR/reference/hb_example_metadata.md)
+[`hb_example_metadata()`](https://cttir.github.io/harbouR/reference/hb_example_metadata.md)
 
 ## Examples
 

@@ -55,6 +55,6 @@ hb_example_rows("Samples")
 
 ## Interactive explorer
 
-[`hb_run_explorer()`](https://r-heller.github.io/harbouR/reference/hb_run_explorer.md)
+[`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
 launches a Shiny app for inspecting any base interactively, with a demo
 mode that needs no credentials.

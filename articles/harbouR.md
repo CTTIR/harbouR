@@ -124,4 +124,4 @@ hb_attach_file(client, "Samples", "r0001", "Reports", "report.pdf")
 
 - The `column-types` vignette explains the coercion layer in detail.
 - The `explorer-app` vignette walks through
-  [`hb_run_explorer()`](https://r-heller.github.io/harbouR/reference/hb_run_explorer.md).
+  [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md).

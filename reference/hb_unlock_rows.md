@@ -33,13 +33,13 @@ Invisibly returns the client.
 ## See also
 
 Other rows:
-[`hb_append_rows()`](https://r-heller.github.io/harbouR/reference/hb_append_rows.md),
-[`hb_delete_rows()`](https://r-heller.github.io/harbouR/reference/hb_delete_rows.md),
-[`hb_get_row()`](https://r-heller.github.io/harbouR/reference/hb_get_row.md),
-[`hb_lock_rows()`](https://r-heller.github.io/harbouR/reference/hb_lock_rows.md),
-[`hb_query()`](https://r-heller.github.io/harbouR/reference/hb_query.md),
-[`hb_read_table()`](https://r-heller.github.io/harbouR/reference/hb_read_table.md),
-[`hb_update_rows()`](https://r-heller.github.io/harbouR/reference/hb_update_rows.md)
+[`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md),
+[`hb_delete_rows()`](https://cttir.github.io/harbouR/reference/hb_delete_rows.md),
+[`hb_get_row()`](https://cttir.github.io/harbouR/reference/hb_get_row.md),
+[`hb_lock_rows()`](https://cttir.github.io/harbouR/reference/hb_lock_rows.md),
+[`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md),
+[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+[`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
 
 ## Examples
 

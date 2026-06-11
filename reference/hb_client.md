@@ -77,9 +77,9 @@ variables `SEATABLE_SERVER` and `SEATABLE_API_TOKEN`.
 ## See also
 
 Other client:
-[`hb_ping()`](https://r-heller.github.io/harbouR/reference/hb_ping.md),
-[`hb_server_info()`](https://r-heller.github.io/harbouR/reference/hb_server_info.md),
-[`is_harbour_client()`](https://r-heller.github.io/harbouR/reference/is_harbour_client.md)
+[`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md),
+[`hb_server_info()`](https://cttir.github.io/harbouR/reference/hb_server_info.md),
+[`is_harbour_client()`](https://cttir.github.io/harbouR/reference/is_harbour_client.md)
 
 ## Examples
 

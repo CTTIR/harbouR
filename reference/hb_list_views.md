@@ -30,10 +30,10 @@ Zero rows if no views exist.
 ## See also
 
 Other views:
-[`hb_create_view()`](https://r-heller.github.io/harbouR/reference/hb_create_view.md),
-[`hb_delete_view()`](https://r-heller.github.io/harbouR/reference/hb_delete_view.md),
-[`hb_get_view()`](https://r-heller.github.io/harbouR/reference/hb_get_view.md),
-[`hb_update_view()`](https://r-heller.github.io/harbouR/reference/hb_update_view.md)
+[`hb_create_view()`](https://cttir.github.io/harbouR/reference/hb_create_view.md),
+[`hb_delete_view()`](https://cttir.github.io/harbouR/reference/hb_delete_view.md),
+[`hb_get_view()`](https://cttir.github.io/harbouR/reference/hb_get_view.md),
+[`hb_update_view()`](https://cttir.github.io/harbouR/reference/hb_update_view.md)
 
 ## Examples
 
