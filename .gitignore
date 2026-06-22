@@ -5,6 +5,7 @@
 docs/
 inst/doc/
 _build.R
+_coverage/
 .DS_Store
 /doc/
 /Meta/

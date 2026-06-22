@@ -141,8 +141,9 @@
   tryCatch(
     httr2::req_perform(req),
     httr2_http_404 = function(e) {
+      url <- .hb_safe_url(req)
       cli::cli_abort(c("Endpoint not found.",
-                       "x" = "HTTP 404 at {.url {.hb_safe_url(req)}}"))
+                       "x" = "HTTP 404 at {.url {url}}"))
     },
     httr2_http = function(e) {
       .hb_translate_error(e)

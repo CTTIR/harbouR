@@ -1,3 +1,12 @@
+# harbouR (development version)
+
+## Bug fixes
+
+* `.hb_perform_raw()` no longer crashes when a request returns HTTP 404. The
+  404 error message now interpolates the request URL via a local variable
+  instead of calling `.hb_safe_url()` inline, which cli (>= 3.4.0) misread as
+  a style name beginning with a dot.
+
 # harbouR 0.1.0
 
 Initial release.

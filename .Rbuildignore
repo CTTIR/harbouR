@@ -1,4 +1,5 @@
 ^_build\.R$
+^_coverage$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
