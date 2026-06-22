@@ -8,3 +8,9 @@ _build.R
 .DS_Store
 /doc/
 /Meta/
+*.tmp
+*.log
+*~
+*.bak
+*.orig
+*.Rcheck/
