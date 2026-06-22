@@ -81,7 +81,7 @@
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"r-heller/harbouR"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"CTTIR/harbouR"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-example">Quick example<a class="anchor" aria-label="anchor" href="#quick-example"></a>
@@ -105,13 +105,20 @@
 <span></span>
 <span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hb_example_metadata.html">hb_example_metadata</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">meta</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 2 x 4</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 4</span></span>
 <span><span class="co">#&gt;   name     n_rows n_columns n_views</span></span>
 <span><span class="co">#&gt;   &lt;chr&gt;     &lt;int&gt;     &lt;int&gt;   &lt;int&gt;</span></span>
 <span><span class="co">#&gt; 1 Samples       0         7       1</span></span>
 <span><span class="co">#&gt; 2 Patients      0         4       1</span></span>
 <span></span>
-<span><span class="fu"><a href="reference/hb_example_rows.html">hb_example_rows</a></span><span class="op">(</span><span class="st">"Samples"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/hb_example_rows.html">hb_example_rows</a></span><span class="op">(</span><span class="st">"Samples"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 3 × 8</span></span>
+<span><span class="co">#&gt;   Name  Concentration Status  Tags   Collected           Collaborators Reports</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;   &lt;list&gt; &lt;dttm&gt;              &lt;list&gt;        &lt;list&gt; </span></span>
+<span><span class="co">#&gt; 1 S-001          12.4 draft   &lt;chr&gt;  2026-04-01 09:00:00 &lt;chr [1]&gt;     &lt;list&gt; </span></span>
+<span><span class="co">#&gt; 2 S-002           8.1 ready   &lt;chr&gt;  2026-04-03 12:30:00 &lt;chr [2]&gt;     &lt;list&gt; </span></span>
+<span><span class="co">#&gt; 3 S-003          21   shipped &lt;chr&gt;  2026-04-05 16:15:00 &lt;chr [0]&gt;     &lt;list&gt; </span></span>
+<span><span class="co">#&gt; # ℹ 1 more variable: `_id` &lt;chr&gt;</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="interactive-explorer">Interactive explorer<a class="anchor" aria-label="anchor" href="#interactive-explorer"></a>

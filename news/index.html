@@ -43,6 +43,14 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="harbour-development-version">harbouR (development version)<a class="anchor" aria-label="anchor" href="#harbour-development-version"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>
+<code>.hb_perform_raw()</code> no longer crashes when a request returns HTTP 404. The 404 error message now interpolates the request URL via a local variable instead of calling <code>.hb_safe_url()</code> inline, which cli (&gt;= 3.4.0) misread as a style name beginning with a dot.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="harbour-010">harbouR 0.1.0<a class="anchor" aria-label="anchor" href="#harbour-010"></a></h2>
 <p>Initial release.</p>
 <ul><li>Tier 1 (fully implemented):
@@ -58,7 +66,8 @@
 </ul></li>
 <li>Tiers 2 and 3 (links, big data, comments, notifications, snapshots, bases, import/export, sharing, integrations, admin, team, scheduler) are scaffolded with documented stubs and will land in later minor releases.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

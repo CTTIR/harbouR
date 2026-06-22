@@ -14,7 +14,7 @@ makes spreadsheets feel like data frames.
 ``` r
 
 # install.packages("pak")
-pak::pak("r-heller/harbouR")
+pak::pak("CTTIR/harbouR")
 ```
 
 ## Quick example
@@ -44,13 +44,20 @@ library(harbouR)
 
 meta <- hb_example_metadata()
 tibble::as_tibble(meta)
-#> # A tibble: 2 x 4
+#> # A tibble: 2 × 4
 #>   name     n_rows n_columns n_views
 #>   <chr>     <int>     <int>   <int>
 #> 1 Samples       0         7       1
 #> 2 Patients      0         4       1
 
 hb_example_rows("Samples")
+#> # A tibble: 3 × 8
+#>   Name  Concentration Status  Tags   Collected           Collaborators Reports
+#>   <chr>         <dbl> <chr>   <list> <dttm>              <list>        <list> 
+#> 1 S-001          12.4 draft   <chr>  2026-04-01 09:00:00 <chr [1]>     <list> 
+#> 2 S-002           8.1 ready   <chr>  2026-04-03 12:30:00 <chr [2]>     <list> 
+#> 3 S-003          21   shipped <chr>  2026-04-05 16:15:00 <chr [0]>     <list> 
+#> # ℹ 1 more variable: `_id` <chr>
 ```
 
 ## Interactive explorer
