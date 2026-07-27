@@ -43,13 +43,12 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="harbour-development-version">harbouR (development version)<a class="anchor" aria-label="anchor" href="#harbour-development-version"></a></h2>
-<div class="section level3">
-<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
-<ul><li>
-<code>.hb_perform_raw()</code> no longer crashes when a request returns HTTP 404. The 404 error message now interpolates the request URL via a local variable instead of calling <code>.hb_safe_url()</code> inline, which cli (&gt;= 3.4.0) misread as a style name beginning with a dot.</li>
+<h2 class="pkg-version" data-toc-text="0.1.0.9000" id="harbour-0109000-development-version">harbouR 0.1.0.9000 (development version)<a class="anchor" aria-label="anchor" href="#harbour-0109000-development-version"></a></h2>
+<ul><li><p>The maintainer address is now <code>raban.heller@uni-ulm.de</code>, and <code>URL</code> / <code>BugReports</code> point at <a href="https://github.com/CTTIR/harbouR" class="external-link uri">https://github.com/CTTIR/harbouR</a>, which is where the package actually lives. Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent Forstmeier are credited as contributors.</p></li>
+<li><p><code><a href="../reference/hb_example_metadata.html">hb_example_metadata()</a></code> now reads the demo base from <code>inst/extdata/example_metadata.json</code> rather than duplicating it in R source, so there is a single definition to maintain.</p></li>
+<li><p>HTTP 404 responses now name the failing endpoint instead of erroring while trying to format the message.</p></li>
+<li><p><code>httptest2</code> has been dropped from <code>Suggests</code>: it was never used, and its absence turned <code>R CMD check</code> red on any machine without it. HTTP is replaced at the package’s own request seam instead.</p></li>
 </ul></div>
-</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="harbour-010">harbouR 0.1.0<a class="anchor" aria-label="anchor" href="#harbour-010"></a></h2>
 <p>Initial release.</p>

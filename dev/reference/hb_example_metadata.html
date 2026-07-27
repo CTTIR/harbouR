@@ -67,6 +67,13 @@ yield.</p>
 tables: <code>Samples</code> and <code>Patients</code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The base is defined once, in <code>inst/extdata/example_metadata.json</code>, and
+parsed on each call. Keeping it in a data file rather than in R source
+means the demo base is also readable from outside R, and there is only
+one definition to keep in step with the coercion layer.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other example data:
 <code><a href="hb_example_rows.html">hb_example_rows()</a></code></p></div>

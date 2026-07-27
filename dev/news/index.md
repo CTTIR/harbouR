@@ -1,13 +1,24 @@
 # Changelog
 
-## harbouR (development version)
+## harbouR 0.1.0.9000 (development version)
 
-### Bug fixes
+- The maintainer address is now `raban.heller@uni-ulm.de`, and `URL` /
+  `BugReports` point at <https://github.com/CTTIR/harbouR>, which is
+  where the package actually lives. Paul Elsinghorst, Wiebke Derz,
+  Matthias Ring, Gerhard Achatz and Vinzent Forstmeier are credited as
+  contributors.
 
-- `.hb_perform_raw()` no longer crashes when a request returns HTTP 404.
-  The 404 error message now interpolates the request URL via a local
-  variable instead of calling `.hb_safe_url()` inline, which cli (\>=
-  3.4.0) misread as a style name beginning with a dot.
+- [`hb_example_metadata()`](https://cttir.github.io/harbouR/dev/reference/hb_example_metadata.md)
+  now reads the demo base from `inst/extdata/example_metadata.json`
+  rather than duplicating it in R source, so there is a single
+  definition to maintain.
+
+- HTTP 404 responses now name the failing endpoint instead of erroring
+  while trying to format the message.
+
+- `httptest2` has been dropped from `Suggests`: it was never used, and
+  its absence turned `R CMD check` red on any machine without it. HTTP
+  is replaced at the package’s own request seam instead.
 
 ## harbouR 0.1.0
 

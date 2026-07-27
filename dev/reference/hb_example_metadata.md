@@ -16,6 +16,13 @@ hb_example_metadata()
 A `harbour_metadata` object describing a tiny base with two tables:
 `Samples` and `Patients`.
 
+## Details
+
+The base is defined once, in `inst/extdata/example_metadata.json`, and
+parsed on each call. Keeping it in a data file rather than in R source
+means the demo base is also readable from outside R, and there is only
+one definition to keep in step with the coercion layer.
+
 ## See also
 
 Other example data:
