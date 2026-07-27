@@ -1,10 +1,9 @@
-test_that(".hb_base_url picks the right host per service", {
+test_that(".hb_base_url serves both surfaces from the main host", {
+  # SeaTable 5.3 removed the separate dtable-server / dtable-db hosts.
   cl <- mock_client()
-  cl$.dtable_server <- "https://ds.example.org"
-  cl$.dtable_db <- "https://db.example.org"
   expect_identical(harbouR:::.hb_base_url(cl, "web"), cl$server)
-  expect_identical(harbouR:::.hb_base_url(cl, "dtable_server"), "https://ds.example.org")
-  expect_identical(harbouR:::.hb_base_url(cl, "dtable_db"), "https://db.example.org")
+  expect_identical(harbouR:::.hb_base_url(cl, "gateway"), cl$server)
+  expect_error(harbouR:::.hb_base_url(cl, "dtable_server"))
 })
 
 test_that(".hb_auth_header builds api/account/base headers", {
@@ -13,8 +12,9 @@ test_that(".hb_auth_header builds api/account/base headers", {
                    paste("Token", cl$api_token))
   cl$.account_token <- "ACCT"
   expect_identical(harbouR:::.hb_auth_header(cl, "account"), "Token ACCT")
+  # The gateway takes Bearer for base tokens; the web API takes Token.
   expect_identical(harbouR:::.hb_auth_header(cl, "base"),
-                   paste("Token", cl$.base_token))
+                   paste("Bearer", cl$.base_token))
 })
 
 test_that(".hb_auth_header errors when api token is absent", {
@@ -74,7 +74,7 @@ test_that(".hb_get_base_token populates client state from the response", {
   )
   tok <- harbouR:::.hb_get_base_token(cl)
   expect_identical(tok, "BASETOK")
-  expect_identical(cl$.dtable_server, "https://ds")
+  expect_identical(cl$.workspace_id, 42)
   expect_identical(cl$base_uuid, "uuid-1")
   expect_identical(cl$.base_name, "MyBase")
   expect_s3_class(cl$.base_token_expires, "POSIXct")

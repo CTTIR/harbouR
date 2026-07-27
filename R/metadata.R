@@ -19,8 +19,8 @@
 hb_metadata <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
-  body <- .hb_request(client, "/dtables/api/v1/dtables/metadata/",
-    service = "dtable_server", auth = "base", method = "GET"
+  body <- .hb_request(client, .hb_base_path(client, "metadata", ""),
+    service = "gateway", auth = "base", method = "GET"
   )
   meta_raw <- body$metadata %||% body
   out <- new_harbour_metadata(meta_raw, base_name = client$.base_name)
@@ -91,8 +91,8 @@ hb_list_tables <- function(client, ..., refresh = FALSE) {
 hb_list_collaborators <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
-  body <- .hb_request(client, "/api/v2.1/dtable/related-users/",
-    service = "web", auth = "api", method = "GET"
+  body <- .hb_request(client, .hb_base_path(client, "related-users", ""),
+    service = "gateway", auth = "base", method = "GET"
   )
   users <- body$user_list %||% body$collaborators %||% list()
   if (length(users) == 0L) {

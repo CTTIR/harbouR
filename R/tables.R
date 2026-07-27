@@ -21,8 +21,8 @@ hb_create_table <- function(client, table, ..., columns = list()) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
-    service = "dtable_server", auth = "base", method = "POST",
+  .hb_request(client, .hb_base_path(client, "tables", ""),
+    service = "gateway", auth = "base", method = "POST",
     body = list(table_name = table, columns = columns)
   )
   .hb_invalidate_metadata(client)
@@ -45,8 +45,8 @@ hb_rename_table <- function(client, table, new_name, ...) {
   .check_client(client)
   .check_string(table)
   .check_string(new_name)
-  .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "tables", ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = list(table_name = table, new_table_name = new_name)
   )
   .hb_invalidate_metadata(client)
@@ -67,8 +67,8 @@ hb_delete_table <- function(client, table, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
-  .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
-    service = "dtable_server", auth = "base", method = "DELETE",
+  .hb_request(client, .hb_base_path(client, "tables", ""),
+    service = "gateway", auth = "base", method = "DELETE",
     body = list(table_name = table)
   )
   .hb_invalidate_metadata(client)
@@ -93,8 +93,8 @@ hb_duplicate_table <- function(client, table, ..., new_name = NULL) {
   .check_string(new_name, allow_null = TRUE)
   body <- list(table_name = table)
   if (!is.null(new_name)) body$new_table_name <- new_name
-  .hb_request(client, "/dtable-server/api/v1/dtables/tables/duplicate/",
-    service = "dtable_server", auth = "base", method = "POST",
+  .hb_request(client, .hb_base_path(client, "tables", "duplicate-table", ""),
+    service = "gateway", auth = "base", method = "POST",
     body = body
   )
   .hb_invalidate_metadata(client)

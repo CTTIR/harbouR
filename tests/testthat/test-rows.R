@@ -148,7 +148,7 @@ test_that("hb_lock_rows and hb_unlock_rows validate and return the client", {
     response = list()
   )
   expect_identical(res, cl)
-  expect_identical(rec$calls[[1]]$path, "/dtable-server/api/v1/dtables/lock-rows/")
+  expect_match(rec$calls[[1]]$path, "lock-rows/$")
   rec2 <- with_mocked_request(
     res2 <- hb_unlock_rows(cl, "Samples", "r1"),
     response = list()

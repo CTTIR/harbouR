@@ -41,8 +41,8 @@ hb_read_table <- function(client, table, ..., view = NULL, limit = 1000L) {
   repeat {
     q <- list(table_name = table, start = start, limit = as.integer(limit))
     if (!is.null(view)) q$view_name <- view
-    body <- .hb_request(client, "/dtable-server/api/v1/dtables/rows/",
-      service = "dtable_server", auth = "base",
+    body <- .hb_request(client, .hb_base_path(client, "rows", ""),
+      service = "gateway", auth = "base",
       method = "GET", query = q
     )
     chunk <- body$rows %||% list()
@@ -69,8 +69,8 @@ hb_query <- function(client, sql, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(sql)
-  body <- .hb_request(client, "/dtable-db/api/v1/query/",
-    service = "dtable_db", auth = "base",
+  body <- .hb_request(client, .hb_base_path(client, "sql", ""),
+    service = "gateway", auth = "base",
     method = "POST",
     body = list(sql = sql, convert_keys = TRUE)
   )
@@ -117,9 +117,8 @@ hb_get_row <- function(client, table, row_id, ...) {
   .check_string(row_id)
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
-  body <- .hb_request(client,
-    paste0("/dtable-server/api/v1/dtables/rows/", row_id, "/"),
-    service = "dtable_server", auth = "base", method = "GET",
+  body <- .hb_request(client, .hb_base_path(client, "rows", row_id, ""),
+    service = "gateway", auth = "base", method = "GET",
     query = list(table_name = table)
   )
   if (is.null(body) || length(body) == 0L) {
@@ -153,8 +152,8 @@ hb_append_rows <- function(client, table, data, ...) {
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   rows <- .hb_tibble_to_rows(data, cols)
   body <- .hb_request(
-    client, "/dtable-server/api/v1/dtables/batch-append-rows/",
-    service = "dtable_server", auth = "base",
+    client, .hb_base_path(client, "rows", ""),
+    service = "gateway", auth = "base",
     method = "POST",
     body = list(table_name = table, rows = rows)
   )
@@ -216,8 +215,8 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
       row = row
     )
   }
-  .hb_request(client, "/dtable-server/api/v1/dtables/batch-update-rows/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "rows", ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = list(table_name = table, updates = updates)
   )
   invisible(tibble::tibble(
@@ -247,8 +246,8 @@ hb_delete_rows <- function(client, table, row_ids, ...) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, "/dtable-server/api/v1/dtables/batch-delete-rows/",
-    service = "dtable_server", auth = "base", method = "DELETE",
+  .hb_request(client, .hb_base_path(client, "rows", ""),
+    service = "gateway", auth = "base", method = "DELETE",
     body = list(table_name = table, row_ids = as.list(row_ids))
   )
   invisible(tibble::tibble(
@@ -276,8 +275,8 @@ hb_lock_rows <- function(client, table, row_ids, ...) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, "/dtable-server/api/v1/dtables/lock-rows/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "lock-rows", ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = list(table_name = table, row_ids = as.list(row_ids))
   )
   invisible(client)
@@ -301,8 +300,8 @@ hb_unlock_rows <- function(client, table, row_ids, ...) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, "/dtable-server/api/v1/dtables/unlock-rows/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "unlock-rows", ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = list(table_name = table, row_ids = as.list(row_ids))
   )
   invisible(client)

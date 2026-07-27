@@ -57,8 +57,8 @@ hb_get_view <- function(client, table, view, ...) {
   .check_client(client)
   .check_string(table)
   .check_string(view)
-  body <- .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-    service = "dtable_server", auth = "base", method = "GET",
+  body <- .hb_request(client, .hb_base_path(client, "views", view, ""),
+    service = "gateway", auth = "base", method = "GET",
     query = list(table_name = table, view_name = view)
   )
   tibble::tibble(
@@ -87,8 +87,8 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
   .check_string(view)
   body <- list(table_name = table, name = view)
   body <- c(body, settings)
-  .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-    service = "dtable_server", auth = "base", method = "POST",
+  .hb_request(client, .hb_base_path(client, "views", ""),
+    service = "gateway", auth = "base", method = "POST",
     body = body
   )
   .hb_invalidate_metadata(client)
@@ -115,8 +115,8 @@ hb_update_view <- function(client, table, view, settings, ...) {
     )
   }
   body <- c(list(table_name = table, view_name = view), settings)
-  .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "views", view, ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = body
   )
   .hb_invalidate_metadata(client)
@@ -138,8 +138,8 @@ hb_delete_view <- function(client, table, view, ...) {
   .check_client(client)
   .check_string(table)
   .check_string(view)
-  .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-    service = "dtable_server", auth = "base", method = "DELETE",
+  .hb_request(client, .hb_base_path(client, "views", view, ""),
+    service = "gateway", auth = "base", method = "DELETE",
     body = list(table_name = table, view_name = view)
   )
   .hb_invalidate_metadata(client)

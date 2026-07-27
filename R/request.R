@@ -14,14 +14,14 @@
 
 #' @keywords internal
 #' @noRd
-.hb_base_url <- function(client,
-                         service = c("web", "dtable_server",
-                                     "dtable_db")) {
+.hb_base_url <- function(client, service = c("gateway", "web")) {
   service <- rlang::arg_match(service)
+  # Both are served from the main host. Before 4.4 base operations lived on
+  # separate dtable-server and dtable-db hosts; those were deprecated in 5.2
+  # and removed in 5.3, and harbouR no longer addresses them.
   switch(service,
-    web = client$server,
-    dtable_server = client$.dtable_server %||% client$server,
-    dtable_db = client$.dtable_db %||% client$server
+    gateway = client$server,
+    web = client$server
   )
 }
 
@@ -53,7 +53,9 @@
     },
     base = {
       tok <- client$.base_token %||% .hb_get_base_token(client, call = call)
-      paste("Token", tok)
+      # The gateway expects Bearer for base tokens. `Token` is still right
+      # for the web API's account and API tokens, handled above.
+      paste("Bearer", tok)
     }
   )
 }
@@ -113,8 +115,6 @@
   resp <- .hb_perform_raw(req, call = call)
   body <- .hb_resp_json(resp, call = call)
   client$.base_token <- body$access_token %||% body$dtable_access_token
-  client$.dtable_server <- body$dtable_server %||% client$server
-  client$.dtable_db <- body$dtable_db %||% body$dtable_server %||% client$server
   client$.workspace_id <- body$workspace_id
   client$.base_uuid_seen <- body$dtable_uuid %||% body$base_uuid
   if (is.null(client$base_uuid)) client$base_uuid <- client$.base_uuid_seen
@@ -134,7 +134,7 @@
 #' @noRd
 .hb_req <- function(client,
                     path,
-                    service = c("web", "dtable_server", "dtable_db"),
+                    service = c("gateway", "web"),
                     auth = c("base", "account", "api", "none"),
                     query = NULL,
                     call = rlang::caller_env()) {
@@ -243,7 +243,7 @@
 
 #' @keywords internal
 #' @noRd
-.hb_request <- function(client, path, service = "dtable_server", auth = "base",
+.hb_request <- function(client, path, service = "gateway", auth = "base",
                         method = "GET", query = NULL, body = NULL,
                         call = rlang::caller_env()) {
   req <- .hb_req(

@@ -106,8 +106,6 @@ new_harbour_client <- function(server, api_token, username, password,
   env$.account_token <- NULL
   env$.base_token <- NULL
   env$.base_token_expires <- NULL
-  env$.dtable_server <- NULL
-  env$.dtable_db <- NULL
   env$.workspace_id <- NULL
   env$.base_name <- NULL
   env$.metadata <- NULL

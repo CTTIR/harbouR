@@ -54,8 +54,8 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
   .check_string(type)
   body <- list(table_name = table, column_name = name, column_type = type)
   if (!is.null(column_data)) body$column_data <- column_data
-  .hb_request(client, "/dtable-server/api/v1/dtables/columns/",
-    service = "dtable_server", auth = "base", method = "POST",
+  .hb_request(client, .hb_base_path(client, "columns", ""),
+    service = "gateway", auth = "base", method = "POST",
     body = body
   )
   .hb_invalidate_metadata(client)
@@ -87,8 +87,8 @@ hb_add_columns <- function(client, table, columns, ...) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, "/dtable-server/api/v1/dtables/batch-append-columns/",
-    service = "dtable_server", auth = "base", method = "POST",
+  .hb_request(client, .hb_base_path(client, "batch-append-columns", ""),
+    service = "gateway", auth = "base", method = "POST",
     body = list(table_name = table, columns = columns)
   )
   .hb_invalidate_metadata(client)
@@ -115,8 +115,8 @@ hb_update_column <- function(client, table, name, ..., new_name = NULL,
   body <- list(table_name = table, column = name)
   if (!is.null(new_name)) body$new_column_name <- new_name
   if (!is.null(column_data)) body$column_data <- column_data
-  .hb_request(client, "/dtable-server/api/v1/dtables/columns/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "columns", ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = body
   )
   .hb_invalidate_metadata(client)
@@ -137,8 +137,8 @@ hb_delete_column <- function(client, table, name, ...) {
   .check_client(client)
   .check_string(table)
   .check_string(name)
-  .hb_request(client, "/dtable-server/api/v1/dtables/columns/",
-    service = "dtable_server", auth = "base", method = "DELETE",
+  .hb_request(client, .hb_base_path(client, "columns", ""),
+    service = "gateway", auth = "base", method = "DELETE",
     body = list(table_name = table, column = name)
   )
   .hb_invalidate_metadata(client)
@@ -161,8 +161,8 @@ hb_add_select_option <- function(client, table, name, option, ...) {
   .check_string(table)
   .check_string(name)
   .check_string(option)
-  .hb_request(client, "/dtable-server/api/v1/dtables/column-options/",
-    service = "dtable_server", auth = "base", method = "POST",
+  .hb_request(client, .hb_base_path(client, "column-options", ""),
+    service = "gateway", auth = "base", method = "POST",
     body = list(
       table_name = table, column = name,
       options = list(list(name = option))
@@ -194,8 +194,8 @@ hb_update_select_option <- function(client,
   .check_string(name)
   .check_string(option)
   .check_string(new_option)
-  .hb_request(client, "/dtable-server/api/v1/dtables/column-options/",
-    service = "dtable_server", auth = "base", method = "PUT",
+  .hb_request(client, .hb_base_path(client, "column-options", ""),
+    service = "gateway", auth = "base", method = "PUT",
     body = list(
       table_name = table, column = name,
       option = option, new_option = new_option
@@ -220,8 +220,8 @@ hb_delete_select_option <- function(client, table, name, option, ...) {
   .check_string(table)
   .check_string(name)
   .check_string(option)
-  .hb_request(client, "/dtable-server/api/v1/dtables/column-options/",
-    service = "dtable_server", auth = "base", method = "DELETE",
+  .hb_request(client, .hb_base_path(client, "column-options", ""),
+    service = "gateway", auth = "base", method = "DELETE",
     body = list(table_name = table, column = name, option = option)
   )
   .hb_invalidate_metadata(client)

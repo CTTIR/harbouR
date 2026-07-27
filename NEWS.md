@@ -42,6 +42,31 @@
   plaintext token used to stay reachable in process-global state for the
   rest of the session.
 
+* **Every base-scoped request now addresses a real resource.** The base
+  UUID was captured from the token exchange and then never interpolated
+  into a URL, so all 24 base-scoped paths pointed at a collection with no
+  base identifier. `hb_metadata()` additionally used a service prefix,
+  `/dtables/api/v1/`, that does not exist - and because every other
+  function lazily depends on it, its failure cascaded to all of them.
+
+* **harbouR now targets the SeaTable API gateway.** `/dtable-server/` and
+  `/dtable-db/` were deprecated in SeaTable 5.2 and removed in 5.3;
+  harbouR addressed them exclusively. Base operations move to
+  `/api-gateway/api/v2/dtables/{base_uuid}/`, which also collapses the
+  three-host service switch to one. Base tokens are sent as `Bearer`,
+  which is what the gateway expects; the web API keeps `Token`.
+  **This requires SeaTable 5.3 (June 2025) or newer.**
+
+* Table, view and row names are percent-encoded into the path, so a view
+  called `Erwartungswerte Toxine 1` or `a/b` no longer produces a broken
+  or ambiguous URL.
+
+* `hb_duplicate_table()` posted to `tables/duplicate/`; the endpoint is
+  `tables/duplicate-table/`.
+
+* `hb_list_collaborators()` called a web-service path that does not exist.
+  It is a base-scoped endpoint and needs the base token.
+
 * `hb_column_types()` is now genuinely the single source of truth for the
   coercion layer. It gains `is_list` and `read_only` logical columns, which
   the coercion functions derive their type sets from instead of repeating
