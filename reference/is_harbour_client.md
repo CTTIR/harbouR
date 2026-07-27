@@ -21,6 +21,7 @@ A single `TRUE` or `FALSE`.
 ## See also
 
 Other client:
+[`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md),
 [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md),
 [`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md),
 [`hb_server_info()`](https://cttir.github.io/harbouR/reference/hb_server_info.md)

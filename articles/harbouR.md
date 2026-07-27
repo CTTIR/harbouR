@@ -1,22 +1,5 @@
 # Get started with harbouR
 
-[![R-CMD-check](https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/CTTIR/harbouR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/harbouR/)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/harbouR)](https://CRAN.R-project.org/package=harbouR)
-[![Codecov test
-coverage](https://codecov.io/gh/CTTIR/harbouR/branch/main/graph/badge.svg)](https://app.codecov.io/gh/CTTIR/harbouR?branch=main)
-[![CRAN
-downloads](https://cranlogs.r-pkg.org/badges/harbouR)](https://cran.r-project.org/package=harbouR)
-[![CRAN downloads
-total](https://cranlogs.r-pkg.org/badges/grand-total/harbouR)](https://cran.r-project.org/package=harbouR)
-[![License:
-MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-
-![harbouR logo](../reference/figures/logo.png)
-
 You have a SeaTable base of patient samples and you want to pull it into
 R for analysis, push your results back, and attach the resulting PDF
 reports - all without leaving R. `harbouR` is an unofficial R client
@@ -59,15 +42,15 @@ meta
 #> • base : "harbouR demo base"
 #> • tables : 2
 #> 
-#> - Samples (7 cols, 0 rows)
-#> - Patients (4 cols, 0 rows)
+#> - Samples (7 cols, 1 views)
+#> - Patients (4 cols, 1 views)
 
 tibble::as_tibble(meta)
-#> # A tibble: 2 × 4
-#>   name     n_rows n_columns n_views
-#>   <chr>     <int>     <int>   <int>
-#> 1 Samples       0         7       1
-#> 2 Patients      0         4       1
+#> # A tibble: 2 × 3
+#>   name     n_columns n_views
+#>   <chr>        <int>   <int>
+#> 1 Samples          7       1
+#> 2 Patients         4       1
 ```
 
 ## Read a table
@@ -140,3 +123,13 @@ hb_attach_file(client, "Samples", "r0001", "Reports", "report.pdf")
 - The `column-types` vignette explains the coercion layer in detail.
 - The `explorer-app` vignette walks through
   [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md).
+
+## Acknowledgements
+
+harbouR was shaped by the needs, field testing and data of Paul
+Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+Forstmeier.
+
+SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
+unofficial client and is not affiliated with or endorsed by SeaTable
+GmbH.

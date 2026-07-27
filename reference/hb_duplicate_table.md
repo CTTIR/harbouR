@@ -5,7 +5,7 @@ Duplicate a table
 ## Usage
 
 ``` r
-hb_duplicate_table(client, table, new_name = NULL, call = rlang::caller_env())
+hb_duplicate_table(client, table, ..., new_name = NULL)
 ```
 
 ## Arguments
@@ -18,13 +18,13 @@ hb_duplicate_table(client, table, new_name = NULL, call = rlang::caller_env())
 
   Source table name.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - new_name:
 
   Optional new name. If `NULL` the server picks one.
-
-- call:
-
-  Internal: error-propagation env.
 
 ## Value
 

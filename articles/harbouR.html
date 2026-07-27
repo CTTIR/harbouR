@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Get started with harbouR • harbouR</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
@@ -46,7 +51,7 @@
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/r-heller/harbouR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/CTTIR/harbouR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -70,15 +75,12 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Get started with harbouR</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/r-heller/harbouR/blob/main/vignettes/harbouR.Rmd" class="external-link"><code>vignettes/harbouR.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/CTTIR/harbouR/blob/main/vignettes/harbouR.Rmd" class="external-link"><code>vignettes/harbouR.Rmd</code></a></small>
       <div class="d-none name"><code>harbouR.Rmd</code></div>
     </div>
 
     
     
-<!-- badges: start -->
-<p><a href="https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://cttir.github.io/harbouR/"><img src="https://github.com/CTTIR/harbouR/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a> <a href="https://CRAN.R-project.org/package=harbouR" class="external-link"><img src="https://www.r-pkg.org/badges/version/harbouR" alt="CRAN status"></a> <a href="https://app.codecov.io/gh/CTTIR/harbouR?branch=main" class="external-link"><img src="https://codecov.io/gh/CTTIR/harbouR/branch/main/graph/badge.svg" alt="Codecov test coverage"></a> <a href="https://cran.r-project.org/package=harbouR" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/harbouR" alt="CRAN downloads"></a> <a href="https://cran.r-project.org/package=harbouR" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/harbouR" alt="CRAN downloads total"></a> <a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="License: MIT"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> <!-- badges: end --></p>
-<p><img src="../reference/figures/logo.png" align="right" height="139" alt="harbouR logo"></p>
 <p>You have a SeaTable base of patient samples and you want to pull it
 into R for analysis, push your results back, and attach the resulting
 PDF reports - all without leaving R. <code>harbouR</code> is an
@@ -91,7 +93,7 @@ with or endorsed by SeaTable GmbH.</p>
 <h2 id="connect">Connect<a class="anchor" aria-label="anchor" href="#connect"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-heller/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_client.html">hb_client</a></span><span class="op">(</span></span>
 <span>  server    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"SEATABLE_SERVER"</span><span class="op">)</span>,</span>
@@ -110,7 +112,7 @@ refreshes transparently when it expires - you never see it.</p>
 the bundled example data, so you can knit the vignette without a
 server.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-heller/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_example_metadata.html">hb_example_metadata</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">meta</span></span>
@@ -119,15 +121,15 @@ server.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> base : <span style="color: #0000BB;">"harbouR demo base"</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> tables : 2</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; - Samples (7 cols, 0 rows)</span></span>
-<span><span class="co">#&gt; - Patients (4 cols, 0 rows)</span></span>
+<span><span class="co">#&gt; - Samples (7 cols, 1 views)</span></span>
+<span><span class="co">#&gt; - Patients (4 cols, 1 views)</span></span>
 <span></span>
 <span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">meta</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
-<span><span class="co">#&gt;   name     n_rows n_columns n_views</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Samples       0         7       1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Patients      0         4       1</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 3</span></span></span>
+<span><span class="co">#&gt;   name     n_columns n_views</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Samples          7       1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Patients         4       1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="read-a-table">Read a table<a class="anchor" aria-label="anchor" href="#read-a-table"></a>
@@ -194,6 +196,16 @@ in detail.</li>
 <code><a href="../reference/hb_run_explorer.html">hb_run_explorer()</a></code>.</li>
 </ul>
 </div>
+<div class="section level2">
+<h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
+</h2>
+<p>harbouR was shaped by the needs, field testing and data of Paul
+Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+Forstmeier.</p>
+<p>SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
+unofficial client and is not affiliated with or endorsed by SeaTable
+GmbH.</p>
+</div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
@@ -201,7 +213,7 @@ in detail.</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by R. Heller.</p>
+  <p>Developed by Raban Heller.</p>
 </div>
 
 <div class="pkgdown-footer-center themakr-footer-suite">
@@ -209,7 +221,7 @@ in detail.</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

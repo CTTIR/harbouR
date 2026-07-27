@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>The harbouR explorer • harbouR</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
@@ -46,7 +51,7 @@
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/r-heller/harbouR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/CTTIR/harbouR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -70,76 +75,86 @@
       <img src="../logo.svg" class="logo" alt=""><h1>The harbouR explorer</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/r-heller/harbouR/blob/main/vignettes/explorer-app.Rmd" class="external-link"><code>vignettes/explorer-app.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/CTTIR/harbouR/blob/main/vignettes/explorer-app.Rmd" class="external-link"><code>vignettes/explorer-app.Rmd</code></a></small>
       <div class="d-none name"><code>explorer-app.Rmd</code></div>
     </div>
 
     
     
-<!-- badges: start -->
-<p><a href="https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://cttir.github.io/harbouR/"><img src="https://github.com/CTTIR/harbouR/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a> <a href="https://CRAN.R-project.org/package=harbouR" class="external-link"><img src="https://www.r-pkg.org/badges/version/harbouR" alt="CRAN status"></a> <a href="https://app.codecov.io/gh/CTTIR/harbouR?branch=main" class="external-link"><img src="https://codecov.io/gh/CTTIR/harbouR/branch/main/graph/badge.svg" alt="Codecov test coverage"></a> <a href="https://cran.r-project.org/package=harbouR" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/harbouR" alt="CRAN downloads"></a> <a href="https://cran.r-project.org/package=harbouR" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/harbouR" alt="CRAN downloads total"></a> <a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="License: MIT"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> <!-- badges: end --></p>
-<p><img src="../reference/figures/logo.png" align="right" height="139" alt="harbouR logo"></p>
-<p><code><a href="../reference/hb_run_explorer.html">hb_run_explorer()</a></code> launches a Shiny app for inspecting a
-SeaTable base interactively. Reach for it when you want to <em>see</em>
-what is in a base quickly; reach for the programmatic API
+<p><code><a href="../reference/hb_run_explorer.html">hb_run_explorer()</a></code> launches a Shiny app for working with
+a SeaTable base without writing any R. Reach for it when you want to
+<em>see</em> what is in a base; reach for the programmatic API
 (<code><a href="../reference/hb_read_table.html">hb_read_table()</a></code>, <code><a href="../reference/hb_query.html">hb_query()</a></code> and friends) when
 you want to <em>do</em> something with the data.</p>
 <p>The app and its UI dependencies (<code>shiny</code>,
-<code>bslib</code>, <code>DT</code>, <code>reactable</code>,
-<code>ggplot2</code>) live in <code>Suggests</code>, so the core client
-stays headless. If something is missing, the launcher tells you exactly
-what to install.</p>
+<code>bslib</code>, <code>reactable</code>) live in
+<code>Suggests</code>, so the client itself stays headless. If something
+is missing, the launcher names it.</p>
 <div class="section level2">
-<h2 id="demo-mode">Demo mode<a class="anchor" aria-label="anchor" href="#demo-mode"></a>
+<h2 id="open-something">Open something<a class="anchor" aria-label="anchor" href="#open-something"></a>
 </h2>
-<p>You can try the app right now with no SeaTable account:</p>
+<p>You can try the app right now with no SeaTable account and no
+network:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Then click <strong>Try demo</strong> on the connect screen. The app
-loads the same example metadata and rows you saw in the
-<code>column-types</code> vignette - including list-columns and a
-<code>file</code> column - so every panel is exercised without a network
-call.</p>
+<p>Then choose <strong>Use the example base</strong> in the Source
+panel. It loads a bundled <code>.dtable</code> holding one column of
+every type harbouR supports, so every panel has something to show.</p>
+<p>The Source panel takes three kinds of input:</p>
+<ul>
+<li>
+<strong>A <code>.dtable</code> file.</strong> Drop in a SeaTable
+export and work entirely offline. Nothing leaves your machine.</li>
+<li>
+<strong>A server.</strong> A URL and an API token. The token field
+is never pre-filled from your environment, because a value passed to a
+password input is written into the page’s HTML.</li>
+<li>
+<strong>The example base</strong>, above.</li>
+</ul>
+<p>You can also hand the app something you already have:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="st">"my-base.dtable"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="the-panels">The panels<a class="anchor" aria-label="anchor" href="#the-panels"></a>
 </h2>
+<p>The left rail lists every table in the base. Under each name is a
+band of coloured segments - one per column, coloured by what kind of
+thing the column holds. It is there so you can see the <em>shape</em> of
+a sixty-column table before you open it: a table that is mostly
+measurements looks different from one that is mostly text.</p>
 <ul>
 <li>
-<strong>Connect.</strong> Server URL, API token (masked), optional
-base UUID. The values default to <code>SEATABLE_SERVER</code> and
-<code>SEATABLE_API_TOKEN</code>. Try demo bypasses this entirely.</li>
+<strong>Data.</strong> The table as a tibble, searchable and
+filterable. List-valued cells - attachments, multi-selects - are joined
+for display, because a cell shows one value. Set how many rows to
+read.</li>
 <li>
-<strong>Overview.</strong> Value boxes for base name, table count
-and total rows; a <code>reactable</code> of the tables and a small
-ggplot of rows-per-table.</li>
+<strong>Schema.</strong> Every column, the SeaTable type it holds,
+the R type harbouR reads it as, its four-character key, and whether it
+can be written. The colours match the bands in the rail.</li>
 <li>
-<strong>Tables.</strong> The centrepiece. Pick a table; the app
-fetches it lazily via <code><a href="../reference/hb_read_table.html">hb_read_table()</a></code>, caches it, and shows
-the typed tibble in a <code>reactable</code> with the column-type badges
-and list-column chips. A side panel lists every column’s SeaTable type
-and the R type it maps to.</li>
+<strong>Query.</strong> A SeaTable SQL console. It needs a server: a
+<code>.dtable</code> is a file, not a database, and the panel says so
+rather than failing.</li>
 <li>
-<strong>Query.</strong> A SeaTable SQL console, results in a
-<code>reactable</code>.</li>
+<strong>Export.</strong> Download the base as <code>.dtable</code>,
+as an Excel workbook, or as zipped CSVs - or just the table you are
+looking at, as one CSV. The <code>.dtable</code> keeps everything; the
+spreadsheet formats flatten whatever a cell cannot hold, which the app
+tells you about.</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="launching-with-a-pre-built-client">Launching with a pre-built client<a class="anchor" aria-label="anchor" href="#launching-with-a-pre-built-client"></a>
+<h2 id="colour">Colour<a class="anchor" aria-label="anchor" href="#colour"></a>
 </h2>
-<p>If you already have a <code>harbour_client</code>, hand it in and the
-app skips the connect screen:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="va">client</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="a-note-on-screenshots">A note on screenshots<a class="anchor" aria-label="anchor" href="#a-note-on-screenshots"></a>
-</h2>
-<p>Screenshots for the panels are not bundled with this release - taking
-them requires running the app, which <code>R CMD check</code>
-deliberately prevents. The interactive demo above is the canonical
-reference.</p>
+<p>The palette is the package logo’s, which is viridis: colourblind-safe
+and perceptually uniform. Column types are grouped into families - text,
+quantity, time, choice, attachment, relationship, and the ones SeaTable
+maintains itself - and each family keeps its colour everywhere in the
+app, so the rail and the schema table read as one system.</p>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
@@ -160,7 +175,7 @@ detail.</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by R. Heller.</p>
+  <p>Developed by Raban Heller.</p>
 </div>
 
 <div class="pkgdown-footer-center themakr-footer-suite">
@@ -168,7 +183,7 @@ detail.</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -6,7 +6,7 @@ the given file/image column of the chosen row.
 ## Usage
 
 ``` r
-hb_attach_file(client, table, row_id, column, path, call = rlang::caller_env())
+hb_attach_file(client, table, row_id, column, path, ...)
 ```
 
 ## Arguments
@@ -31,9 +31,9 @@ hb_attach_file(client, table, row_id, column, path, call = rlang::caller_env())
 
   Local file path. Must exist.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

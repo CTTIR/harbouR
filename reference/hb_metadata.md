@@ -7,7 +7,7 @@ cached on the client.
 ## Usage
 
 ``` r
-hb_metadata(client, call = rlang::caller_env())
+hb_metadata(client, ...)
 ```
 
 ## Arguments
@@ -16,9 +16,9 @@ hb_metadata(client, call = rlang::caller_env())
 
   A `harbour_client`.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
@@ -31,7 +31,7 @@ Other metadata:
 [`as_tibble.harbour_metadata()`](https://cttir.github.io/harbouR/reference/as_tibble.harbour_metadata.md),
 [`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md),
 [`hb_list_collaborators()`](https://cttir.github.io/harbouR/reference/hb_list_collaborators.md),
-[`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
+[`hb_list_tables.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
 [`is_harbour_metadata()`](https://cttir.github.io/harbouR/reference/is_harbour_metadata.md),
 [`print.harbour_metadata()`](https://cttir.github.io/harbouR/reference/print.harbour_metadata.md),
 [`summary.harbour_metadata()`](https://cttir.github.io/harbouR/reference/summary.harbour_metadata.md)

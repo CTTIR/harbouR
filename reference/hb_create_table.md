@@ -5,7 +5,7 @@ Create a table
 ## Usage
 
 ``` r
-hb_create_table(client, table, columns = list(), call = rlang::caller_env())
+hb_create_table(client, table, ..., columns = list())
 ```
 
 ## Arguments
@@ -18,14 +18,14 @@ hb_create_table(client, table, columns = list(), call = rlang::caller_env())
 
   Name of the new table.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - columns:
 
   A list of column specifications: each element a named list with at
   least `name` and `type` (a SeaTable type string).
-
-- call:
-
-  Internal: error-propagation env.
 
 ## Value
 

@@ -5,14 +5,7 @@ Update a single-select option
 ## Usage
 
 ``` r
-hb_update_select_option(
-  client,
-  table,
-  name,
-  option,
-  new_option,
-  call = rlang::caller_env()
-)
+hb_update_select_option(client, table, name, option, new_option, ...)
 ```
 
 ## Arguments
@@ -37,9 +30,9 @@ hb_update_select_option(
 
   New option name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

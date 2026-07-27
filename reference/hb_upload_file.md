@@ -10,12 +10,7 @@ or
 ## Usage
 
 ``` r
-hb_upload_file(
-  client,
-  path,
-  relative_path = "files",
-  call = rlang::caller_env()
-)
+hb_upload_file(client, path, ..., relative_path = "files")
 ```
 
 ## Arguments
@@ -28,13 +23,13 @@ hb_upload_file(
 
   Local file path. Must exist.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - relative_path:
 
   Optional path on the SeaTable side; defaults to `"files"`.
-
-- call:
-
-  Internal: error-propagation env.
 
 ## Value
 

@@ -5,7 +5,7 @@ Get a view's settings
 ## Usage
 
 ``` r
-hb_get_view(client, table, view, call = rlang::caller_env())
+hb_get_view(client, table, view, ...)
 ```
 
 ## Arguments
@@ -22,21 +22,22 @@ hb_get_view(client, table, view, call = rlang::caller_env())
 
   View name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
-A 1-row tibble with the view's name, type and filters/sorts as
-list-columns.
+A one-row tibble with columns `name` (chr), `type` (chr), `is_default`
+(lgl), `filters` (list), `sorts` (list) and `hidden_columns` (list of
+chr).
 
 ## See also
 
 Other views:
 [`hb_create_view()`](https://cttir.github.io/harbouR/reference/hb_create_view.md),
 [`hb_delete_view()`](https://cttir.github.io/harbouR/reference/hb_delete_view.md),
-[`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md),
+[`hb_list_views.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_list_views.md),
 [`hb_update_view()`](https://cttir.github.io/harbouR/reference/hb_update_view.md)
 
 ## Examples

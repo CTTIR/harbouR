@@ -1,29 +1,24 @@
 # Launch the harbouR explorer
 
-Starts the bundled Shiny explorer app for inspecting a SeaTable base
-interactively. Pass a connected `harbour_client` to skip the connect
-screen, or run with no arguments to open the connect screen — which also
-offers a fully offline demo mode powered by
-[`hb_example_metadata()`](https://cttir.github.io/harbouR/reference/hb_example_metadata.md)
-and
-[`hb_example_rows()`](https://cttir.github.io/harbouR/reference/hb_example_rows.md).
+A Shiny app for working with a SeaTable base without writing code: open
+a local `.dtable` export or connect to a server, browse the tables, read
+the schema, run SQL, and download the result as `.dtable`, Excel or CSV.
 
 ## Usage
 
 ``` r
-hb_run_explorer(client = NULL, ..., host = "127.0.0.1", port = NULL)
+hb_run_explorer(x = NULL, ..., host = "127.0.0.1", port = NULL)
 ```
 
 ## Arguments
 
-- client:
+- x:
 
-  Optional `harbour_client`. If `NULL`, the app opens its connect
-  screen.
+  Optional `harbour_client` or `harbour_dtable` to open with.
 
 - ...:
 
-  Forwarded to
+  Passed to
   [`shiny::runApp()`](https://rdrr.io/pkg/shiny/man/runApp.html).
 
 - host:
@@ -32,7 +27,7 @@ hb_run_explorer(client = NULL, ..., host = "127.0.0.1", port = NULL)
 
 - port:
 
-  Port. Default `NULL` (let Shiny choose).
+  Port. Default `NULL`, letting Shiny choose.
 
 ## Value
 
@@ -40,15 +35,26 @@ Invisible `NULL`; launches a Shiny application.
 
 ## Details
 
-The Shiny app and its UI dependencies (`shiny`, `bslib`, `DT`,
-`reactable`, `ggplot2`) are in `Suggests`, not `Imports` — the core
-client works headless. Missing dependencies produce a single informative
-error rather than a stack trace.
+Pass a connected
+[`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md)
+or a base read with
+[`hb_read_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_dtable.md)
+to start there. With no argument the app opens on its source panel,
+which offers a bundled example base that needs no credentials and no
+network.
+
+The UI packages (`shiny`, `bslib`, `reactable`) are in `Suggests`, so
+the client itself stays headless. A missing one produces a single
+informative error rather than a stack trace.
 
 ## Examples
 
 ``` r
 if (FALSE) { # interactive()
+# the bundled example base, no credentials needed
 hb_run_explorer()
+
+# or start from a file
+hb_run_explorer(hb_read_dtable("my-base.dtable"))
 }
 ```

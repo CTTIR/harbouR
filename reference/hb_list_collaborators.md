@@ -5,7 +5,7 @@ List collaborators of the active base
 ## Usage
 
 ``` r
-hb_list_collaborators(client, call = rlang::caller_env())
+hb_list_collaborators(client, ...)
 ```
 
 ## Arguments
@@ -14,9 +14,9 @@ hb_list_collaborators(client, call = rlang::caller_env())
 
   A `harbour_client`.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
@@ -28,7 +28,7 @@ A tibble with columns `email` (chr), `name` (chr) and `contact_email`
 Other metadata:
 [`as_tibble.harbour_metadata()`](https://cttir.github.io/harbouR/reference/as_tibble.harbour_metadata.md),
 [`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md),
-[`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
+[`hb_list_tables.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
 [`hb_metadata()`](https://cttir.github.io/harbouR/reference/hb_metadata.md),
 [`is_harbour_metadata()`](https://cttir.github.io/harbouR/reference/is_harbour_metadata.md),
 [`print.harbour_metadata()`](https://cttir.github.io/harbouR/reference/print.harbour_metadata.md),

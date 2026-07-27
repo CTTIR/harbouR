@@ -5,7 +5,7 @@ Delete a table
 ## Usage
 
 ``` r
-hb_delete_table(client, table, call = rlang::caller_env())
+hb_delete_table(client, table, ...)
 ```
 
 ## Arguments
@@ -18,9 +18,9 @@ hb_delete_table(client, table, call = rlang::caller_env())
 
   Name of the table to delete.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>R Client for SeaTable Collaborative Databases • harbouR</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="katex-auto.js"></script><script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
@@ -14,8 +19,8 @@
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="R Client for SeaTable Collaborative Databases">
-<meta name="description" content="An unofficial R client for the SeaTable REST API. Provides authentication with transparent base-token refresh, tidy tibble returns for tables, rows, columns and views, helpers for managing bases and files, and an optional shiny explorer for interactive inspection. SeaTable is a trademark of SeaTable GmbH; this package is not affiliated with or endorsed by SeaTable GmbH.">
-<meta property="og:description" content="An unofficial R client for the SeaTable REST API. Provides authentication with transparent base-token refresh, tidy tibble returns for tables, rows, columns and views, helpers for managing bases and files, and an optional shiny explorer for interactive inspection. SeaTable is a trademark of SeaTable GmbH; this package is not affiliated with or endorsed by SeaTable GmbH.">
+<meta name="description" content="An unofficial R client for the SeaTable REST API. Provides authentication with transparent base-token refresh, tidy tibble returns for tables, rows, columns and views, helpers for managing bases and files, and an optional shiny explorer for interactive inspection. The SeaTable REST API is documented at &lt;https://api.seatable.com/&gt;. SeaTable is a trademark of SeaTable GmbH; this package is not affiliated with or endorsed by SeaTable GmbH.">
+<meta property="og:description" content="An unofficial R client for the SeaTable REST API. Provides authentication with transparent base-token refresh, tidy tibble returns for tables, rows, columns and views, helpers for managing bases and files, and an optional shiny explorer for interactive inspection. The SeaTable REST API is documented at &lt;https://api.seatable.com/&gt;. SeaTable is a trademark of SeaTable GmbH; this package is not affiliated with or endorsed by SeaTable GmbH.">
 <meta property="og:image" content="https://cttir.github.io/harbouR/logo.svg">
 <meta name="theme-color" content="#1565c0">
 </head>
@@ -49,7 +54,7 @@
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/r-heller/harbouR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/CTTIR/harbouR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -72,7 +77,7 @@
 </div>
 <!-- badges: start -->
 
-<p><strong>harbouR</strong> is an unofficial R client for the <a href="https://seatable.io" class="external-link">SeaTable</a> REST API. It lets you authenticate, read, write and manage SeaTable bases entirely from R, with results returned as tidy tibbles and a column-type-aware coercion layer that makes spreadsheets feel like data frames.</p>
+<p><strong>harbouR</strong> is an unofficial R client for the <a href="https://seatable.com/" class="external-link">SeaTable</a> REST API. It lets you authenticate, read, write and manage SeaTable bases entirely from R, with results returned as tidy tibbles and a column-type-aware coercion layer that makes spreadsheets feel like data frames.</p>
 <blockquote>
 <p>SeaTable is a trademark of SeaTable GmbH; this package is not affiliated with or endorsed by SeaTable GmbH.</p>
 </blockquote>
@@ -87,7 +92,7 @@
 <h2 id="quick-example">Quick example<a class="anchor" aria-label="anchor" href="#quick-example"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-heller/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hb_client.html">hb_client</a></span><span class="op">(</span></span>
 <span>  server    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"SEATABLE_SERVER"</span><span class="op">)</span>,</span>
@@ -101,15 +106,15 @@
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">.data</span><span class="op">$</span><span class="va">Collected</span><span class="op">)</span></span></code></pre></div>
 <p>Everything in harbouR also works fully offline against bundled example data — handy for exploring the data model before you connect anything:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-heller/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hb_example_metadata.html">hb_example_metadata</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">meta</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 4</span></span>
-<span><span class="co">#&gt;   name     n_rows n_columns n_views</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;     &lt;int&gt;     &lt;int&gt;   &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1 Samples       0         7       1</span></span>
-<span><span class="co">#&gt; 2 Patients      0         4       1</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 3</span></span>
+<span><span class="co">#&gt;   name     n_columns n_views</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;        &lt;int&gt;   &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1 Samples          7       1</span></span>
+<span><span class="co">#&gt; 2 Patients         4       1</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/hb_example_rows.html">hb_example_rows</a></span><span class="op">(</span><span class="st">"Samples"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 3 × 8</span></span>
@@ -125,12 +130,32 @@
 </h2>
 <p><code><a href="reference/hb_run_explorer.html">hb_run_explorer()</a></code> launches a Shiny app for inspecting any base interactively, with a demo mode that needs no credentials.</p>
 </div>
+<div class="section level2">
+<h2 id="roadmap">Roadmap<a class="anchor" aria-label="anchor" href="#roadmap"></a>
+</h2>
+<p>harbouR covers the parts of the SeaTable API you need to get data in and out: authentication, metadata, rows, tables, columns, views and files. Not yet wrapped, in rough order of intent:</p>
+<ul>
+<li>
+<strong>Link columns</strong> - reading and writing row-to-row relationships.</li>
+<li>
+<strong>Local <code>.dtable</code> files</strong> - reading and writing SeaTable exports with no server at all.</li>
+<li>Comments, snapshots, big-data (archive) storage, share links and webhooks.</li>
+<li>Server-side import/export, and the admin, team and scheduler endpoints.</li>
+</ul>
+<p>Earlier releases exported these as stubs that raised “not yet implemented”. They no longer exist: a function you can call is a promise that it works. Track progress or request one at <a href="https://github.com/CTTIR/harbouR/issues" class="external-link uri">https://github.com/CTTIR/harbouR/issues</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
+</h2>
+<p>harbouR was shaped by the needs, field testing and data of Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent Forstmeier.</p>
+<p>SeaTable is a trademark of SeaTable GmbH. harbouR is an independent, unofficial client and is not affiliated with or endorsed by SeaTable GmbH.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/r-heller/harbouR/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/r-heller/harbouR/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/CTTIR/harbouR/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/CTTIR/harbouR/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -153,7 +178,8 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>R. Heller <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-8006-9742" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Raban Heller <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0001-8006-9742" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
@@ -169,7 +195,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by R. Heller.</p>
+  <p>Developed by Raban Heller.</p>
 </div>
 
 <div class="pkgdown-footer-center themakr-footer-suite">
@@ -177,7 +203,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -5,7 +5,7 @@ Delete a column
 ## Usage
 
 ``` r
-hb_delete_column(client, table, name, call = rlang::caller_env())
+hb_delete_column(client, table, name, ...)
 ```
 
 ## Arguments
@@ -22,9 +22,9 @@ hb_delete_column(client, table, name, call = rlang::caller_env())
 
   Column name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

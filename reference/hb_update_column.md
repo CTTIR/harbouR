@@ -9,9 +9,10 @@ hb_update_column(
   client,
   table,
   name,
+  ...,
   new_name = NULL,
-  data = NULL,
-  call = rlang::caller_env()
+  new_type = NULL,
+  column_data = NULL
 )
 ```
 
@@ -29,17 +30,25 @@ hb_update_column(
 
   Column name.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - new_name:
 
-  Optional new column name.
+  Optional new column name. Sends `op_type = "rename_column"`.
 
-- data:
+- new_type:
 
-  Optional list of column options (e.g. select options).
+  Optional new SeaTable column type. Sends
+  `op_type = "modify_column_type"`. SeaTable performs one operation per
+  request, so this cannot be combined with `new_name`.
 
-- call:
+- column_data:
 
-  Internal: error-propagation env.
+  Optional list of column options, e.g. the choices for a select column.
+  Named `column_data` rather than `data` because `data` means "the rows
+  you are writing" everywhere else in harbouR.
 
 ## Value
 

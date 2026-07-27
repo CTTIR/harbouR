@@ -5,27 +5,40 @@ List the tables in a base
 ## Usage
 
 ``` r
-hb_list_tables(client, refresh = FALSE, call = rlang::caller_env())
+# S3 method for class 'harbour_dtable'
+hb_list_tables(x, ...)
+
+# Default S3 method
+hb_list_tables(x, ...)
+
+hb_list_tables(x, ...)
+
+# S3 method for class 'harbour_client'
+hb_list_tables(x, ..., refresh = FALSE)
 ```
 
 ## Arguments
 
-- client:
+- x:
 
-  A `harbour_client`.
+  A `harbour_client` connected to a base, or a `harbour_dtable` read
+  from a local file.
+
+- ...:
+
+  These dots are for future extensions and must be empty.
 
 - refresh:
 
   Logical; refetch metadata even if cached. Default `FALSE`.
 
-- call:
-
-  Internal: error-propagation env.
-
 ## Value
 
-A tibble with one row per table and columns `name` (chr), `n_rows`
-(int), `n_columns` (int), `n_views` (int).
+A tibble with one row per table and columns `name` (chr), `n_columns`
+(int) and `n_views` (int). The metadata endpoint carries no row
+payloads, so there is no row count here; use
+[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+if you need one.
 
 ## See also
 

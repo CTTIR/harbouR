@@ -5,13 +5,7 @@ Download an asset
 ## Usage
 
 ``` r
-hb_download_file(
-  client,
-  url,
-  dest,
-  overwrite = FALSE,
-  call = rlang::caller_env()
-)
+hb_download_file(client, url, dest, ..., overwrite = FALSE)
 ```
 
 ## Arguments
@@ -28,13 +22,13 @@ hb_download_file(
 
   Destination path. Parent directories are created if needed.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - overwrite:
 
   Refuse to clobber an existing file unless `TRUE`.
-
-- call:
-
-  Internal: error-propagation env.
 
 ## Value
 

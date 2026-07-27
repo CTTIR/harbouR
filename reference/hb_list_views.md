@@ -5,22 +5,37 @@ List views of a table
 ## Usage
 
 ``` r
-hb_list_views(client, table, call = rlang::caller_env())
+# S3 method for class 'harbour_dtable'
+hb_list_views(x, table, ...)
+
+# Default S3 method
+hb_list_views(x, table, ...)
+
+hb_list_views(x, table, ...)
+
+# S3 method for class 'harbour_client'
+hb_list_views(x, table, ..., refresh = FALSE)
 ```
 
 ## Arguments
 
-- client:
+- x:
 
-  A `harbour_client`.
+  A `harbour_client` connected to a base, or a `harbour_dtable` read
+  from a local file.
 
 - table:
 
   Table name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
+
+- refresh:
+
+  Logical. Ask the server rather than reusing the cached base metadata.
+  Default `FALSE`.
 
 ## Value
 

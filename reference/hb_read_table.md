@@ -8,36 +8,53 @@ column.
 ## Usage
 
 ``` r
-hb_read_table(
-  client,
-  table,
-  view = NULL,
-  limit = 1000L,
-  call = rlang::caller_env()
-)
+# S3 method for class 'harbour_dtable'
+hb_read_table(x, table, ..., view = NULL, n_max = Inf, option_labels = TRUE)
+
+# Default S3 method
+hb_read_table(x, table, ...)
+
+hb_read_table(x, table, ...)
+
+# S3 method for class 'harbour_client'
+hb_read_table(x, table, ..., view = NULL, page_size = 1000L, n_max = Inf)
 ```
 
 ## Arguments
 
-- client:
+- x:
 
-  A `harbour_client`.
+  A `harbour_client` connected to a base, or a `harbour_dtable` read
+  from a local file.
 
 - table:
 
   Name of the table.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - view:
 
   Optional view name.
 
-- limit:
+- n_max:
 
-  Page size for paginated fetches. Default `1000`.
+  Maximum number of rows to return. `Inf`, the default, reads the whole
+  table.
 
-- call:
+- option_labels:
 
-  Internal: error-propagation env.
+  Translate select-option ids to their display names. On disk a select
+  cell holds an option id; over the API it holds the name, so this is
+  what makes a local read and a server read of the same column agree.
+  Set `FALSE` to see the raw ids.
+
+- page_size:
+
+  Rows fetched per request. SeaTable caps this at 1000 and harbouR
+  clamps it, warning if you asked for more.
 
 ## Value
 
@@ -61,5 +78,8 @@ Other rows:
 if (FALSE) { # interactive()
 client <- hb_client()
 hb_read_table(client, "Samples")
+
+# just the first 10 rows
+hb_read_table(client, "Samples", n_max = 10)
 }
 ```

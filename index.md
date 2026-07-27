@@ -1,7 +1,7 @@
 # harbouR
 
 **harbouR** is an unofficial R client for the
-[SeaTable](https://seatable.io) REST API. It lets you authenticate,
+[SeaTable](https://seatable.com/) REST API. It lets you authenticate,
 read, write and manage SeaTable bases entirely from R, with results
 returned as tidy tibbles and a column-type-aware coercion layer that
 makes spreadsheets feel like data frames.
@@ -44,11 +44,11 @@ library(harbouR)
 
 meta <- hb_example_metadata()
 tibble::as_tibble(meta)
-#> # A tibble: 2 × 4
-#>   name     n_rows n_columns n_views
-#>   <chr>     <int>     <int>   <int>
-#> 1 Samples       0         7       1
-#> 2 Patients      0         4       1
+#> # A tibble: 2 × 3
+#>   name     n_columns n_views
+#>   <chr>        <int>   <int>
+#> 1 Samples          7       1
+#> 2 Patients         4       1
 
 hb_example_rows("Samples")
 #> # A tibble: 3 × 8
@@ -65,3 +65,32 @@ hb_example_rows("Samples")
 [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
 launches a Shiny app for inspecting any base interactively, with a demo
 mode that needs no credentials.
+
+## Roadmap
+
+harbouR covers the parts of the SeaTable API you need to get data in and
+out: authentication, metadata, rows, tables, columns, views and files.
+Not yet wrapped, in rough order of intent:
+
+- **Link columns** - reading and writing row-to-row relationships.
+- **Local `.dtable` files** - reading and writing SeaTable exports with
+  no server at all.
+- Comments, snapshots, big-data (archive) storage, share links and
+  webhooks.
+- Server-side import/export, and the admin, team and scheduler
+  endpoints.
+
+Earlier releases exported these as stubs that raised “not yet
+implemented”. They no longer exist: a function you can call is a promise
+that it works. Track progress or request one at
+<https://github.com/CTTIR/harbouR/issues>.
+
+## Acknowledgements
+
+harbouR was shaped by the needs, field testing and data of Paul
+Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+Forstmeier.
+
+SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
+unofficial client and is not affiliated with or endorsed by SeaTable
+GmbH.

@@ -5,27 +5,44 @@ List columns of a table
 ## Usage
 
 ``` r
-hb_list_columns(client, table, call = rlang::caller_env())
+hb_list_columns(x, table, ...)
+
+# S3 method for class 'harbour_client'
+hb_list_columns(x, table, ..., refresh = FALSE)
+
+# S3 method for class 'harbour_dtable'
+hb_list_columns(x, table, ...)
+
+# Default S3 method
+hb_list_columns(x, table, ...)
 ```
 
 ## Arguments
 
-- client:
+- x:
 
-  A `harbour_client`.
+  A `harbour_client` connected to a base, or a `harbour_dtable` read
+  from a local file.
 
 - table:
 
   Table name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
+
+- refresh:
+
+  Logical. Ask the server rather than reusing the cached base metadata.
+  Default `FALSE`.
 
 ## Value
 
-A tibble with columns `name` (chr), `type` (chr), `key` (chr) and
-`editable` (lgl).
+A tibble with one row per column and columns `name` (chr), `type` (chr),
+`key` (chr), `editable` (lgl) and `data` (list). The `data` list-column
+holds the column's type-specific configuration - for a select column,
+its options.
 
 ## See also
 

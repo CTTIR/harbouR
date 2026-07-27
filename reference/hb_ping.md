@@ -1,13 +1,14 @@
-# Ping the SeaTable server
+# Check that a SeaTable server is reachable
 
-Issues a lightweight request against the server's ping endpoint to
-verify connectivity and credentials. Returns `TRUE` on success and
-errors informatively on failure.
+Issues a lightweight, unauthenticated request against the server's ping
+endpoint. This tests *connectivity only* - use
+[`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md)
+to test whether the client's credentials are accepted.
 
 ## Usage
 
 ``` r
-hb_ping(client, call = rlang::caller_env())
+hb_ping(client, ...)
 ```
 
 ## Arguments
@@ -16,17 +17,25 @@ hb_ping(client, call = rlang::caller_env())
 
   A `harbour_client`.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
-A single `TRUE` on success; errors otherwise.
+The `client`, invisibly. Errors if the server is unreachable.
+
+## Details
+
+Returns the client invisibly, so it composes:
+`client |> hb_ping() |> hb_read_table("Samples")`.
 
 ## See also
 
+[`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md)
+
 Other client:
+[`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md),
 [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md),
 [`hb_server_info()`](https://cttir.github.io/harbouR/reference/hb_server_info.md),
 [`is_harbour_client()`](https://cttir.github.io/harbouR/reference/is_harbour_client.md)

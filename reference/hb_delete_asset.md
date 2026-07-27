@@ -5,7 +5,7 @@ Delete an asset
 ## Usage
 
 ``` r
-hb_delete_asset(client, url, call = rlang::caller_env())
+hb_delete_asset(client, url, ...)
 ```
 
 ## Arguments
@@ -18,9 +18,9 @@ hb_delete_asset(client, url, call = rlang::caller_env())
 
   Asset URL (as returned by SeaTable in a file/image cell).
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

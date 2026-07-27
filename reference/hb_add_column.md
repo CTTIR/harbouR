@@ -5,14 +5,7 @@ Add a column to a table
 ## Usage
 
 ``` r
-hb_add_column(
-  client,
-  table,
-  name,
-  type,
-  data = NULL,
-  call = rlang::caller_env()
-)
+hb_add_column(client, table, name, type, ..., column_data = NULL)
 ```
 
 ## Arguments
@@ -33,13 +26,15 @@ hb_add_column(
 
   SeaTable column type, e.g. `"text"`, `"number"`, `"date"`.
 
-- data:
+- ...:
 
-  Optional list of column options (e.g. select options).
+  These dots are for future extensions and must be empty.
 
-- call:
+- column_data:
 
-  Internal: error-propagation env.
+  Optional list of column options, e.g. the choices for a select column.
+  Named `column_data` rather than `data` because `data` means "the rows
+  you are writing" everywhere else in harbouR.
 
 ## Value
 

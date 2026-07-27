@@ -1,22 +1,5 @@
 # Column types and coercion
 
-[![R-CMD-check](https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/CTTIR/harbouR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/harbouR/)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/harbouR)](https://CRAN.R-project.org/package=harbouR)
-[![Codecov test
-coverage](https://codecov.io/gh/CTTIR/harbouR/branch/main/graph/badge.svg)](https://app.codecov.io/gh/CTTIR/harbouR?branch=main)
-[![CRAN
-downloads](https://cranlogs.r-pkg.org/badges/harbouR)](https://cran.r-project.org/package=harbouR)
-[![CRAN downloads
-total](https://cranlogs.r-pkg.org/badges/grand-total/harbouR)](https://cran.r-project.org/package=harbouR)
-[![License:
-MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-
-![harbouR logo](../reference/figures/logo.png)
-
 SeaTable bases have around twenty column types. harbouR maps every one
 of them onto a predictable R type so the tibble you get back is
 analysis-ready, not raw JSON. This vignette is the reference.
@@ -31,20 +14,20 @@ so it cannot drift out of sync with the code:
 
 library(harbouR)
 hb_column_types()
-#> # A tibble: 23 × 3
-#>    seatable      r               notes                                   
-#>    <chr>         <chr>           <chr>                                   
-#>  1 text          character       free text                               
-#>  2 long-text     character       markdown blob                           
-#>  3 email         character       validated as email server-side          
-#>  4 url           character       validated as URL server-side            
-#>  5 auto-number   character       server-generated identifier             
-#>  6 number        double          64-bit precision caveat applies         
-#>  7 rate          integer         0..N stars                              
-#>  8 checkbox      logical         TRUE/FALSE                              
-#>  9 date          Date or POSIXct POSIXct when a time component is present
-#> 10 single-select character       validated against options on write      
-#> # ℹ 13 more rows
+#> # A tibble: 28 × 5
+#>    seatable  r         is_list read_only notes                                  
+#>    <chr>     <chr>     <lgl>   <lgl>     <chr>                                  
+#>  1 text      character FALSE   FALSE     free text                              
+#>  2 long-text character FALSE   FALSE     markdown blob                          
+#>  3 email     character FALSE   FALSE     validated as email server-side         
+#>  4 url       character FALSE   FALSE     validated as URL server-side           
+#>  5 number    double    FALSE   FALSE     64-bit precision caveat applies        
+#>  6 percent   double    FALSE   FALSE     stored as a fraction, displayed as a p…
+#>  7 dollar    double    FALSE   FALSE     number with a currency format          
+#>  8 euro      double    FALSE   FALSE     number with a currency format          
+#>  9 duration  double    FALSE   FALSE     seconds                                
+#> 10 rate      integer   FALSE   FALSE     0..N stars                             
+#> # ℹ 18 more rows
 ```
 
 ## What the rows look like
@@ -158,14 +141,20 @@ its correct type:
 
 ``` r
 
-meta <- hb_example_metadata()
-cols <- harbouR:::.hb_columns_from_metadata(meta, "Samples")
-empty <- harbouR:::.hb_rows_to_tibble(list(), cols)
+empty <- hb_example_rows("Samples")[0, ]
 empty
 #> # A tibble: 0 × 8
 #> # ℹ 8 variables: Name <chr>, Concentration <dbl>, Status <chr>, Tags <list>,
 #> #   Collected <dttm>, Collaborators <list>, Reports <list>, _id <chr>
+
+str(empty, max.level = 1)
+#> tibble [0 × 8] (S3: tbl_df/tbl/data.frame)
 ```
+
+Every column keeps the type it would have had with rows present -
+`Concentration` is still a double, `Collected` still a `POSIXct`, and
+`Tags` still a list-column - so downstream code that expects a schema
+does not have to special-case the empty result.
 
 ## Next steps
 

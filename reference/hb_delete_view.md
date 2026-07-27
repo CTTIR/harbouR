@@ -5,7 +5,7 @@ Delete a view
 ## Usage
 
 ``` r
-hb_delete_view(client, table, view, call = rlang::caller_env())
+hb_delete_view(client, table, view, ...)
 ```
 
 ## Arguments
@@ -22,9 +22,9 @@ hb_delete_view(client, table, view, call = rlang::caller_env())
 
   View name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
@@ -35,7 +35,7 @@ Invisibly returns the client.
 Other views:
 [`hb_create_view()`](https://cttir.github.io/harbouR/reference/hb_create_view.md),
 [`hb_get_view()`](https://cttir.github.io/harbouR/reference/hb_get_view.md),
-[`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md),
+[`hb_list_views.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_list_views.md),
 [`hb_update_view()`](https://cttir.github.io/harbouR/reference/hb_update_view.md)
 
 ## Examples

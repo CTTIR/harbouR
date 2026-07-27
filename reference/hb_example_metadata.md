@@ -16,6 +16,13 @@ hb_example_metadata()
 A `harbour_metadata` object describing a tiny base with two tables:
 `Samples` and `Patients`.
 
+## Details
+
+The base is defined once, in `inst/extdata/example_metadata.json`, and
+parsed on each call. Keeping it in a data file rather than in R source
+means the demo base is also readable from outside R, and there is only
+one definition to keep in step with the coercion layer.
+
 ## See also
 
 Other example data:
@@ -26,9 +33,9 @@ Other example data:
 ``` r
 meta <- hb_example_metadata()
 tibble::as_tibble(meta)
-#> # A tibble: 2 × 4
-#>   name     n_rows n_columns n_views
-#>   <chr>     <int>     <int>   <int>
-#> 1 Samples       0         7       1
-#> 2 Patients      0         4       1
+#> # A tibble: 2 × 3
+#>   name     n_columns n_views
+#>   <chr>        <int>   <int>
+#> 1 Samples          7       1
+#> 2 Patients         4       1
 ```

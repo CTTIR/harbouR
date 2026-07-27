@@ -5,7 +5,7 @@ Lock rows
 ## Usage
 
 ``` r
-hb_lock_rows(client, table, row_ids, call = rlang::caller_env())
+hb_lock_rows(client, table, row_ids, ...)
 ```
 
 ## Arguments
@@ -16,15 +16,15 @@ hb_lock_rows(client, table, row_ids, call = rlang::caller_env())
 
 - table:
 
-  Name of the table.
+  Table name.
 
 - row_ids:
 
   A character vector of row IDs to delete.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
@@ -37,7 +37,7 @@ Other rows:
 [`hb_delete_rows()`](https://cttir.github.io/harbouR/reference/hb_delete_rows.md),
 [`hb_get_row()`](https://cttir.github.io/harbouR/reference/hb_get_row.md),
 [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md),
-[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+[`hb_read_table.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
 [`hb_unlock_rows()`](https://cttir.github.io/harbouR/reference/hb_unlock_rows.md),
 [`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
 

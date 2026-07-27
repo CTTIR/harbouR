@@ -11,15 +11,20 @@ cached state in place without reassigning your variable.
 hb_client(
   server = Sys.getenv("SEATABLE_SERVER"),
   api_token = Sys.getenv("SEATABLE_API_TOKEN"),
+  ...,
   username = NULL,
   password = NULL,
   base_uuid = NULL,
-  timeout = 30,
-  call = rlang::caller_env()
+  workspace_id = NULL,
+  base_name = NULL,
+  timeout = 30
 )
 
 # S3 method for class 'harbour_client'
 print(x, ...)
+
+# S3 method for class 'harbour_client'
+format(x, ...)
 ```
 
 ## Arguments
@@ -34,6 +39,10 @@ print(x, ...)
   Long-lived per-base API token. Defaults to the `SEATABLE_API_TOKEN`
   env var. Mutually exclusive with `username`/`password`.
 
+- ...:
+
+  Unused.
+
 - username, password:
 
   Account credentials. Used to acquire an account token. Mutually
@@ -44,21 +53,20 @@ print(x, ...)
   Optional base UUID hint; usually discovered from the base-token
   exchange.
 
+- workspace_id, base_name:
+
+  Which base to work on. Required for a `username`/`password` client,
+  because an account token is scoped to the user rather than to a base.
+  Ignored when `api_token` is used, since an API token names its base
+  implicitly.
+
 - timeout:
 
   Per-request timeout in seconds. Default `30`.
 
-- call:
-
-  Internal: error-propagation env. Not for direct use.
-
 - x:
 
   A `harbour_client`.
-
-- ...:
-
-  Unused.
 
 ## Value
 
@@ -77,6 +85,7 @@ variables `SEATABLE_SERVER` and `SEATABLE_API_TOKEN`.
 ## See also
 
 Other client:
+[`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md),
 [`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md),
 [`hb_server_info()`](https://cttir.github.io/harbouR/reference/hb_server_info.md),
 [`is_harbour_client()`](https://cttir.github.io/harbouR/reference/is_harbour_client.md)

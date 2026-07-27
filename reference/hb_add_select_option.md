@@ -5,7 +5,7 @@ Add a single-select option
 ## Usage
 
 ``` r
-hb_add_select_option(client, table, name, option, call = rlang::caller_env())
+hb_add_select_option(client, table, name, option, ...)
 ```
 
 ## Arguments
@@ -26,9 +26,9 @@ hb_add_select_option(client, table, name, option, call = rlang::caller_env())
 
   Option name to add.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

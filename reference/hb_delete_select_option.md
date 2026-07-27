@@ -5,13 +5,7 @@ Delete a single-select option
 ## Usage
 
 ``` r
-hb_delete_select_option(
-  client,
-  table,
-  name,
-  option,
-  call = rlang::caller_env()
-)
+hb_delete_select_option(client, table, name, option, ...)
 ```
 
 ## Arguments
@@ -32,9 +26,9 @@ hb_delete_select_option(
 
   Option name to add.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

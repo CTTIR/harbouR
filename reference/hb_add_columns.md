@@ -5,7 +5,7 @@ Add several columns at once
 ## Usage
 
 ``` r
-hb_add_columns(client, table, columns, call = rlang::caller_env())
+hb_add_columns(client, table, columns, ...)
 ```
 
 ## Arguments
@@ -22,9 +22,9 @@ hb_add_columns(client, table, columns, call = rlang::caller_env())
 
   A list of column specs (each a named list).
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
@@ -46,8 +46,12 @@ Other columns:
 ``` r
 if (FALSE) { # interactive()
 client <- hb_client()
-hb_add_columns(client, "Samples",
-  list(list(column_name = "a", column_type = "text"),
-       list(column_name = "b", column_type = "number")))
+hb_add_columns(
+  client, "Samples",
+  list(
+    list(column_name = "a", column_type = "text"),
+    list(column_name = "b", column_type = "number")
+  )
+)
 }
 ```

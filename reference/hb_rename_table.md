@@ -5,7 +5,7 @@ Rename a table
 ## Usage
 
 ``` r
-hb_rename_table(client, table, new_name, call = rlang::caller_env())
+hb_rename_table(client, table, new_name, ...)
 ```
 
 ## Arguments
@@ -22,9 +22,9 @@ hb_rename_table(client, table, new_name, call = rlang::caller_env())
 
   New table name.
 
-- call:
+- ...:
 
-  Internal: error-propagation env.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

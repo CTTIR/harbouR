@@ -9,8 +9,9 @@ hb_update_rows(
   client,
   table,
   data,
+  ...,
   row_id_col = "_id",
-  call = rlang::caller_env()
+  chunk_size = 1000L
 )
 ```
 
@@ -22,24 +23,29 @@ hb_update_rows(
 
 - table:
 
-  Name of the table.
+  Table name.
 
 - data:
 
   A tibble or data frame whose columns match the table schema.
 
+- ...:
+
+  These dots are for future extensions and must be empty.
+
 - row_id_col:
 
   Name of the column in `data` that holds row IDs. Default `"_id"`.
 
-- call:
+- chunk_size:
 
-  Internal: error-propagation env.
+  Rows per request. SeaTable caps batch writes at 1000 and harbouR
+  clamps it, warning if you asked for more.
 
 ## Value
 
-Invisibly returns a summary tibble with columns `row_id` (chr) and
-`updated` (lgl).
+Invisibly, a one-row tibble with columns `table` (chr), `n_rows` (int)
+and `n_requests` (int).
 
 ## See also
 
@@ -49,7 +55,7 @@ Other rows:
 [`hb_get_row()`](https://cttir.github.io/harbouR/reference/hb_get_row.md),
 [`hb_lock_rows()`](https://cttir.github.io/harbouR/reference/hb_lock_rows.md),
 [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md),
-[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+[`hb_read_table.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
 [`hb_unlock_rows()`](https://cttir.github.io/harbouR/reference/hb_unlock_rows.md)
 
 ## Examples
@@ -57,7 +63,9 @@ Other rows:
 ``` r
 if (FALSE) { # interactive()
 client <- hb_client()
-hb_update_rows(client, "Samples",
-               tibble::tibble(`_id` = "abc", Name = "renamed"))
+hb_update_rows(
+  client, "Samples",
+  tibble::tibble(`_id` = "abc", Name = "renamed")
+)
 }
 ```
