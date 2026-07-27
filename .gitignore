@@ -15,3 +15,9 @@ _coverage/
 *.bak
 *.orig
 *.Rcheck/
+
+# Local development data. Real SeaTable exports live here and are never
+# committed: a .dtable carries the base's full contents, including the
+# collaborator list with real e-mail addresses.
+dev/
+*.dtable
