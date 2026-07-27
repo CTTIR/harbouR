@@ -122,11 +122,13 @@ a <code>.dtable</code> with <code><a href="hb_write_dtable.html">hb_write_dtable
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu"><a href="hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example.dtable"</span>, package <span class="op">=</span> <span class="st">"harbouR"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in hb_read_dtable(system.file("extdata", "example.dtable", package = "harbouR")):</span> `path` must be a single non-empty string.</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> You supplied <span style="color: #0000BB;">""</span>.</span>
 <span class="r-in"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".xlsx"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">hb_write_xlsx</span><span class="op">(</span><span class="va">base</span>, <span class="va">out</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'base' not found</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> 7 columns were flattened to text.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> <span style="color: #00BB00;">Samples$Tags</span>, <span style="color: #00BB00;">Samples$Collaborators</span>, <span style="color: #00BB00;">Samples$Photos</span>, <span style="color: #00BB00;">Samples$Reports</span>,</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   <span style="color: #00BB00;">Samples$Where</span>, <span style="color: #00BB00;">Samples$Action</span>, and <span style="color: #00BB00;">Samples$Signature</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> A spreadsheet cell holds one value. Use `hb_write_dtable()` to keep the</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   structure.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

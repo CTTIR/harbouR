@@ -79,9 +79,11 @@ Other dtable:
 base <- hb_read_dtable(
   system.file("extdata", "example.dtable", package = "harbouR")
 )
-#> Error in hb_read_dtable(system.file("extdata", "example.dtable", package = "harbouR")): `path` must be a single non-empty string.
-#> ✖ You supplied "".
 out <- tempfile(fileext = ".xlsx")
 hb_write_xlsx(base, out)
-#> Error: object 'base' not found
+#> ! 7 columns were flattened to text.
+#> • Samples$Tags, Samples$Collaborators, Samples$Photos, Samples$Reports,
+#>   Samples$Where, Samples$Action, and Samples$Signature
+#> ℹ A spreadsheet cell holds one value. Use `hb_write_dtable()` to keep the
+#>   structure.
 ```

@@ -101,10 +101,8 @@ assets = "extract", this gives the path the file was extracted to.'><meta proper
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example.dtable"</span>, package <span class="op">=</span> <span class="st">"harbouR"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu"><a href="hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="va">path</span>, assets <span class="op">=</span> <span class="st">"extract"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in hb_read_dtable(path, assets = "extract"):</span> `path` must be a single non-empty string.</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> You supplied <span style="color: #0000BB;">""</span>.</span>
 <span class="r-in"><span><span class="fu">hb_asset_path</span><span class="op">(</span><span class="va">base</span>, <span class="st">"file://dtable-bundle/asset/files/readme.txt"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'base' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] NA</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

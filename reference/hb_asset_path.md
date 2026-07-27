@@ -51,8 +51,6 @@ Other dtable:
 ``` r
 path <- system.file("extdata", "example.dtable", package = "harbouR")
 base <- hb_read_dtable(path, assets = "extract")
-#> Error in hb_read_dtable(path, assets = "extract"): `path` must be a single non-empty string.
-#> ✖ You supplied "".
 hb_asset_path(base, "file://dtable-bundle/asset/files/readme.txt")
-#> Error: object 'base' not found
+#> [1] NA
 ```

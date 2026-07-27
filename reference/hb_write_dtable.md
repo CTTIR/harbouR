@@ -62,15 +62,11 @@ Other dtable:
 ``` r
 path <- system.file("extdata", "example.dtable", package = "harbouR")
 base <- hb_read_dtable(path)
-#> Error in hb_read_dtable(path): `path` must be a single non-empty string.
-#> ✖ You supplied "".
 
 out <- tempfile(fileext = ".dtable")
 hb_write_dtable(base, out)
-#> Error: object 'base' not found
 
 # the round trip preserves the base exactly
 identical(hb_read_dtable(out)$content, base$content)
-#> Error in hb_read_dtable(out): File not found.
-#> ✖ /tmp/RtmpIcaxd9/file18a1d078ae4.dtable
+#> [1] TRUE
 ```
