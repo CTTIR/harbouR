@@ -116,3 +116,12 @@ hb_attach_file(client, "Samples", "r0001", "Reports", "report.pdf")
 
 * The `column-types` vignette explains the coercion layer in detail.
 * The `explorer-app` vignette walks through `hb_run_explorer()`.
+
+## Acknowledgements
+
+harbouR was shaped by the needs, field testing and data of Paul
+Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+Forstmeier.
+
+SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
+unofficial client and is not affiliated with or endorsed by SeaTable GmbH.

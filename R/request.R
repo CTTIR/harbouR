@@ -10,7 +10,7 @@
 #' @keywords internal
 #' @noRd
 .hb_user_agent <- function() {
-  "harbouR (https://github.com/r-heller/harbouR)"
+  "harbouR (https://github.com/CTTIR/harbouR)"
 }
 
 #' @keywords internal

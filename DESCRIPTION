@@ -1,20 +1,27 @@
 Package: harbouR
-Title: R Client for SeaTable Collaborative Databases
+Title: R Client for 'SeaTable' Collaborative Databases
 Version: 0.1.0.9000
-Authors@R:
-    person("R.", "Heller",
-           email = "raban.heller@charite.de",
-           role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0001-8006-9742"))
-Description: An unofficial R client for the SeaTable REST API. Provides
-    authentication with transparent base-token refresh, tidy tibble returns
-    for tables, rows, columns and views, helpers for managing bases and
-    files, and an optional 'shiny' explorer for interactive inspection.
-    SeaTable is a trademark of SeaTable GmbH; this package is not
-    affiliated with or endorsed by SeaTable GmbH.
+Authors@R: c(
+    person("Raban", "Heller",
+           email = "raban.heller@uni-ulm.de",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0001-8006-9742")),
+    person("Paul", "Elsinghorst", role = "ctb"),
+    person("Wiebke", "Derz", role = "ctb"),
+    person("Matthias", "Ring", role = "ctb"),
+    person("Gerhard", "Achatz", role = "ctb"),
+    person("Vinzent", "Forstmeier", role = "ctb"))
+Description: An unofficial R client for the 'SeaTable' REST API. Provides
+    authentication with transparent base-token refresh, tidy 'tibble'
+    returns for tables, rows, columns and views, helpers for managing
+    bases and files, and an optional 'shiny' explorer for interactive
+    inspection. The 'SeaTable' REST API is documented at
+    <https://api.seatable.com/>. 'SeaTable' is a trademark of SeaTable
+    GmbH; this package is not affiliated with or endorsed by SeaTable
+    GmbH.
 License: MIT + file LICENSE
-URL: https://github.com/r-heller/harbouR, https://r-heller.github.io/harbouR/
-BugReports: https://github.com/r-heller/harbouR/issues
+URL: https://github.com/CTTIR/harbouR, https://cttir.github.io/harbouR/
+BugReports: https://github.com/CTTIR/harbouR/issues
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE)

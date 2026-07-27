@@ -12,24 +12,37 @@ upload and attach files, and explore bases interactively with the bundled
 Shiny app.
 }
 \details{
+harbouR was shaped by the needs, field testing and data of Paul
+Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+Forstmeier.
+
 SeaTable is a trademark of SeaTable GmbH; harbouR is not affiliated with
 or endorsed by SeaTable GmbH.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/r-heller/harbouR}
-  \item \url{https://r-heller.github.io/harbouR/}
-  \item Report bugs at \url{https://github.com/r-heller/harbouR/issues}
+  \item \url{https://github.com/CTTIR/harbouR}
+  \item \url{https://cttir.github.io/harbouR/}
+  \item Report bugs at \url{https://github.com/CTTIR/harbouR/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})
+\strong{Maintainer}: Raban Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})
+  \item Raban Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
+}
+
+Other contributors:
+\itemize{
+  \item Paul Elsinghorst [contributor]
+  \item Wiebke Derz [contributor]
+  \item Matthias Ring [contributor]
+  \item Gerhard Achatz [contributor]
+  \item Vinzent Forstmeier [contributor]
 }
 
 }

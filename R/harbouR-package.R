@@ -5,6 +5,10 @@
 #' upload and attach files, and explore bases interactively with the bundled
 #' Shiny app.
 #'
+#' harbouR was shaped by the needs, field testing and data of Paul
+#' Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+#' Forstmeier.
+#'
 #' SeaTable is a trademark of SeaTable GmbH; harbouR is not affiliated with
 #' or endorsed by SeaTable GmbH.
 #'
