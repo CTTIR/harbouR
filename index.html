@@ -126,6 +126,33 @@
 <span><span class="co">#&gt; # ℹ 1 more variable: `_id` &lt;chr&gt;</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="working-offline">Working offline<a class="anchor" aria-label="anchor" href="#working-offline"></a>
+</h2>
+<p>harbouR reads and writes SeaTable’s own <code>.dtable</code> export, so an analysis can run with no server at all. The same verbs work either way:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example.dtable"</span>, package <span class="op">=</span> <span class="st">"harbouR"</span><span class="op">)</span></span>
+<span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/hb_list_tables.html">hb_list_tables</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 4</span></span>
+<span><span class="co">#&gt;   name      n_rows n_columns n_views</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;      &lt;int&gt;     &lt;int&gt;   &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1 Samples        2        27       1</span></span>
+<span><span class="co">#&gt; 2 Reference      2         2       1</span></span>
+<span><span class="fu"><a href="reference/hb_read_table.html">hb_read_table</a></span><span class="op">(</span><span class="va">base</span>, <span class="st">"Samples"</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 4</span></span>
+<span><span class="co">#&gt;   Name  Notes                        Concentration Share</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt; &lt;chr&gt;                                &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 S-001 A plain **markdown** string.      0.000587  0.42</span></span>
+<span><span class="co">#&gt; 2 S-002 Rendered elsewhere.               8.1      NA</span></span></code></pre></div>
+<p>Writing one back is lossless, and <code><a href="reference/hb_dtable.html">hb_dtable()</a></code> builds a base out of ordinary data frames so you can import R results into SeaTable:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/hb_write_dtable.html">hb_write_dtable</a></span><span class="op">(</span><span class="va">base</span>, <span class="st">"my-base.dtable"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/hb_dtable.html">hb_dtable</a></span><span class="op">(</span>Measurements <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/hb_write_dtable.html">hb_write_dtable</a></span><span class="op">(</span><span class="st">"for-seatable.dtable"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="interactive-explorer">Interactive explorer<a class="anchor" aria-label="anchor" href="#interactive-explorer"></a>
 </h2>
 <p><code><a href="reference/hb_run_explorer.html">hb_run_explorer()</a></code> launches a Shiny app for inspecting any base interactively, with a demo mode that needs no credentials.</p>
@@ -137,8 +164,6 @@
 <ul>
 <li>
 <strong>Link columns</strong> - reading and writing row-to-row relationships.</li>
-<li>
-<strong>Local <code>.dtable</code> files</strong> - reading and writing SeaTable exports with no server at all.</li>
 <li>Comments, snapshots, big-data (archive) storage, share links and webhooks.</li>
 <li>Server-side import/export, and the admin, team and scheduler endpoints.</li>
 </ul>

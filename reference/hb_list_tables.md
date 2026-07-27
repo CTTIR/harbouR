@@ -35,10 +35,13 @@ hb_list_tables(x, ..., refresh = FALSE)
 ## Value
 
 A tibble with one row per table and columns `name` (chr), `n_columns`
-(int) and `n_views` (int). The metadata endpoint carries no row
-payloads, so there is no row count here; use
+(int) and `n_views` (int).
+
+The server path stops there: the metadata endpoint carries no row
+payloads, so there is no row count to report - use
 [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
-if you need one.
+if you need one. The `.dtable` path additionally returns `n_rows` (int),
+because in a file the rows are right there.
 
 ## See also
 

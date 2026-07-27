@@ -37,7 +37,10 @@ hb_read_dtable(path, ..., assets = c("none", "extract"), assets_dir = NULL)
 ## Value
 
 A `harbour_dtable`: a list with components `content` (the parsed tree),
-`path`, `assets` (a tibble of bundled files) and `assets_dir`.
+`path`, `assets` (a tibble of bundled files), `assets_dir` and
+`base_name`. Note that [`names()`](https://rdrr.io/r/base/names.html) on
+a `harbour_dtable` gives its *table* names, not these components - reach
+them with `$` or [`unclass()`](https://rdrr.io/r/base/class.html).
 
 ## Details
 

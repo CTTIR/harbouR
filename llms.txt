@@ -60,6 +60,43 @@ hb_example_rows("Samples")
 #> # ℹ 1 more variable: `_id` <chr>
 ```
 
+## Working offline
+
+harbouR reads and writes SeaTable’s own `.dtable` export, so an analysis
+can run with no server at all. The same verbs work either way:
+
+``` r
+
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+base <- hb_read_dtable(path)
+
+hb_list_tables(base)
+#> # A tibble: 2 × 4
+#>   name      n_rows n_columns n_views
+#>   <chr>      <int>     <int>   <int>
+#> 1 Samples        2        27       1
+#> 2 Reference      2         2       1
+hb_read_table(base, "Samples")[, 1:4]
+#> # A tibble: 2 × 4
+#>   Name  Notes                        Concentration Share
+#>   <chr> <chr>                                <dbl> <dbl>
+#> 1 S-001 A plain **markdown** string.      0.000587  0.42
+#> 2 S-002 Rendered elsewhere.               8.1      NA
+```
+
+Writing one back is lossless, and
+[`hb_dtable()`](https://cttir.github.io/harbouR/reference/hb_dtable.md)
+builds a base out of ordinary data frames so you can import R results
+into SeaTable:
+
+``` r
+
+hb_write_dtable(base, "my-base.dtable")
+
+hb_dtable(Measurements = my_data) |>
+  hb_write_dtable("for-seatable.dtable")
+```
+
 ## Interactive explorer
 
 [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
@@ -73,8 +110,6 @@ out: authentication, metadata, rows, tables, columns, views and files.
 Not yet wrapped, in rough order of intent:
 
 - **Link columns** - reading and writing row-to-row relationships.
-- **Local `.dtable` files** - reading and writing SeaTable exports with
-  no server at all.
 - Comments, snapshots, big-data (archive) storage, share links and
   webhooks.
 - Server-side import/export, and the admin, team and scheduler

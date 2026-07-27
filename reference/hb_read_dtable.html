@@ -88,8 +88,10 @@ temporary directory.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>harbour_dtable</code>: a list with components <code>content</code> (the
-parsed tree), <code>path</code>, <code>assets</code> (a tibble of bundled files) and
-<code>assets_dir</code>.</p>
+parsed tree), <code>path</code>, <code>assets</code> (a tibble of bundled files),
+<code>assets_dir</code> and <code>base_name</code>. Note that <code><a href="https://rdrr.io/r/base/names.html" class="external-link">names()</a></code> on a
+<code>harbour_dtable</code> gives its <em>table</em> names, not these components -
+reach them with <code>$</code> or <code><a href="https://rdrr.io/r/base/class.html" class="external-link">unclass()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

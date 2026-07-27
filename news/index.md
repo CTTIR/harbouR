@@ -80,6 +80,55 @@ that was tagged but never published.
   which is what the gateway expects; the web API keeps `Token`. **This
   requires SeaTable 5.3 (June 2025) or newer.**
 
+### Fixes from the post-rewrite audit
+
+- **Security:** the explorer’s Schema tab rendered a column’s type
+  string as raw HTML. A `.dtable` carrying a crafted type could run
+  script in a session that may hold the user’s API token. The type is
+  now escaped.
+
+- **Data loss:**
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  dropped the bundled `asset/` tree unless the base had been read with
+  `assets = "extract"`, producing an archive whose attachment cells
+  pointed at files it did not contain. The explorer now extracts on
+  open, and the writer warns rather than discarding silently.
+
+- Exporting a live base to `.dtable` wrote `_id` as an ordinary column,
+  which then collided with the reserved name on read - the export could
+  not be re-opened. System fields are dropped first.
+
+- [`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
+  threw a bare “subscript out of bounds” for any column not in the
+  table’s schema, which is what
+  `hb_read_table() |> mutate() |> hb_update_rows()` produces. It now
+  names the offending column. It also drops server-computed columns,
+  which
+  [`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md)
+  already did.
+
+- [`hb_duplicate_table()`](https://cttir.github.io/harbouR/reference/hb_duplicate_table.md)
+  sent an undocumented `new_table_name` and omitted the required
+  `is_duplicate_records`. It gains `duplicate_records` and documents
+  that SeaTable always names the copy `<original> (copy)`.
+
+- [`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md)
+  documented column specs as `name`/`type` while the API wants
+  `column_name`/`column_type`, so following the package’s own example
+  produced a body the server rejects. Both spellings now work.
+
+- [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md)
+  and
+  [`hb_read_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_dtable.md)
+  validate their arguments before using them, so a wrong type gives a
+  classed harbouR error rather than a raw R one.
+
+- Writing `Inf` or `NaN` to a `.dtable` warns. JSON cannot hold them, so
+  they become `null` and read back as `NA`; that is now visible.
+
+- The endpoint contract test pins request-body field names as well as
+  paths. Renaming a body field previously left the suite green.
+
 ### The explorer
 
 - **The Shiny app has been rebuilt, and it lives in `R/`.** It was under

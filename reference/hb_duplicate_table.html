@@ -49,7 +49,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hb_duplicate_table</span><span class="op">(</span><span class="va">client</span>, <span class="va">table</span>, <span class="va">...</span>, new_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hb_duplicate_table</span><span class="op">(</span><span class="va">client</span>, <span class="va">table</span>, <span class="va">...</span>, duplicate_records <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,13 +68,22 @@
 <dd><p>These dots are for future extensions and must be empty.</p></dd>
 
 
-<dt id="arg-new-name">new_name<a class="anchor" aria-label="anchor" href="#arg-new-name"></a></dt>
-<dd><p>Optional new name. If <code>NULL</code> the server picks one.</p></dd>
+<dt id="arg-duplicate-records">duplicate_records<a class="anchor" aria-label="anchor" href="#arg-duplicate-records"></a></dt>
+<dd><p>Copy the rows as well as the structure.
+Default <code>TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Invisibly returns the client.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="naming">Naming<a class="anchor" aria-label="anchor" href="#naming"></a></h2>
+
+
+<p>SeaTable names the copy after the original with <code>(copy)</code> appended, and
+offers no way to set the name in the same request. Follow with
+<code><a href="hb_rename_table.html">hb_rename_table()</a></code> if you need a particular name.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -88,7 +97,8 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
 <span class="r-in"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu"><a href="hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">hb_duplicate_table</span><span class="op">(</span><span class="va">client</span>, <span class="st">"Samples"</span>, <span class="st">"Samples_copy"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">hb_duplicate_table</span><span class="op">(</span><span class="va">client</span>, <span class="st">"Samples"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="hb_rename_table.html">hb_rename_table</a></span><span class="op">(</span><span class="va">client</span>, <span class="st">"Samples (copy)"</span>, <span class="st">"Samples_backup"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

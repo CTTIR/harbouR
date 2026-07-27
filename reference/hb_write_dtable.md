@@ -65,6 +65,9 @@ base <- hb_read_dtable(path)
 
 out <- tempfile(fileext = ".dtable")
 hb_write_dtable(base, out)
+#> Warning: This base references 7 bundled assets that will not be written.
+#> ✖ The attachment cells will point at files the archive does not contain.
+#> ℹ Re-read it with `hb_read_dtable(path, assets = "extract")`.
 
 # the round trip preserves the base exactly
 identical(hb_read_dtable(out)$content, base$content)

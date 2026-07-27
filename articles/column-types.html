@@ -81,9 +81,9 @@
 
     
     
-<p>SeaTable bases have around twenty column types. harbouR maps every
-one of them onto a predictable R type so the tibble you get back is
-analysis-ready, not raw JSON. This vignette is the reference.</p>
+<p>SeaTable bases have 28 column types. harbouR maps every one of them
+onto a predictable R type so the tibble you get back is analysis-ready,
+not raw JSON. This vignette is the reference.</p>
 <div class="section level2">
 <h2 id="the-mapping-table">The mapping table<a class="anchor" aria-label="anchor" href="#the-mapping-table"></a>
 </h2>
@@ -91,27 +91,234 @@ analysis-ready, not raw JSON. This vignette is the reference.</p>
 cannot drift out of sync with the code:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 28 × 5</span></span></span>
-<span><span class="co">#&gt;    seatable  r         is_list read_only notes                                  </span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> text      character FALSE   FALSE     free text                              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> long-text character FALSE   FALSE     markdown blob                          </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> email     character FALSE   FALSE     validated as email server-side         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> url       character FALSE   FALSE     validated as URL server-side           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> number    double    FALSE   FALSE     64-bit precision caveat applies        </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> percent   double    FALSE   FALSE     stored as a fraction, displayed as a p…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> dollar    double    FALSE   FALSE     number with a currency format          </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> euro      double    FALSE   FALSE     number with a currency format          </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> duration  double    FALSE   FALSE     seconds                                </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> rate      integer   FALSE   FALSE     0..N stars                             </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more rows</span></span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="15%">
+<col width="15%">
+<col width="7%">
+<col width="9%">
+<col width="52%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">seatable</th>
+<th align="left">r</th>
+<th align="left">is_list</th>
+<th align="left">read_only</th>
+<th align="left">notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">text</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">free text</td>
+</tr>
+<tr class="even">
+<td align="left">long-text</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">markdown blob</td>
+</tr>
+<tr class="odd">
+<td align="left">email</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">validated as email server-side</td>
+</tr>
+<tr class="even">
+<td align="left">url</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">validated as URL server-side</td>
+</tr>
+<tr class="odd">
+<td align="left">number</td>
+<td align="left">double</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">64-bit precision caveat applies</td>
+</tr>
+<tr class="even">
+<td align="left">percent</td>
+<td align="left">double</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">stored as a fraction, displayed as a percentage</td>
+</tr>
+<tr class="odd">
+<td align="left">dollar</td>
+<td align="left">double</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">number with a currency format</td>
+</tr>
+<tr class="even">
+<td align="left">euro</td>
+<td align="left">double</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">number with a currency format</td>
+</tr>
+<tr class="odd">
+<td align="left">duration</td>
+<td align="left">double</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">seconds</td>
+</tr>
+<tr class="even">
+<td align="left">rate</td>
+<td align="left">integer</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">0..N stars</td>
+</tr>
+<tr class="odd">
+<td align="left">checkbox</td>
+<td align="left">logical</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE/FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">date</td>
+<td align="left">POSIXct</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">UTC; date-only columns have a zero time component</td>
+</tr>
+<tr class="odd">
+<td align="left">single-select</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">validated against the column’s options on write</td>
+</tr>
+<tr class="even">
+<td align="left">multiple-select</td>
+<td align="left">list<character></character>
+</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">always a list-column</td>
+</tr>
+<tr class="odd">
+<td align="left">collaborator</td>
+<td align="left">list<character></character>
+</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">list-column of email addresses</td>
+</tr>
+<tr class="even">
+<td align="left">image</td>
+<td align="left">list<character></character>
+</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">list-column of URLs</td>
+</tr>
+<tr class="odd">
+<td align="left">file</td>
+<td align="left">list<list></list>
+</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">list-column of {name,size,type,url} lists</td>
+</tr>
+<tr class="even">
+<td align="left">geolocation</td>
+<td align="left">list</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">list-column with lat/lng/address</td>
+</tr>
+<tr class="odd">
+<td align="left">link</td>
+<td align="left">list</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+<td align="left">managed via the link endpoints, not by writing the
+cell</td>
+</tr>
+<tr class="even">
+<td align="left">link-formula</td>
+<td align="left">list</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+<td align="left">mirrors a column in a linked table</td>
+</tr>
+<tr class="odd">
+<td align="left">formula</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">computed server-side</td>
+</tr>
+<tr class="even">
+<td align="left">auto-number</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">server-generated identifier</td>
+</tr>
+<tr class="odd">
+<td align="left">button</td>
+<td align="left">list</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+<td align="left">carries no data</td>
+</tr>
+<tr class="even">
+<td align="left">digital-sign</td>
+<td align="left">list</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+<td align="left">signature metadata</td>
+</tr>
+<tr class="odd">
+<td align="left">creator</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">user email</td>
+</tr>
+<tr class="even">
+<td align="left">last-modifier</td>
+<td align="left">character</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">user email</td>
+</tr>
+<tr class="odd">
+<td align="left">ctime</td>
+<td align="left">POSIXct</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">row creation time</td>
+</tr>
+<tr class="even">
+<td align="left">mtime</td>
+<td align="left">POSIXct</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">row modification time</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="what-the-rows-look-like">What the rows look like<a class="anchor" aria-label="anchor" href="#what-the-rows-look-like"></a>
 </h2>
-<p>The bundled example data exercises every column-type harbouR
-supports.</p>
+<p><code><a href="../reference/hb_example_rows.html">hb_example_rows()</a></code> is a small hand-written frame covering
+the common types. The bundled <code>.dtable</code> fixture is the
+exhaustive one - it carries a column of nearly every type - and the last
+section reads it.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_example_rows.html">hb_example_rows</a></span><span class="op">(</span><span class="st">"Samples"</span><span class="op">)</span></span>
 <span><span class="va">samples</span></span>
@@ -141,20 +348,23 @@ supports.</p>
 SeaTable’s numeric column is 64-bit; large integers may round - if
 precision matters store them as text).</li>
 <li>
-<code>date</code> becomes <code>POSIXct</code> when there is a time
-component and <code>Date</code> otherwise; harbouR detects this from the
-value.</li>
+<code>date</code> always becomes <code>POSIXct</code>, in UTC. A
+date-only column simply has a zero time component. Call
+<code><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date()</a></code> if you want a calendar date.</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="list-columns">List-columns<a class="anchor" aria-label="anchor" href="#list-columns"></a>
 </h3>
-<p><code>multiple-select</code>, <code>collaborator</code>,
-<code>image</code> and <code>file</code> always come back as
-list-columns, even when every row has one value or none. That is the
-type-stability rule: the same column has the same R type for every
-row.</p>
+<p>These types always come back as list-columns, even when every row has
+one value or none. That is the type-stability rule: the same column has
+the same R type for every row.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">is_list</span><span class="op">)</span><span class="op">$</span><span class="va">seatable</span></span>
+<span><span class="co">#&gt; [1] "multiple-select" "collaborator"    "image"           "file"           </span></span>
+<span><span class="co">#&gt; [5] "geolocation"     "link"            "link-formula"    "button"         </span></span>
+<span><span class="co">#&gt; [9] "digital-sign"</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">samples</span><span class="op">$</span><span class="va">Tags</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; [1] "urgent" "blood" </span></span>
@@ -166,7 +376,7 @@ row.</p>
 <span><span class="co">#&gt; [1] "plasma"</span></span></code></pre></div>
 <p>Flatten with <code><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">tidyr::unnest</a></code> when you need a long
 form:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">samples</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Name"</span>, <span class="st">"Tags"</span><span class="op">)</span><span class="op">]</span>, cols <span class="op">=</span> <span class="st">"Tags"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
 <span><span class="co">#&gt;   Name  Tags  </span></span>
@@ -178,7 +388,7 @@ form:</p>
 <div class="section level3">
 <h3 id="file-and-image-columns">File and image columns<a class="anchor" aria-label="anchor" href="#file-and-image-columns"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">samples</span><span class="op">$</span><span class="va">Reports</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; [[1]]$name</span></span>
@@ -199,12 +409,17 @@ downloaded via <code><a href="../reference/hb_download_file.html">hb_download_fi
 <div class="section level3">
 <h3 id="read-only-columns">Read-only columns<a class="anchor" aria-label="anchor" href="#read-only-columns"></a>
 </h3>
-<p><code>formula</code>, <code>auto-number</code>, <code>creator</code>,
-<code>last-modifier</code>, <code>ctime</code>, <code>mtime</code> and
-<code>link-formula</code> are read-only on SeaTable; harbouR silently
-drops them when you call <code><a href="../reference/hb_update_rows.html">hb_update_rows()</a></code> or
-<code><a href="../reference/hb_append_rows.html">hb_append_rows()</a></code>, so you can round-trip a tibble through
-harbouR without writing back computed values by accident.</p>
+<p>These types are maintained by SeaTable, so harbouR drops them from
+any write. You can round-trip a tibble through harbouR without writing
+back computed values by accident.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">read_only</span><span class="op">)</span><span class="op">$</span><span class="va">seatable</span></span>
+<span><span class="co">#&gt;  [1] "link"          "link-formula"  "formula"       "auto-number"  </span></span>
+<span><span class="co">#&gt;  [5] "button"        "digital-sign"  "creator"       "last-modifier"</span></span>
+<span><span class="co">#&gt;  [9] "ctime"         "mtime"</span></span></code></pre></div>
+<p>Note that <code>link</code>, <code>button</code> and
+<code>digital-sign</code> are in that list too: links are maintained
+through SeaTable’s link endpoints rather than by writing the cell.</p>
 </div>
 </div>
 <div class="section level2">
@@ -212,7 +427,7 @@ harbouR without writing back computed values by accident.</p>
 </h2>
 <p>A table with no rows still comes back as a tibble with every column
 in its correct type:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">empty</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_example_rows.html">hb_example_rows</a></span><span class="op">(</span><span class="st">"Samples"</span><span class="op">)</span><span class="op">[</span><span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="va">empty</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 0 × 8</span></span></span>
@@ -226,6 +441,179 @@ in its correct type:</p>
 still a <code>POSIXct</code>, and <code>Tags</code> still a list-column
 - so downstream code that expects a schema does not have to special-case
 the empty result.</p>
+</div>
+<div class="section level2">
+<h2 id="every-type-at-once">Every type at once<a class="anchor" aria-label="anchor" href="#every-type-at-once"></a>
+</h2>
+<p><code><a href="../reference/hb_example_rows.html">hb_example_rows()</a></code> is deliberately small. The bundled
+<code>.dtable</code> fixture carries a column of nearly every type
+SeaTable defines, so it is the better place to see the whole mapping at
+work:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example.dtable"</span>, package <span class="op">=</span> <span class="st">"harbouR"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_list_columns.html">hb_list_columns</a></span><span class="op">(</span><span class="va">base</span>, <span class="st">"Samples"</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">schema</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"type"</span>, <span class="st">"editable"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">name</th>
+<th align="left">type</th>
+<th align="left">editable</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">text</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Notes</td>
+<td align="left">long-text</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Concentration</td>
+<td align="left">number</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Share</td>
+<td align="left">percent</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Cost</td>
+<td align="left">dollar</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Preis</td>
+<td align="left">euro</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Runtime</td>
+<td align="left">duration</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Rating</td>
+<td align="left">rate</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Consented</td>
+<td align="left">checkbox</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Collected</td>
+<td align="left">date</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Status</td>
+<td align="left">single-select</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Tags</td>
+<td align="left">multiple-select</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Collaborators</td>
+<td align="left">collaborator</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Photos</td>
+<td align="left">image</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Reports</td>
+<td align="left">file</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Where</td>
+<td align="left">geolocation</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Homepage</td>
+<td align="left">url</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Contact</td>
+<td align="left">email</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">Temperatur (°C)</td>
+<td align="left">number</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">Doubled</td>
+<td align="left">formula</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">Ref</td>
+<td align="left">auto-number</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">Created by</td>
+<td align="left">creator</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">Changed by</td>
+<td align="left">last-modifier</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">Created</td>
+<td align="left">ctime</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">Changed</td>
+<td align="left">mtime</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">Action</td>
+<td align="left">button</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">Signature</td>
+<td align="left">digital-sign</td>
+<td align="left">FALSE</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_read_table.html">hb_read_table</a></span><span class="op">(</span><span class="va">base</span>, <span class="st">"Samples"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">data</span>, <span class="kw">function</span><span class="op">(</span><span class="va">col</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">col</span><span class="op">)</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            Name           Notes   Concentration           Share            Cost </span></span>
+<span><span class="co">#&gt;     "character"     "character"       "numeric"       "numeric"       "numeric" </span></span>
+<span><span class="co">#&gt;           Preis         Runtime          Rating       Consented       Collected </span></span>
+<span><span class="co">#&gt;       "numeric"       "numeric"       "integer"       "logical"       "POSIXct" </span></span>
+<span><span class="co">#&gt;          Status            Tags   Collaborators          Photos         Reports </span></span>
+<span><span class="co">#&gt;     "character"          "list"          "list"          "list"          "list" </span></span>
+<span><span class="co">#&gt;           Where        Homepage         Contact Temperatur (°C)         Doubled </span></span>
+<span><span class="co">#&gt;          "list"     "character"     "character"       "numeric"     "character" </span></span>
+<span><span class="co">#&gt;             Ref      Created by      Changed by         Created         Changed </span></span>
+<span><span class="co">#&gt;     "character"     "character"     "character"       "POSIXct"       "POSIXct" </span></span>
+<span><span class="co">#&gt;          Action       Signature             _id </span></span>
+<span><span class="co">#&gt;          "list"          "list"     "character"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>

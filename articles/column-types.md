@@ -1,8 +1,8 @@
 # Column types and coercion
 
-SeaTable bases have around twenty column types. harbouR maps every one
-of them onto a predictable R type so the tibble you get back is
-analysis-ready, not raw JSON. This vignette is the reference.
+SeaTable bases have 28 column types. harbouR maps every one of them onto
+a predictable R type so the tibble you get back is analysis-ready, not
+raw JSON. This vignette is the reference.
 
 ## The mapping table
 
@@ -13,26 +13,46 @@ so it cannot drift out of sync with the code:
 ``` r
 
 library(harbouR)
-hb_column_types()
-#> # A tibble: 28 × 5
-#>    seatable  r         is_list read_only notes                                  
-#>    <chr>     <chr>     <lgl>   <lgl>     <chr>                                  
-#>  1 text      character FALSE   FALSE     free text                              
-#>  2 long-text character FALSE   FALSE     markdown blob                          
-#>  3 email     character FALSE   FALSE     validated as email server-side         
-#>  4 url       character FALSE   FALSE     validated as URL server-side           
-#>  5 number    double    FALSE   FALSE     64-bit precision caveat applies        
-#>  6 percent   double    FALSE   FALSE     stored as a fraction, displayed as a p…
-#>  7 dollar    double    FALSE   FALSE     number with a currency format          
-#>  8 euro      double    FALSE   FALSE     number with a currency format          
-#>  9 duration  double    FALSE   FALSE     seconds                                
-#> 10 rate      integer   FALSE   FALSE     0..N stars                             
-#> # ℹ 18 more rows
+knitr::kable(hb_column_types())
 ```
+
+| seatable | r | is_list | read_only | notes |
+|:---|:---|:---|:---|:---|
+| text | character | FALSE | FALSE | free text |
+| long-text | character | FALSE | FALSE | markdown blob |
+| email | character | FALSE | FALSE | validated as email server-side |
+| url | character | FALSE | FALSE | validated as URL server-side |
+| number | double | FALSE | FALSE | 64-bit precision caveat applies |
+| percent | double | FALSE | FALSE | stored as a fraction, displayed as a percentage |
+| dollar | double | FALSE | FALSE | number with a currency format |
+| euro | double | FALSE | FALSE | number with a currency format |
+| duration | double | FALSE | FALSE | seconds |
+| rate | integer | FALSE | FALSE | 0..N stars |
+| checkbox | logical | FALSE | FALSE | TRUE/FALSE |
+| date | POSIXct | FALSE | FALSE | UTC; date-only columns have a zero time component |
+| single-select | character | FALSE | FALSE | validated against the column’s options on write |
+| multiple-select | list | TRUE | FALSE | always a list-column |
+| collaborator | list | TRUE | FALSE | list-column of email addresses |
+| image | list | TRUE | FALSE | list-column of URLs |
+| file | list | TRUE | FALSE | list-column of {name,size,type,url} lists |
+| geolocation | list | TRUE | FALSE | list-column with lat/lng/address |
+| link | list | TRUE | TRUE | managed via the link endpoints, not by writing the cell |
+| link-formula | list | TRUE | TRUE | mirrors a column in a linked table |
+| formula | character | FALSE | TRUE | computed server-side |
+| auto-number | character | FALSE | TRUE | server-generated identifier |
+| button | list | TRUE | TRUE | carries no data |
+| digital-sign | list | TRUE | TRUE | signature metadata |
+| creator | character | FALSE | TRUE | user email |
+| last-modifier | character | FALSE | TRUE | user email |
+| ctime | POSIXct | FALSE | TRUE | row creation time |
+| mtime | POSIXct | FALSE | TRUE | row modification time |
 
 ## What the rows look like
 
-The bundled example data exercises every column-type harbouR supports.
+[`hb_example_rows()`](https://cttir.github.io/harbouR/reference/hb_example_rows.md)
+is a small hand-written frame covering the common types. The bundled
+`.dtable` fixture is the exhaustive one - it carries a column of nearly
+every type - and the last section reads it.
 
 ``` r
 
@@ -63,14 +83,24 @@ str(samples[, c("Name", "Concentration", "Status", "Collected")])
 - `number` becomes a `double` (caveat: SeaTable’s numeric column is
   64-bit; large integers may round - if precision matters store them as
   text).
-- `date` becomes `POSIXct` when there is a time component and `Date`
-  otherwise; harbouR detects this from the value.
+- `date` always becomes `POSIXct`, in UTC. A date-only column simply has
+  a zero time component. Call
+  [`as.Date()`](https://rdrr.io/r/base/as.Date.html) if you want a
+  calendar date.
 
 ### List-columns
 
-`multiple-select`, `collaborator`, `image` and `file` always come back
-as list-columns, even when every row has one value or none. That is the
-type-stability rule: the same column has the same R type for every row.
+These types always come back as list-columns, even when every row has
+one value or none. That is the type-stability rule: the same column has
+the same R type for every row.
+
+``` r
+
+subset(hb_column_types(), is_list)$seatable
+#> [1] "multiple-select" "collaborator"    "image"           "file"           
+#> [5] "geolocation"     "link"            "link-formula"    "button"         
+#> [9] "digital-sign"
+```
 
 ``` r
 
@@ -125,14 +155,21 @@ Each entry is a list of file objects with `name`, `size`, `type` and
 
 ### Read-only columns
 
-`formula`, `auto-number`, `creator`, `last-modifier`, `ctime`, `mtime`
-and `link-formula` are read-only on SeaTable; harbouR silently drops
-them when you call
-[`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
-or
-[`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md),
-so you can round-trip a tibble through harbouR without writing back
+These types are maintained by SeaTable, so harbouR drops them from any
+write. You can round-trip a tibble through harbouR without writing back
 computed values by accident.
+
+``` r
+
+subset(hb_column_types(), read_only)$seatable
+#>  [1] "link"          "link-formula"  "formula"       "auto-number"  
+#>  [5] "button"        "digital-sign"  "creator"       "last-modifier"
+#>  [9] "ctime"         "mtime"
+```
+
+Note that `link`, `button` and `digital-sign` are in that list too:
+links are maintained through SeaTable’s link endpoints rather than by
+writing the cell.
 
 ## Empty tables
 
@@ -155,6 +192,70 @@ Every column keeps the type it would have had with rows present -
 `Concentration` is still a double, `Collected` still a `POSIXct`, and
 `Tags` still a list-column - so downstream code that expects a schema
 does not have to special-case the empty result.
+
+## Every type at once
+
+[`hb_example_rows()`](https://cttir.github.io/harbouR/reference/hb_example_rows.md)
+is deliberately small. The bundled `.dtable` fixture carries a column of
+nearly every type SeaTable defines, so it is the better place to see the
+whole mapping at work:
+
+``` r
+
+base <- hb_read_dtable(
+  system.file("extdata", "example.dtable", package = "harbouR")
+)
+schema <- hb_list_columns(base, "Samples")
+knitr::kable(schema[, c("name", "type", "editable")])
+```
+
+| name            | type            | editable |
+|:----------------|:----------------|:---------|
+| Name            | text            | TRUE     |
+| Notes           | long-text       | TRUE     |
+| Concentration   | number          | TRUE     |
+| Share           | percent         | TRUE     |
+| Cost            | dollar          | TRUE     |
+| Preis           | euro            | TRUE     |
+| Runtime         | duration        | TRUE     |
+| Rating          | rate            | TRUE     |
+| Consented       | checkbox        | TRUE     |
+| Collected       | date            | TRUE     |
+| Status          | single-select   | TRUE     |
+| Tags            | multiple-select | TRUE     |
+| Collaborators   | collaborator    | TRUE     |
+| Photos          | image           | TRUE     |
+| Reports         | file            | TRUE     |
+| Where           | geolocation     | TRUE     |
+| Homepage        | url             | TRUE     |
+| Contact         | email           | TRUE     |
+| Temperatur (°C) | number          | TRUE     |
+| Doubled         | formula         | FALSE    |
+| Ref             | auto-number     | FALSE    |
+| Created by      | creator         | FALSE    |
+| Changed by      | last-modifier   | FALSE    |
+| Created         | ctime           | FALSE    |
+| Changed         | mtime           | FALSE    |
+| Action          | button          | FALSE    |
+| Signature       | digital-sign    | FALSE    |
+
+``` r
+
+data <- hb_read_table(base, "Samples")
+vapply(data, function(col) class(col)[[1L]], character(1))
+#>            Name           Notes   Concentration           Share            Cost 
+#>     "character"     "character"       "numeric"       "numeric"       "numeric" 
+#>           Preis         Runtime          Rating       Consented       Collected 
+#>       "numeric"       "numeric"       "integer"       "logical"       "POSIXct" 
+#>          Status            Tags   Collaborators          Photos         Reports 
+#>     "character"          "list"          "list"          "list"          "list" 
+#>           Where        Homepage         Contact Temperatur (°C)         Doubled 
+#>          "list"     "character"     "character"       "numeric"     "character" 
+#>             Ref      Created by      Changed by         Created         Changed 
+#>     "character"     "character"     "character"       "POSIXct"       "POSIXct" 
+#>          Action       Signature             _id 
+#>          "list"          "list"     "character"
+```
 
 ## Next steps
 

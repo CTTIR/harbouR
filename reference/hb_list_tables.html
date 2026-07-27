@@ -80,10 +80,12 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A tibble with one row per table and columns
-<code>name</code> (chr), <code>n_columns</code> (int) and <code>n_views</code> (int). The metadata
-endpoint carries no row payloads, so there is no row count here;
-use <code><a href="hb_read_table.html">hb_read_table()</a></code> if you need one.</p>
+    <p>A tibble with one row per table and columns <code>name</code> (chr),
+<code>n_columns</code> (int) and <code>n_views</code> (int).</p>
+<p>The server path stops there: the metadata endpoint carries no row
+payloads, so there is no row count to report - use <code><a href="hb_read_table.html">hb_read_table()</a></code>
+if you need one. The <code>.dtable</code> path additionally returns <code>n_rows</code>
+(int), because in a file the rows are right there.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
