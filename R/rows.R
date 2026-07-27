@@ -8,7 +8,10 @@
 #' @inheritParams hb_metadata
 #' @param table Name of the table.
 #' @param view Optional view name.
-#' @param limit Page size for paginated fetches. Default `1000`.
+#' @param page_size Rows fetched per request. SeaTable caps this at 1000
+#'   and harbouR clamps it, warning if you asked for more.
+#' @param n_max Maximum number of rows to return. `Inf`, the default,
+#'   reads the whole table.
 #'
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per SeaTable row and one column per
@@ -19,27 +22,31 @@
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_read_table(client, "Samples")
+#'
+#' # just the first 10 rows
+#' hb_read_table(client, "Samples", n_max = 10)
 #' @export
-hb_read_table <- function(client, table, ..., view = NULL, limit = 1000L) {
+hb_read_table <- function(client, table, ..., view = NULL,
+                          page_size = 1000L, n_max = Inf) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
   .check_string(view, allow_null = TRUE)
-  bad_limit <- !is.numeric(limit) || length(limit) != 1L ||
-    is.na(limit) || limit <= 0L
-  if (bad_limit) {
-    hb_abort("{.arg limit} must be a positive integer.",
-      class = "harbour_error_bad_argument"
-    )
-  }
+  page_size <- .hb_check_page_size(page_size)
+  .hb_check_n_max(n_max)
 
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
 
   start <- 0L
   rows <- list()
-  repeat {
-    q <- list(table_name = table, start = start, limit = as.integer(limit))
+  # A server that keeps returning full pages must produce an error, not an
+  # infinite loop. 1000 pages is 1e6 rows - far past any real base.
+  max_pages <- 1000L
+  for (page in seq_len(max_pages)) {
+    want <- min(page_size, n_max - length(rows))
+    if (want <= 0L) break
+    q <- list(table_name = table, start = start, limit = as.integer(want))
     if (!is.null(view)) q$view_name <- view
     body <- .hb_request(client, .hb_base_path(client, "rows", ""),
       service = "gateway", auth = "base",
@@ -47,10 +54,64 @@ hb_read_table <- function(client, table, ..., view = NULL, limit = 1000L) {
     )
     chunk <- body$rows %||% list()
     rows <- c(rows, chunk)
-    if (length(chunk) < limit) break
+    if (length(chunk) < want) break
     start <- start + length(chunk)
+    if (page == max_pages) {
+      hb_abort(
+        c("Gave up after {max_pages} pages ({length(rows)} rows).",
+          "i" = "Set {.arg n_max} to bound the read."),
+        class = "harbour_error_http"
+      )
+    }
   }
+  if (length(rows) > n_max) rows <- rows[seq_len(n_max)]
   .hb_rows_to_tibble(rows, cols)
+}
+
+#' Validate and clamp a page size against SeaTable's server maximum
+#'
+#' @param page_size The requested page size.
+#' @param call The frame to blame for any error.
+#' @return An integer, at most 1000.
+#' @keywords internal
+#' @noRd
+.hb_check_page_size <- function(page_size, call = rlang::caller_env()) {
+  ok <- is.numeric(page_size) && length(page_size) == 1L &&
+    !is.na(page_size) && page_size >= 1
+  if (!ok) {
+    hb_abort("{.arg page_size} must be a positive integer.",
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  # cli >= 3.4.0 reads a `{}` expression beginning with a dot as a style
+  # name, so the constant has to be a plain local.
+  cap <- .hb_max_page_size
+  if (page_size > cap) {
+    cli::cli_warn(c(
+      "{.arg page_size} is capped at {.val {cap}} by SeaTable.",
+      "i" = "Reading in pages of {.val {cap}} instead."
+    ), call = call)
+    return(cap)
+  }
+  as.integer(page_size)
+}
+
+#' Validate a row cap
+#'
+#' @param n_max The requested maximum.
+#' @param call The frame to blame for any error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_n_max <- function(n_max, call = rlang::caller_env()) {
+  ok <- is.numeric(n_max) && length(n_max) == 1L &&
+    !is.na(n_max) && n_max >= 1
+  if (!ok) {
+    hb_abort("{.arg n_max} must be a positive number or {.code Inf}.",
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Run a SeaTable SQL query
@@ -137,13 +198,19 @@ hb_get_row <- function(client, table, row_id, ...) {
 #' @param data A tibble or data frame whose columns match the table schema.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A tibble of the appended rows (with server-generated `_id`s).
+#' @param chunk_size Rows per request. SeaTable caps batch writes at
+#'   1000 and harbouR clamps it, warning if you asked for more.
+#' @return Invisibly, a one-row tibble with columns `table` (chr),
+#'   `n_rows` (int) - the count the server confirmed - and
+#'   `n_requests` (int). SeaTable does not return the created rows, so
+#'   neither does harbouR; read the table back if you need their `_id`s.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_append_rows(client, "Samples", tibble::tibble(Name = "S1"))
 #' @export
-hb_append_rows <- function(client, table, data, ...) {
+hb_append_rows <- function(client, table, data, ...,
+                           chunk_size = 1000L) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
@@ -154,15 +221,55 @@ hb_append_rows <- function(client, table, data, ...) {
   }
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
+  chunk_size <- .hb_check_chunk_size(chunk_size)
   rows <- .hb_tibble_to_rows(data, cols)
-  body <- .hb_request(
-    client, .hb_base_path(client, "rows", ""),
-    service = "gateway", auth = "base",
-    method = "POST",
-    body = list(table_name = table, rows = rows)
-  )
-  created <- body$rows %||% body$first_row %||% rows
-  .hb_rows_to_tibble(created, cols)
+  chunks <- .hb_chunk(rows, chunk_size)
+  inserted <- 0L
+  for (i in seq_along(chunks)) {
+    body <- .hb_request(
+      client, .hb_base_path(client, "rows", ""),
+      service = "gateway", auth = "base",
+      method = "POST",
+      body = list(table_name = table, rows = unname(chunks[[i]]))
+    )
+    # Report what the server confirmed. The previous implementation fell
+    # back to the request payload, which has no server-assigned _id, and
+    # then claimed in @return that it did.
+    inserted <- inserted + as.integer(
+      body$inserted_row_count %||% length(chunks[[i]])
+    )
+  }
+  invisible(tibble::tibble(
+    table = table,
+    n_rows = inserted,
+    n_requests = length(chunks)
+  ))
+}
+
+#' Validate a write chunk size against SeaTable's server maximum
+#'
+#' @param chunk_size The requested chunk size.
+#' @param call The frame to blame for any error.
+#' @return An integer, at most 1000.
+#' @keywords internal
+#' @noRd
+.hb_check_chunk_size <- function(chunk_size, call = rlang::caller_env()) {
+  ok <- is.numeric(chunk_size) && length(chunk_size) == 1L &&
+    !is.na(chunk_size) && chunk_size >= 1
+  if (!ok) {
+    hb_abort("{.arg chunk_size} must be a positive integer.",
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  cap <- .hb_max_batch_size
+  if (chunk_size > cap) {
+    cli::cli_warn(c(
+      "{.arg chunk_size} is capped at {.val {cap}} by SeaTable.",
+      "i" = "Writing in batches of {.val {cap}} instead."
+    ), call = call)
+    return(cap)
+  }
+  as.integer(chunk_size)
 }
 
 #' Update rows in a table
@@ -172,8 +279,10 @@ hb_append_rows <- function(client, table, data, ...) {
 #'   Default `"_id"`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return Invisibly returns a summary tibble with columns
-#'   `row_id` (chr) and `updated` (lgl).
+#' @param chunk_size Rows per request. SeaTable caps batch writes at
+#'   1000 and harbouR clamps it, warning if you asked for more.
+#' @return Invisibly, a one-row tibble with columns `table` (chr),
+#'   `n_rows` (int) and `n_requests` (int).
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
@@ -182,7 +291,8 @@ hb_append_rows <- function(client, table, data, ...) {
 #'   tibble::tibble(`_id` = "abc", Name = "renamed")
 #' )
 #' @export
-hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
+hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
+                           chunk_size = 1000L) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
@@ -200,6 +310,7 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
       class = "harbour_error_bad_argument"
     )
   }
+  chunk_size <- .hb_check_chunk_size(chunk_size)
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   types <- .hb_chr_field(cols, "type", default = "text")
@@ -221,13 +332,17 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
       row = row
     )
   }
-  .hb_request(client, .hb_base_path(client, "rows", ""),
-    service = "gateway", auth = "base", method = "PUT",
-    body = list(table_name = table, updates = updates)
-  )
+  chunks <- .hb_chunk(updates, chunk_size)
+  for (i in seq_along(chunks)) {
+    .hb_request(client, .hb_base_path(client, "rows", ""),
+      service = "gateway", auth = "base", method = "PUT",
+      body = list(table_name = table, updates = unname(chunks[[i]]))
+    )
+  }
   invisible(tibble::tibble(
-    row_id = vapply(updates, function(update) update$row_id, character(1)),
-    updated = rep(TRUE, length(updates))
+    table = table,
+    n_rows = length(updates),
+    n_requests = length(chunks)
   ))
 }
 
@@ -237,13 +352,17 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
 #' @param row_ids A character vector of row IDs to delete.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return Invisibly returns a tibble with `row_id` and `deleted` columns.
+#' @param chunk_size Rows per request. SeaTable caps batch writes at
+#'   1000 and harbouR clamps it, warning if you asked for more.
+#' @return Invisibly, a one-row tibble with columns `table` (chr),
+#'   `n_rows` (int) and `n_requests` (int).
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_delete_rows(client, "Samples", c("abc", "def"))
 #' @export
-hb_delete_rows <- function(client, table, row_ids, ...) {
+hb_delete_rows <- function(client, table, row_ids, ...,
+                           chunk_size = 1000L) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
@@ -252,13 +371,18 @@ hb_delete_rows <- function(client, table, row_ids, ...) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, .hb_base_path(client, "rows", ""),
-    service = "gateway", auth = "base", method = "DELETE",
-    body = list(table_name = table, row_ids = as.list(row_ids))
-  )
+  chunk_size <- .hb_check_chunk_size(chunk_size)
+  chunks <- .hb_chunk(row_ids, chunk_size)
+  for (i in seq_along(chunks)) {
+    .hb_request(client, .hb_base_path(client, "rows", ""),
+      service = "gateway", auth = "base", method = "DELETE",
+      body = list(table_name = table, row_ids = as.list(unname(chunks[[i]])))
+    )
+  }
   invisible(tibble::tibble(
-    row_id = row_ids,
-    deleted = rep(TRUE, length(row_ids))
+    table = table,
+    n_rows = length(row_ids),
+    n_requests = length(chunks)
   ))
 }
 

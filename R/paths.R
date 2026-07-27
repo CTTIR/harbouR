@@ -98,3 +98,33 @@
   )
   paste(out, collapse = "")
 }
+
+#' SeaTable's server-side row limits
+#'
+#' Reads return at most 1000 rows per request and batch writes accept at
+#' most 1000 rows per request. Both are server limits, not preferences.
+#'
+#' @keywords internal
+#' @noRd
+.hb_max_page_size <- 1000L
+
+#' @rdname dot-hb_max_page_size
+#' @keywords internal
+#' @noRd
+.hb_max_batch_size <- 1000L
+
+#' Split a vector or list into server-sized chunks
+#'
+#' @param x A vector or list.
+#' @param size Maximum elements per chunk.
+#' @return A list of chunks. An empty input gives an empty list, so callers
+#'   can loop over it without a special case.
+#' @keywords internal
+#' @noRd
+.hb_chunk <- function(x, size = .hb_max_batch_size) {
+  n <- length(x)
+  if (n == 0L) {
+    return(list())
+  }
+  split(x, ceiling(seq_len(n) / size))
+}

@@ -4,7 +4,7 @@
 \alias{hb_append_rows}
 \title{Append rows to a table}
 \usage{
-hb_append_rows(client, table, data, ...)
+hb_append_rows(client, table, data, ..., chunk_size = 1000L)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -14,9 +14,15 @@ hb_append_rows(client, table, data, ...)
 \item{data}{A tibble or data frame whose columns match the table schema.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{chunk_size}{Rows per request. SeaTable caps batch writes at
+1000 and harbouR clamps it, warning if you asked for more.}
 }
 \value{
-A tibble of the appended rows (with server-generated \verb{_id}s).
+Invisibly, a one-row tibble with columns \code{table} (chr),
+\code{n_rows} (int) - the count the server confirmed - and
+\code{n_requests} (int). SeaTable does not return the created rows, so
+neither does harbouR; read the table back if you need their \verb{_id}s.
 }
 \description{
 Append rows to a table

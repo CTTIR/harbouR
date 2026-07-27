@@ -88,3 +88,19 @@ test_that("a 403 is not retried as an expired base token", {
                class = "harbour_error_permission")
   expect_identical(attempts, 0L)
 })
+
+test_that("no cli message interpolates an expression starting with a dot", {
+  # cli >= 3.4.0 reads `{.foo}` as a style name, not as code, so
+  # `{.hb_max_page_size}` or `{.hb_safe_url(req)}` throws at format time -
+  # only when the error path is actually taken. This has bitten the package
+  # three times; a static check is cheaper than finding it again.
+  sources <- list.files("../../R", pattern = "[.]R$", full.names = TRUE)
+  if (!length(sources)) {
+    skip("package sources not available from the installed tree")
+  }
+  code <- unlist(lapply(sources, readLines, warn = FALSE))
+  code <- code[!grepl("^\\s*#", code)]
+  # A known cli style is fine; a call or a dotted object name is not.
+  offenders <- grep("\\{\\.[a-zA-Z_]+[a-zA-Z0-9_.]*\\(", code, value = TRUE)
+  expect_identical(offenders, character())
+})

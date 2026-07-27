@@ -4,7 +4,7 @@
 \alias{hb_delete_rows}
 \title{Delete rows}
 \usage{
-hb_delete_rows(client, table, row_ids, ...)
+hb_delete_rows(client, table, row_ids, ..., chunk_size = 1000L)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -14,9 +14,13 @@ hb_delete_rows(client, table, row_ids, ...)
 \item{row_ids}{A character vector of row IDs to delete.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{chunk_size}{Rows per request. SeaTable caps batch writes at
+1000 and harbouR clamps it, warning if you asked for more.}
 }
 \value{
-Invisibly returns a tibble with \code{row_id} and \code{deleted} columns.
+Invisibly, a one-row tibble with columns \code{table} (chr),
+\code{n_rows} (int) and \code{n_requests} (int).
 }
 \description{
 Delete rows

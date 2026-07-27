@@ -4,7 +4,7 @@
 \alias{hb_read_table}
 \title{Read a table as a tibble}
 \usage{
-hb_read_table(client, table, ..., view = NULL, limit = 1000L)
+hb_read_table(client, table, ..., view = NULL, page_size = 1000L, n_max = Inf)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -15,7 +15,11 @@ hb_read_table(client, table, ..., view = NULL, limit = 1000L)
 
 \item{view}{Optional view name.}
 
-\item{limit}{Page size for paginated fetches. Default \code{1000}.}
+\item{page_size}{Rows fetched per request. SeaTable caps this at 1000
+and harbouR clamps it, warning if you asked for more.}
+
+\item{n_max}{Maximum number of rows to return. \code{Inf}, the default,
+reads the whole table.}
 }
 \value{
 A tibble with one row per SeaTable row and one column per
@@ -32,6 +36,9 @@ column.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()
 hb_read_table(client, "Samples")
+
+# just the first 10 rows
+hb_read_table(client, "Samples", n_max = 10)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

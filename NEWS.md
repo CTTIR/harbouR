@@ -57,6 +57,26 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+* **Breaking:** `hb_read_table(limit =)` is now `page_size =`, and there is
+  a new `n_max =`. The old argument was documented as a page size but was
+  also used as the stop condition, so `limit = 5000` returned 1000 rows and
+  stopped - a wrong answer with no warning. `page_size` is clamped to
+  SeaTable's 1000-row maximum with a warning, `n_max` bounds the total, and
+  a runaway server now produces an error rather than an infinite loop.
+
+* `hb_append_rows()`, `hb_update_rows()` and `hb_delete_rows()` split their
+  work into requests of at most 1000 rows, which is SeaTable's batch limit.
+  Writing 2500 rows used to send one oversized request. All three gain a
+  `chunk_size` argument.
+
+* **Breaking:** the three write verbs return a one-row summary -
+  `table`, `n_rows`, `n_requests` - instead of fabricated per-row results.
+  `hb_append_rows()` previously fell back to the *request* payload, which
+  has no server-assigned `_id`, while promising server-generated ids in its
+  documentation; `hb_update_rows()` and `hb_delete_rows()` returned
+  `rep(TRUE, n)` without looking at the response at all. `n_rows` from
+  `hb_append_rows()` is the count the server confirmed.
+
 * `hb_upload_file()` returned `url = NA` on every call, so the object it
   produced could never be written into a file cell - which is what
   `hb_attach_file()`, the flagship helper, does with it. It now requests

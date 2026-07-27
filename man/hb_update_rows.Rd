@@ -4,7 +4,14 @@
 \alias{hb_update_rows}
 \title{Update rows in a table}
 \usage{
-hb_update_rows(client, table, data, ..., row_id_col = "_id")
+hb_update_rows(
+  client,
+  table,
+  data,
+  ...,
+  row_id_col = "_id",
+  chunk_size = 1000L
+)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -17,10 +24,13 @@ hb_update_rows(client, table, data, ..., row_id_col = "_id")
 
 \item{row_id_col}{Name of the column in \code{data} that holds row IDs.
 Default \code{"_id"}.}
+
+\item{chunk_size}{Rows per request. SeaTable caps batch writes at
+1000 and harbouR clamps it, warning if you asked for more.}
 }
 \value{
-Invisibly returns a summary tibble with columns
-\code{row_id} (chr) and \code{updated} (lgl).
+Invisibly, a one-row tibble with columns \code{table} (chr),
+\code{n_rows} (int) and \code{n_requests} (int).
 }
 \description{
 Update rows in a table

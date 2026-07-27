@@ -1,12 +1,13 @@
 # --- validation / guard branches -------------------------------------------
 
-test_that("hb_read_table validates client, table, view and limit", {
+test_that("hb_read_table validates client, table, view and paging", {
   cl <- mock_client()
   expect_error(hb_read_table(1L, "Samples"), regexp = "`client` must be a <harbour_client>\\.")
   expect_error(hb_read_table(cl, ""), regexp = "`table` must be a single non-empty string\\.")
   expect_error(hb_read_table(cl, "Samples", view = 1L), regexp = "`view` must be a single non-empty string\\.")
-  expect_error(hb_read_table(cl, "Samples", limit = 0L), "positive integer")
-  expect_error(hb_read_table(cl, "Samples", limit = NA), "positive integer")
+  expect_error(hb_read_table(cl, "Samples", page_size = 0L), "positive integer")
+  expect_error(hb_read_table(cl, "Samples", page_size = NA), "positive integer")
+  expect_error(hb_read_table(cl, "Samples", n_max = 0L), "positive number")
 })
 
 test_that("hb_read_table paginates and returns a typed tibble", {
@@ -18,7 +19,7 @@ test_that("hb_read_table paginates and returns a typed tibble", {
     if (state$n == 1L) list(rows = page1) else list(rows = list())
   }
   rec <- with_mocked_request(
-    out <- hb_read_table(cl, "Samples", limit = 2L),
+    out <- hb_read_table(cl, "Samples", page_size = 2L),
     response = resp
   )
   expect_s3_class(out, "tbl_df")
@@ -107,8 +108,8 @@ test_that("hb_update_rows requires the id column and summarises updates", {
     out <- hb_update_rows(cl, "Samples", data),
     response = list()
   )
-  expect_identical(out$row_id, c("r1", "r2"))
-  expect_true(all(out$updated))
+  expect_identical(out$n_rows, 2L)
+  expect_identical(out$n_requests, 1L)
   expect_identical(rec$calls[[1]]$method, "PUT")
 })
 
@@ -134,8 +135,8 @@ test_that("hb_delete_rows validates ids and reports deletions", {
     out <- hb_delete_rows(cl, "Samples", c("r1", "r2")),
     response = list()
   )
-  expect_identical(out$row_id, c("r1", "r2"))
-  expect_true(all(out$deleted))
+  expect_identical(out$n_rows, 2L)
+  expect_identical(out$n_requests, 1L)
   expect_identical(rec$calls[[1]]$method, "DELETE")
 })
 
@@ -155,4 +156,91 @@ test_that("hb_lock_rows and hb_unlock_rows validate and return the client", {
   )
   expect_identical(res2, cl)
   expect_match(rec2$calls[[1]]$path, "unlock-rows")
+})
+
+test_that("page_size above the server maximum warns and is clamped", {
+  cl <- mock_client()
+  # The old `limit` was documented as a page size but also used as the
+  # stop condition, so limit = 5000 returned 1000 rows and stopped
+  # silently. A wrong answer with no warning is the worst outcome.
+  expect_warning(
+    rec <- with_mocked_request(
+      hb_read_table(cl, "Samples", page_size = 5000L),
+      response = list(rows = list())
+    ),
+    "capped at"
+  )
+  expect_identical(rec$calls[[1]]$query$limit, 1000L)
+})
+
+test_that("n_max bounds the read and stops paging early", {
+  cl <- mock_client()
+  page <- lapply(1:1000, function(i) list(`_id` = paste0("r", i)))
+  rec <- with_mocked_request(
+    out <- hb_read_table(cl, "Samples", n_max = 10L),
+    response = list(rows = page)
+  )
+  expect_identical(nrow(out), 10L)
+  expect_identical(length(rec$calls), 1L)
+  expect_identical(rec$calls[[1]]$query$limit, 10L)
+})
+
+test_that("reads page until the server returns a short page", {
+  cl <- mock_client()
+  responder <- function(path, method, query, body) {
+    if (query$start == 0L) {
+      list(rows = lapply(1:1000, function(i) list(`_id` = paste0("a", i))))
+    } else {
+      list(rows = lapply(1:7, function(i) list(`_id` = paste0("b", i))))
+    }
+  }
+  rec <- with_mocked_request(
+    out <- hb_read_table(cl, "Samples"),
+    response = responder
+  )
+  expect_identical(nrow(out), 1007L)
+  expect_identical(length(rec$calls), 2L)
+  expect_identical(rec$calls[[2]]$query$start, 1000L)
+})
+
+test_that("writes are chunked at the server's batch limit", {
+  cl <- mock_client()
+  data <- tibble::tibble(Name = paste0("r", 1:2500))
+  rec <- with_mocked_request(
+    out <- hb_append_rows(cl, "Samples", data),
+    response = list(inserted_row_count = 1000L)
+  )
+  expect_identical(length(rec$calls), 3L)
+  expect_identical(out$n_requests, 3L)
+  expect_identical(length(rec$calls[[1]]$body$rows), 1000L)
+  expect_identical(length(rec$calls[[3]]$body$rows), 500L)
+})
+
+test_that("deletes and updates chunk too", {
+  cl <- mock_client()
+  ids <- paste0("r", 1:2001)
+  rec <- with_mocked_request(
+    out <- hb_delete_rows(cl, "Samples", ids),
+    response = list()
+  )
+  expect_identical(length(rec$calls), 3L)
+  expect_identical(out$n_rows, 2001L)
+
+  updates <- tibble::tibble(`_id` = ids, Name = ids)
+  rec2 <- with_mocked_request(
+    out2 <- hb_update_rows(cl, "Samples", updates),
+    response = list()
+  )
+  expect_identical(length(rec2$calls), 3L)
+  expect_identical(out2$n_rows, 2001L)
+})
+
+test_that("hb_append_rows reports the count the server confirmed", {
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    out <- hb_append_rows(cl, "Samples", tibble::tibble(Name = c("a", "b"))),
+    response = list(inserted_row_count = 2L)
+  )
+  expect_identical(out$n_rows, 2L)
+  expect_identical(out$table, "Samples")
 })
