@@ -4,14 +4,7 @@
 \alias{hb_update_column}
 \title{Update a column}
 \usage{
-hb_update_column(
-  client,
-  table,
-  name,
-  new_name = NULL,
-  data = NULL,
-  call = rlang::caller_env()
-)
+hb_update_column(client, table, name, ..., new_name = NULL, column_data = NULL)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -20,11 +13,13 @@ hb_update_column(
 
 \item{name}{Column name.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{new_name}{Optional new column name.}
 
-\item{data}{Optional list of column options (e.g. select options).}
-
-\item{call}{Internal: error-propagation env.}
+\item{column_data}{Optional list of column options, e.g. the choices
+for a select column. Named \code{column_data} rather than \code{data} because
+\code{data} means "the rows you are writing" everywhere else in harbouR.}
 }
 \value{
 Invisibly returns the client.

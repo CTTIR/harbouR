@@ -4,7 +4,7 @@
 \alias{hb_lock_rows}
 \title{Lock rows}
 \usage{
-hb_lock_rows(client, table, row_ids, call = rlang::caller_env())
+hb_lock_rows(client, table, row_ids, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_lock_rows(client, table, row_ids, call = rlang::caller_env())
 
 \item{row_ids}{A character vector of row IDs to delete.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

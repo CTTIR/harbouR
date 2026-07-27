@@ -4,13 +4,7 @@
 \alias{hb_update_rows}
 \title{Update rows in a table}
 \usage{
-hb_update_rows(
-  client,
-  table,
-  data,
-  row_id_col = "_id",
-  call = rlang::caller_env()
-)
+hb_update_rows(client, table, data, ..., row_id_col = "_id")
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -19,10 +13,10 @@ hb_update_rows(
 
 \item{data}{A tibble or data frame whose columns match the table schema.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{row_id_col}{Name of the column in \code{data} that holds row IDs.
 Default \code{"_id"}.}
-
-\item{call}{Internal: error-propagation env.}
 }
 \value{
 Invisibly returns a summary tibble with columns

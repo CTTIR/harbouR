@@ -3,7 +3,7 @@
     Code
       hb_client(server = "")
     Condition
-      Error:
+      Error in `hb_client()`:
       ! `server` must be a single non-empty string.
       x You supplied .
 
@@ -12,7 +12,7 @@
     Code
       hb_client(server = "ftp://nope.example.org", api_token = "t")
     Condition
-      Error:
+      Error in `hb_client()`:
       ! `server` must begin with "http://" or "https://".
       x You supplied "ftp://nope.example.org".
 
@@ -21,7 +21,7 @@
     Code
       hb_client(server = "https://x.example.org")
     Condition
-      Error:
+      Error in `hb_client()`:
       ! No credentials supplied.
       i Provide `api_token` or `username` and `password`, or set `SEATABLE_API_TOKEN`.
 
@@ -31,7 +31,7 @@
       hb_client(server = "https://x.example.org", api_token = "t", username = "u",
         password = "p")
     Condition
-      Error:
+      Error in `hb_client()`:
       ! Supply either `api_token` or `username`/`password`, not both.
 
 # scalar validators name the argument and the bad value
@@ -39,7 +39,7 @@
     Code
       hb_read_table(cl, "")
     Condition
-      Error:
+      Error in `hb_read_table()`:
       ! `table` must be a single non-empty string.
       x You supplied "".
 
@@ -48,7 +48,7 @@
     Code
       hb_read_table(1L, "Samples")
     Condition
-      Error:
+      Error in `hb_read_table()`:
       ! `client` must be a <harbour_client>.
       i Create one with `harbouR::hb_client()`.
 
@@ -57,7 +57,7 @@
     Code
       hb_list_tables(cl, refresh = "yes")
     Condition
-      Error:
+      Error in `hb_list_tables()`:
       ! `refresh` must be a single `TRUE` or `FALSE`.
       x You supplied "yes".
 
@@ -124,7 +124,7 @@
     Code
       hb_update_rows(cl, "Samples", tibble::tibble(Name = "x"))
     Condition
-      Error:
+      Error in `hb_update_rows()`:
       ! Column _id not present in `data`.
       i Set `row_id_col` to whichever column holds the row IDs.
 
@@ -133,7 +133,7 @@
     Code
       hb_download_file(cl, "https://demo.example.org/asset/x.pdf", path)
     Condition
-      Error:
+      Error in `hb_download_file()`:
       ! Destination already exists.
       x '<tmp>/report.pdf'
       i Pass `overwrite = TRUE` to replace it.

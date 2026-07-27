@@ -4,14 +4,7 @@
 \alias{hb_update_select_option}
 \title{Update a single-select option}
 \usage{
-hb_update_select_option(
-  client,
-  table,
-  name,
-  option,
-  new_option,
-  call = rlang::caller_env()
-)
+hb_update_select_option(client, table, name, option, new_option, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -24,7 +17,7 @@ hb_update_select_option(
 
 \item{new_option}{New option name.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

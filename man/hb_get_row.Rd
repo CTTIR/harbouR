@@ -4,7 +4,7 @@
 \alias{hb_get_row}
 \title{Get a single row by ID}
 \usage{
-hb_get_row(client, table, row_id, call = rlang::caller_env())
+hb_get_row(client, table, row_id, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_get_row(client, table, row_id, call = rlang::caller_env())
 
 \item{row_id}{The SeaTable row identifier.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A 1-row tibble, or a 0-row tibble if the row is not found.

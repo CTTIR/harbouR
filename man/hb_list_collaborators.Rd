@@ -4,12 +4,12 @@
 \alias{hb_list_collaborators}
 \title{List collaborators of the active base}
 \usage{
-hb_list_collaborators(client, call = rlang::caller_env())
+hb_list_collaborators(client, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble with columns \code{email} (chr), \code{name} (chr) and

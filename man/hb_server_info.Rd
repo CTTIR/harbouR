@@ -4,12 +4,12 @@
 \alias{hb_server_info}
 \title{Server information}
 \usage{
-hb_server_info(client, call = rlang::caller_env())
+hb_server_info(client, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A one-row tibble with columns \code{server} (chr), \code{version} (chr) and

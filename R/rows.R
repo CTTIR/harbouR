@@ -10,6 +10,7 @@
 #' @param view Optional view name.
 #' @param limit Page size for paginated fetches. Default `1000`.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per SeaTable row and one column per
 #'   SeaTable column, plus `_id` (chr). A 0-row tibble is returned for an
 #'   empty table.
@@ -19,18 +20,18 @@
 #' client <- hb_client()
 #' hb_read_table(client, "Samples")
 #' @export
-hb_read_table <- function(client, table, view = NULL, limit = 1000L,
-                          call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
-  .check_string(view, allow_null = TRUE, call = call)
+hb_read_table <- function(client, table, ..., view = NULL, limit = 1000L) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
+  .check_string(view, allow_null = TRUE)
   if (!is.numeric(limit) || length(limit) != 1L || is.na(limit) || limit <= 0L) {
-    hb_abort("{.arg limit} must be a positive integer.", call = call,
+    hb_abort("{.arg limit} must be a positive integer.",
       class = "harbour_error_bad_argument"
     )
   }
 
-  if (is.null(client$.metadata)) hb_metadata(client, call = call)
+  if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
 
   start <- 0L
@@ -54,15 +55,17 @@ hb_read_table <- function(client, table, view = NULL, limit = 1000L,
 #' @inheritParams hb_metadata
 #' @param sql SeaTable SQL query string.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble. Always a tibble, even when the query returns no rows.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_query(client, "select * from Samples limit 5")
 #' @export
-hb_query <- function(client, sql, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(sql, call = call)
+hb_query <- function(client, sql, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(sql)
   body <- .hb_request(client, "/dtable-db/api/v1/query/",
                       service = "dtable_db", auth = "base",
                       method = "POST",
@@ -90,17 +93,19 @@ hb_query <- function(client, sql, call = rlang::caller_env()) {
 #' @inheritParams hb_read_table
 #' @param row_id The SeaTable row identifier.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A 1-row tibble, or a 0-row tibble if the row is not found.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_get_row(client, "Samples", "abc123")
 #' @export
-hb_get_row <- function(client, table, row_id, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
-  .check_string(row_id, call = call)
-  if (is.null(client$.metadata)) hb_metadata(client, call = call)
+hb_get_row <- function(client, table, row_id, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
+  .check_string(row_id)
+  if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   body <- .hb_request(client,
     paste0("/dtable-server/api/v1/dtables/rows/", row_id, "/"),
@@ -118,21 +123,23 @@ hb_get_row <- function(client, table, row_id, call = rlang::caller_env()) {
 #' @inheritParams hb_read_table
 #' @param data A tibble or data frame whose columns match the table schema.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble of the appended rows (with server-generated `_id`s).
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_append_rows(client, "Samples", tibble::tibble(Name = "S1"))
 #' @export
-hb_append_rows <- function(client, table, data, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
+hb_append_rows <- function(client, table, data, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
   if (!is.data.frame(data)) {
-    hb_abort("{.arg data} must be a data frame or tibble.", call = call,
+    hb_abort("{.arg data} must be a data frame or tibble.",
       class = "harbour_error_bad_argument"
     )
   }
-  if (is.null(client$.metadata)) hb_metadata(client, call = call)
+  if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   rows <- .hb_tibble_to_rows(data, cols)
   body <- .hb_request(client, "/dtable-server/api/v1/dtables/batch-append-rows/",
@@ -149,6 +156,7 @@ hb_append_rows <- function(client, table, data, call = rlang::caller_env()) {
 #' @param row_id_col Name of the column in `data` that holds row IDs.
 #'   Default `"_id"`.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns a summary tibble with columns
 #'   `row_id` (chr) and `updated` (lgl).
 #' @family rows
@@ -157,13 +165,13 @@ hb_append_rows <- function(client, table, data, call = rlang::caller_env()) {
 #' hb_update_rows(client, "Samples",
 #'                tibble::tibble(`_id` = "abc", Name = "renamed"))
 #' @export
-hb_update_rows <- function(client, table, data, row_id_col = "_id",
-                           call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
-  .check_string(row_id_col, call = call)
+hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
+  .check_string(row_id_col)
   if (!is.data.frame(data)) {
-    hb_abort("{.arg data} must be a data frame or tibble.", call = call,
+    hb_abort("{.arg data} must be a data frame or tibble.",
       class = "harbour_error_bad_argument"
     )
   }
@@ -171,11 +179,10 @@ hb_update_rows <- function(client, table, data, row_id_col = "_id",
     hb_abort(
       c("Column {.field {row_id_col}} not present in {.arg data}.",
         "i" = "Set {.arg row_id_col} to whichever column holds the row IDs."),
-      call = call,
       class = "harbour_error_bad_argument"
     )
   }
-  if (is.null(client$.metadata)) hb_metadata(client, call = call)
+  if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   updates <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
@@ -203,17 +210,19 @@ hb_update_rows <- function(client, table, data, row_id_col = "_id",
 #' @inheritParams hb_read_table
 #' @param row_ids A character vector of row IDs to delete.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns a tibble with `row_id` and `deleted` columns.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_delete_rows(client, "Samples", c("abc", "def"))
 #' @export
-hb_delete_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
+hb_delete_rows <- function(client, table, row_ids, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
   if (!is.character(row_ids) || length(row_ids) == 0L) {
-    hb_abort("{.arg row_ids} must be a non-empty character vector.", call = call,
+    hb_abort("{.arg row_ids} must be a non-empty character vector.",
       class = "harbour_error_bad_argument"
     )
   }
@@ -226,17 +235,19 @@ hb_delete_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
 #' Lock rows
 #'
 #' @inheritParams hb_delete_rows
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_lock_rows(client, "Samples", "abc")
 #' @export
-hb_lock_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
+hb_lock_rows <- function(client, table, row_ids, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
   if (!is.character(row_ids) || length(row_ids) == 0L) {
-    hb_abort("{.arg row_ids} must be a non-empty character vector.", call = call,
+    hb_abort("{.arg row_ids} must be a non-empty character vector.",
       class = "harbour_error_bad_argument"
     )
   }
@@ -248,17 +259,19 @@ hb_lock_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
 
 #' Unlock rows
 #' @inheritParams hb_lock_rows
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_unlock_rows(client, "Samples", "abc")
 #' @export
-hb_unlock_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
+hb_unlock_rows <- function(client, table, row_ids, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
   if (!is.character(row_ids) || length(row_ids) == 0L) {
-    hb_abort("{.arg row_ids} must be a non-empty character vector.", call = call,
+    hb_abort("{.arg row_ids} must be a non-empty character vector.",
       class = "harbour_error_bad_argument"
     )
   }

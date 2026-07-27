@@ -4,12 +4,12 @@
 \alias{hb_ping}
 \title{Ping the SeaTable server}
 \usage{
-hb_ping(client, call = rlang::caller_env())
+hb_ping(client, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A single \code{TRUE} on success; errors otherwise.

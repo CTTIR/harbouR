@@ -4,14 +4,14 @@
 \alias{hb_query}
 \title{Run a SeaTable SQL query}
 \usage{
-hb_query(client, sql, call = rlang::caller_env())
+hb_query(client, sql, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{sql}{SeaTable SQL query string.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble. Always a tibble, even when the query returns no rows.

@@ -5,14 +5,16 @@
 #' errors informatively on failure.
 #'
 #' @inheritParams hb_metadata
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A single `TRUE` on success; errors otherwise.
 #' @family client
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_ping(client)
 #' @export
-hb_ping <- function(client, call = rlang::caller_env()) {
-  .check_client(client, call = call)
+hb_ping <- function(client, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
   res <- tryCatch(
     .hb_request(client, "/api2/ping/", service = "web", auth = "api",
                 method = "GET"),
@@ -20,7 +22,7 @@ hb_ping <- function(client, call = rlang::caller_env()) {
   )
   if (inherits(res, "error")) {
     hb_abort(c("Could not reach {.url {client$server}}.",
-                     "x" = conditionMessage(res)), call = call,
+                     "x" = conditionMessage(res)),
       class = "harbour_error_http"
     )
   }
@@ -32,6 +34,7 @@ hb_ping <- function(client, call = rlang::caller_env()) {
 #' Returns the SeaTable server's reported version and basic info.
 #'
 #' @inheritParams hb_metadata
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A one-row tibble with columns `server` (chr), `version` (chr) and
 #'   `edition` (chr) where reported.
 #' @family client
@@ -39,8 +42,9 @@ hb_ping <- function(client, call = rlang::caller_env()) {
 #' client <- hb_client()
 #' hb_server_info(client)
 #' @export
-hb_server_info <- function(client, call = rlang::caller_env()) {
-  .check_client(client, call = call)
+hb_server_info <- function(client, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
   body <- .hb_request(client, "/server-info/", service = "web", auth = "api",
                       method = "GET")
   tibble::tibble(

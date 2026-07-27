@@ -4,17 +4,17 @@
 \alias{hb_create_table}
 \title{Create a table}
 \usage{
-hb_create_table(client, table, columns = list(), call = rlang::caller_env())
+hb_create_table(client, table, ..., columns = list())
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{table}{Name of the new table.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{columns}{A list of column specifications: each element a named list
 with at least \code{name} and \code{type} (a SeaTable type string).}
-
-\item{call}{Internal: error-propagation env.}
 }
 \value{
 Invisibly returns the client.

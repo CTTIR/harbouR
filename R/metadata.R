@@ -5,8 +5,8 @@
 #' cached on the client.
 #'
 #' @param client A `harbour_client`.
-#' @param call Internal: error-propagation env.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A `harbour_metadata` object — a list with components
 #'   `base_name` (chr), `tables` (list), `version` (chr).
 #'
@@ -16,8 +16,9 @@
 #' meta <- hb_metadata(client)
 #' as_tibble(meta)
 #' @export
-hb_metadata <- function(client, call = rlang::caller_env()) {
-  .check_client(client, call = call)
+hb_metadata <- function(client, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
   body <- .hb_request(client, "/dtables/api/v1/dtables/metadata/",
                       service = "dtable_server", auth = "base", method = "GET")
   meta_raw <- body$metadata %||% body
@@ -52,6 +53,7 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 #' @inheritParams hb_metadata
 #' @param refresh Logical; refetch metadata even if cached. Default `FALSE`.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per table and columns
 #'   `name` (chr), `n_rows` (int), `n_columns` (int), `n_views` (int).
 #'
@@ -60,13 +62,14 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 #' client <- hb_client()
 #' hb_list_tables(client)
 #' @export
-hb_list_tables <- function(client, refresh = FALSE, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_flag(refresh, call = call)
+hb_list_tables <- function(client, ..., refresh = FALSE) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_flag(refresh)
   meta <- if (!is.null(client$.metadata) && !refresh) {
     client$.metadata
   } else {
-    hb_metadata(client, call = call)
+    hb_metadata(client)
   }
   tables <- meta$tables
   if (length(tables) == 0L) {
@@ -88,6 +91,7 @@ hb_list_tables <- function(client, refresh = FALSE, call = rlang::caller_env()) 
 #' List collaborators of the active base
 #'
 #' @inheritParams hb_metadata
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with columns `email` (chr), `name` (chr) and
 #'   `contact_email` (chr). Zero rows if none are reported.
 #' @family metadata
@@ -95,8 +99,9 @@ hb_list_tables <- function(client, refresh = FALSE, call = rlang::caller_env()) 
 #' client <- hb_client()
 #' hb_list_collaborators(client)
 #' @export
-hb_list_collaborators <- function(client, call = rlang::caller_env()) {
-  .check_client(client, call = call)
+hb_list_collaborators <- function(client, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
   body <- .hb_request(client, "/api/v2.1/dtable/related-users/",
                       service = "web", auth = "api", method = "GET")
   users <- body$user_list %||% body$collaborators %||% list()

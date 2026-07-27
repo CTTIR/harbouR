@@ -47,7 +47,7 @@ hb_example_metadata <- function() {
 #' hb_example_rows("Samples")
 #' @export
 hb_example_rows <- function(table = c("Samples", "Patients")) {
-  table <- match.arg(table)
+  table <- rlang::arg_match(table)
   switch(table,
     "Samples" = tibble::tibble(
       Name = c("S-001", "S-002", "S-003"),

@@ -4,7 +4,7 @@
 \alias{hb_delete_view}
 \title{Delete a view}
 \usage{
-hb_delete_view(client, table, view, call = rlang::caller_env())
+hb_delete_view(client, table, view, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_delete_view(client, table, view, call = rlang::caller_env())
 
 \item{view}{View name.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

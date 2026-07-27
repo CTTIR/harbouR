@@ -15,7 +15,7 @@
 #' @keywords internal
 #' @noRd
 .hb_base_url <- function(client, service = c("web", "dtable_server", "dtable_db")) {
-  service <- match.arg(service)
+  service <- rlang::arg_match(service)
   switch(
     service,
     web = client$server,

@@ -4,7 +4,7 @@
 \alias{hb_append_rows}
 \title{Append rows to a table}
 \usage{
-hb_append_rows(client, table, data, call = rlang::caller_env())
+hb_append_rows(client, table, data, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_append_rows(client, table, data, call = rlang::caller_env())
 
 \item{data}{A tibble or data frame whose columns match the table schema.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble of the appended rows (with server-generated \verb{_id}s).

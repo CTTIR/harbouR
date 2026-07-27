@@ -4,24 +4,18 @@
 \alias{hb_read_table}
 \title{Read a table as a tibble}
 \usage{
-hb_read_table(
-  client,
-  table,
-  view = NULL,
-  limit = 1000L,
-  call = rlang::caller_env()
-)
+hb_read_table(client, table, ..., view = NULL, limit = 1000L)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{table}{Name of the table.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{view}{Optional view name.}
 
 \item{limit}{Page size for paginated fetches. Default \code{1000}.}
-
-\item{call}{Internal: error-propagation env.}
 }
 \value{
 A tibble with one row per SeaTable row and one column per

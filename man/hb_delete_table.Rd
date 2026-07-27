@@ -4,14 +4,14 @@
 \alias{hb_delete_table}
 \title{Delete a table}
 \usage{
-hb_delete_table(client, table, call = rlang::caller_env())
+hb_delete_table(client, table, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{table}{Name of the table to delete.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

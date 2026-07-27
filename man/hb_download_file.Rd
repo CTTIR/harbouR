@@ -4,13 +4,7 @@
 \alias{hb_download_file}
 \title{Download an asset}
 \usage{
-hb_download_file(
-  client,
-  url,
-  dest,
-  overwrite = FALSE,
-  call = rlang::caller_env()
-)
+hb_download_file(client, url, dest, ..., overwrite = FALSE)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -19,9 +13,9 @@ hb_download_file(
 
 \item{dest}{Destination path. Parent directories are created if needed.}
 
-\item{overwrite}{Refuse to clobber an existing file unless \code{TRUE}.}
+\item{...}{These dots are for future extensions and must be empty.}
 
-\item{call}{Internal: error-propagation env.}
+\item{overwrite}{Refuse to clobber an existing file unless \code{TRUE}.}
 }
 \value{
 Invisibly returns \code{dest}.

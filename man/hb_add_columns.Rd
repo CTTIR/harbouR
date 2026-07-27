@@ -4,7 +4,7 @@
 \alias{hb_add_columns}
 \title{Add several columns at once}
 \usage{
-hb_add_columns(client, table, columns, call = rlang::caller_env())
+hb_add_columns(client, table, columns, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_add_columns(client, table, columns, call = rlang::caller_env())
 
 \item{columns}{A list of column specs (each a named list).}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

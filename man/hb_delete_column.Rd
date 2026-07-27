@@ -4,7 +4,7 @@
 \alias{hb_delete_column}
 \title{Delete a column}
 \usage{
-hb_delete_column(client, table, name, call = rlang::caller_env())
+hb_delete_column(client, table, name, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_delete_column(client, table, name, call = rlang::caller_env())
 
 \item{name}{Column name.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

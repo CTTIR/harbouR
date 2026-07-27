@@ -8,11 +8,11 @@
 hb_client(
   server = Sys.getenv("SEATABLE_SERVER"),
   api_token = Sys.getenv("SEATABLE_API_TOKEN"),
+  ...,
   username = NULL,
   password = NULL,
   base_uuid = NULL,
-  timeout = 30,
-  call = rlang::caller_env()
+  timeout = 30
 )
 
 \method{print}{harbour_client}(x, ...)
@@ -25,6 +25,8 @@ Defaults to the \code{SEATABLE_SERVER} env var.}
 \code{SEATABLE_API_TOKEN} env var. Mutually exclusive with
 \code{username}/\code{password}.}
 
+\item{...}{Unused.}
+
 \item{username, password}{Account credentials. Used to acquire an account
 token. Mutually exclusive with \code{api_token}.}
 
@@ -33,11 +35,7 @@ base-token exchange.}
 
 \item{timeout}{Per-request timeout in seconds. Default \code{30}.}
 
-\item{call}{Internal: error-propagation env. Not for direct use.}
-
 \item{x}{A \code{harbour_client}.}
-
-\item{...}{Unused.}
 }
 \value{
 A \code{harbour_client} object.

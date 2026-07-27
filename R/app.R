@@ -34,6 +34,7 @@ hb_run_explorer <- function(client = NULL, ..., host = "127.0.0.1", port = NULL)
       class = "harbour_error_unsupported"
     )
   }
+  rlang::check_dots_used()
   if (!is.null(client)) .check_client(client)
   app_dir <- system.file("shiny", "harbour_explorer", package = "harbouR")
   if (!nzchar(app_dir)) {

@@ -4,16 +4,16 @@
 \alias{hb_duplicate_table}
 \title{Duplicate a table}
 \usage{
-hb_duplicate_table(client, table, new_name = NULL, call = rlang::caller_env())
+hb_duplicate_table(client, table, ..., new_name = NULL)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{table}{Source table name.}
 
-\item{new_name}{Optional new name. If \code{NULL} the server picks one.}
+\item{...}{These dots are for future extensions and must be empty.}
 
-\item{call}{Internal: error-propagation env.}
+\item{new_name}{Optional new name. If \code{NULL} the server picks one.}
 }
 \value{
 Invisibly returns the client.

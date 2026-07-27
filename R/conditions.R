@@ -48,7 +48,6 @@ NULL
 #' @param class Character. The specific subclass, without the
 #'   `harbour_error_` prefix already applied - pass the full class name.
 #' @param ... Named data fields stored on the condition.
-#' @param call The execution environment to blame for the error.
 #' @param parent An upstream condition to chain, or `NULL`.
 #' @param .envir Environment in which the cli message is interpolated.
 #'   Defaults to the caller's frame, which is where the values referenced

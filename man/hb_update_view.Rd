@@ -4,7 +4,7 @@
 \alias{hb_update_view}
 \title{Update a view}
 \usage{
-hb_update_view(client, table, view, settings, call = rlang::caller_env())
+hb_update_view(client, table, view, settings, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -15,7 +15,7 @@ hb_update_view(client, table, view, settings, call = rlang::caller_env())
 
 \item{settings}{Optional list of view settings.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

@@ -9,29 +9,30 @@
 #' @param relative_path Optional path on the SeaTable side; defaults to
 #'   `"files"`.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A named list describing the uploaded asset.
 #' @family files
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_upload_file(client, "report.pdf")
 #' @export
-hb_upload_file <- function(client, path, relative_path = "files",
-                           call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(path, call = call)
+hb_upload_file <- function(client, path, ..., relative_path = "files") {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(path)
   if (!file.exists(path)) {
     hb_abort(c("File not found.",
-                     "x" = "{.path {path}}"), call = call,
+                     "x" = "{.path {path}}"),
       class = "harbour_error_not_found"
     )
   }
-  .check_string(relative_path, call = call)
+  .check_string(relative_path)
   link <- .hb_request(client, "/api/v2.1/dtable/app-upload-link/",
                       service = "web", auth = "api", method = "GET")
   upload_url <- link$upload_link %||% link$url
   parent_dir <- link$parent_path %||% "/"
   if (is.null(upload_url)) {
-    hb_abort("SeaTable did not return an upload URL.", call = call,
+    hb_abort("SeaTable did not return an upload URL.",
       class = "harbour_error_http"
     )
   }
@@ -85,22 +86,23 @@ hb_upload_file <- function(client, path, relative_path = "files",
 #' @param row_id Row ID.
 #' @param column File or image column name.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family files
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_attach_file(client, "Samples", "abc", "Report", "report.pdf")
 #' @export
-hb_attach_file <- function(client, table, row_id, column, path,
-                           call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(table, call = call)
-  .check_string(row_id, call = call)
-  .check_string(column, call = call)
-  obj <- hb_upload_file(client, path, call = call)
+hb_attach_file <- function(client, table, row_id, column, path, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(table)
+  .check_string(row_id)
+  .check_string(column)
+  obj <- hb_upload_file(client, path)
   data <- tibble::tibble(`_id` = row_id)
   data[[column]] <- list(obj)
-  hb_update_rows(client, table, data, call = call)
+  hb_update_rows(client, table, data)
   invisible(client)
 }
 
@@ -111,24 +113,24 @@ hb_attach_file <- function(client, table, row_id, column, path,
 #' @param dest Destination path. Parent directories are created if needed.
 #' @param overwrite Refuse to clobber an existing file unless `TRUE`.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns `dest`.
 #' @family files
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_download_file(client, "https://...", tempfile())
 #' @export
-hb_download_file <- function(client, url, dest, overwrite = FALSE,
-                             call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(url, call = call)
-  .check_string(dest, call = call)
-  .check_flag(overwrite, call = call)
+hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(url)
+  .check_string(dest)
+  .check_flag(overwrite)
   if (file.exists(dest) && !overwrite) {
     hb_abort(
       c("Destination already exists.",
         "x" = "{.path {dest}}",
         "i" = "Pass {.code overwrite = TRUE} to replace it."),
-      call = call,
       class = "harbour_error_bad_argument"
     )
   }
@@ -142,7 +144,6 @@ hb_download_file <- function(client, url, dest, overwrite = FALSE,
     hb_abort(
       c("Download failed.",
         "x" = "HTTP {httr2::resp_status(resp)}"),
-      call = call,
       class = "harbour_error_bad_argument"
     )
   }
@@ -152,15 +153,17 @@ hb_download_file <- function(client, url, dest, overwrite = FALSE,
 #' Delete an asset
 #'
 #' @inheritParams hb_download_file
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family files
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_delete_asset(client, "https://server/path/to/file.pdf")
 #' @export
-hb_delete_asset <- function(client, url, call = rlang::caller_env()) {
-  .check_client(client, call = call)
-  .check_string(url, call = call)
+hb_delete_asset <- function(client, url, ...) {
+  rlang::check_dots_empty()
+  .check_client(client)
+  .check_string(url)
   .hb_request(client, "/api/v2.1/dtable/asset/",
               service = "web", auth = "api", method = "DELETE",
               body = list(url = url))

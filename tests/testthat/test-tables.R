@@ -3,7 +3,8 @@ test_that("hb_create_table validates and posts columns", {
   expect_error(hb_create_table(cl, ""), regexp = "`table` must be a single non-empty string\\.")
   expect_error(hb_create_table(cl, "T", columns = "x"), "list of column specs")
   rec <- with_mocked_request(
-    res <- hb_create_table(cl, "NewT", list(list(name = "N", type = "text"))),
+    res <- hb_create_table(cl, "NewT",
+                columns = list(list(name = "N", type = "text"))),
     response = list()
   )
   expect_identical(res, cl)
@@ -36,6 +37,6 @@ test_that("hb_duplicate_table includes new_name only when supplied", {
     hb_duplicate_table(cl, "S"), response = list())
   expect_null(rec1$calls[[1]]$body$new_table_name)
   rec2 <- with_mocked_request(
-    hb_duplicate_table(cl, "S", "S_copy"), response = list())
+    hb_duplicate_table(cl, "S", new_name = "S_copy"), response = list())
   expect_identical(rec2$calls[[1]]$body$new_table_name, "S_copy")
 })

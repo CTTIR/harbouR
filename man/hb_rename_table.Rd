@@ -4,7 +4,7 @@
 \alias{hb_rename_table}
 \title{Rename a table}
 \usage{
-hb_rename_table(client, table, new_name, call = rlang::caller_env())
+hb_rename_table(client, table, new_name, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_rename_table(client, table, new_name, call = rlang::caller_env())
 
 \item{new_name}{New table name.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

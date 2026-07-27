@@ -4,12 +4,12 @@
 \alias{hb_metadata}
 \title{Fetch base metadata}
 \usage{
-hb_metadata(client, call = rlang::caller_env())
+hb_metadata(client, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A \code{harbour_metadata} object — a list with components

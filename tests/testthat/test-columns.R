@@ -29,7 +29,8 @@ test_that("hb_list_columns flags read-only types as non-editable", {
 test_that("hb_add_column posts and invalidates metadata cache", {
   cl <- mock_client()
   rec <- with_mocked_request(
-    res <- hb_add_column(cl, "Samples", "Notes", "text", data = list(x = 1)),
+    res <- hb_add_column(cl, "Samples", "Notes", "text",
+                column_data = list(x = 1)),
     response = list()
   )
   expect_identical(res, cl)
@@ -61,7 +62,8 @@ test_that("hb_update_column sends optional fields when present", {
   expect_error(hb_update_column(cl, "Samples", "n", new_name = 1L),
                regexp = "`new_name` must be a single non-empty string\\.")
   rec <- with_mocked_request(
-    hb_update_column(cl, "Samples", "Notes", new_name = "Comments", data = list(a = 1)),
+    hb_update_column(cl, "Samples", "Notes", new_name = "Comments",
+                   column_data = list(a = 1)),
     response = list()
   )
   expect_identical(rec$calls[[1]]$method, "PUT")

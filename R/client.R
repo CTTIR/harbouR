@@ -23,8 +23,8 @@
 #' @param base_uuid Optional base UUID hint; usually discovered from the
 #'   base-token exchange.
 #' @param timeout Per-request timeout in seconds. Default `30`.
-#' @param call Internal: error-propagation env. Not for direct use.
 #'
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A `harbour_client` object.
 #'
 #' @family client
@@ -37,20 +37,20 @@
 #' @export
 hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
                       api_token = Sys.getenv("SEATABLE_API_TOKEN"),
+                      ...,
                       username = NULL,
                       password = NULL,
                       base_uuid = NULL,
-                      timeout = 30,
-                      call = rlang::caller_env()) {
+                      timeout = 30) {
+  rlang::check_dots_empty()
   server <- if (is.null(server) || !nzchar(server)) NULL else server
   api_token <- if (is.null(api_token) || !nzchar(api_token)) NULL else api_token
 
-  .check_string(server, call = call)
+  .check_string(server)
   if (!grepl("^https?://", server)) {
     hb_abort(
       c("{.arg server} must begin with {.val http://} or {.val https://}.",
         "x" = "You supplied {.val {server}}."),
-      call = call,
       class = "harbour_error_bad_argument"
     )
   }
@@ -61,7 +61,6 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
   if (has_api && has_acct) {
     hb_abort(
       "Supply either {.arg api_token} or {.arg username}/{.arg password}, not both.",
-      call = call,
       class = "harbour_error_auth"
     )
   }
@@ -69,13 +68,12 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
     hb_abort(
       c("No credentials supplied.",
         "i" = "Provide {.arg api_token} or {.arg username} and {.arg password}, or set {.envvar SEATABLE_API_TOKEN}."),
-      call = call,
       class = "harbour_error_auth"
     )
   }
   if (has_acct) {
-    .check_string(username, call = call)
-    .check_string(password, call = call)
+    .check_string(username)
+    .check_string(password)
   }
 
   cl <- new_harbour_client(
@@ -86,7 +84,7 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
     base_uuid = base_uuid,
     timeout = timeout
   )
-  validate_harbour_client(cl, call = call)
+  validate_harbour_client(cl)
   cl
 }
 

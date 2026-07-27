@@ -4,13 +4,7 @@
 \alias{hb_create_view}
 \title{Create a view}
 \usage{
-hb_create_view(
-  client,
-  table,
-  view,
-  settings = list(),
-  call = rlang::caller_env()
-)
+hb_create_view(client, table, view, ..., settings = list())
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -19,9 +13,9 @@ hb_create_view(
 
 \item{view}{New view name.}
 
-\item{settings}{Optional list of view settings.}
+\item{...}{These dots are for future extensions and must be empty.}
 
-\item{call}{Internal: error-propagation env.}
+\item{settings}{Optional list of view settings.}
 }
 \value{
 Invisibly returns the client.

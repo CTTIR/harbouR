@@ -4,7 +4,7 @@
 \alias{hb_add_select_option}
 \title{Add a single-select option}
 \usage{
-hb_add_select_option(client, table, name, option, call = rlang::caller_env())
+hb_add_select_option(client, table, name, option, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -15,7 +15,7 @@ hb_add_select_option(client, table, name, option, call = rlang::caller_env())
 
 \item{option}{Option name to add.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

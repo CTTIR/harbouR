@@ -4,14 +4,14 @@
 \alias{hb_delete_asset}
 \title{Delete an asset}
 \usage{
-hb_delete_asset(client, url, call = rlang::caller_env())
+hb_delete_asset(client, url, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{url}{Asset URL (as returned by SeaTable in a file/image cell).}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

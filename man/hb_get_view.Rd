@@ -4,7 +4,7 @@
 \alias{hb_get_view}
 \title{Get a view's settings}
 \usage{
-hb_get_view(client, table, view, call = rlang::caller_env())
+hb_get_view(client, table, view, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,7 @@ hb_get_view(client, table, view, call = rlang::caller_env())
 
 \item{view}{View name.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A 1-row tibble with the view's name, type and filters/sorts as

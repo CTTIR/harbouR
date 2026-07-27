@@ -4,14 +4,14 @@
 \alias{hb_list_tables}
 \title{List the tables in a base}
 \usage{
-hb_list_tables(client, refresh = FALSE, call = rlang::caller_env())
+hb_list_tables(client, ..., refresh = FALSE)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{refresh}{Logical; refetch metadata even if cached. Default \code{FALSE}.}
+\item{...}{These dots are for future extensions and must be empty.}
 
-\item{call}{Internal: error-propagation env.}
+\item{refresh}{Logical; refetch metadata even if cached. Default \code{FALSE}.}
 }
 \value{
 A tibble with one row per table and columns

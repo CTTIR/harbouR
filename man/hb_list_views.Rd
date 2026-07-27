@@ -4,14 +4,14 @@
 \alias{hb_list_views}
 \title{List views of a table}
 \usage{
-hb_list_views(client, table, call = rlang::caller_env())
+hb_list_views(client, table, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{table}{Table name.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble with columns \code{name} (chr), \code{type} (chr) and \code{is_default}

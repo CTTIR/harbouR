@@ -4,22 +4,17 @@
 \alias{hb_upload_file}
 \title{Upload a file to SeaTable}
 \usage{
-hb_upload_file(
-  client,
-  path,
-  relative_path = "files",
-  call = rlang::caller_env()
-)
+hb_upload_file(client, path, ..., relative_path = "files")
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
 \item{path}{Local file path. Must exist.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{relative_path}{Optional path on the SeaTable side; defaults to
 \code{"files"}.}
-
-\item{call}{Internal: error-propagation env.}
 }
 \value{
 A named list describing the uploaded asset.

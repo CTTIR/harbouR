@@ -4,7 +4,7 @@
 \alias{hb_attach_file}
 \title{Attach a file to a cell}
 \usage{
-hb_attach_file(client, table, row_id, column, path, call = rlang::caller_env())
+hb_attach_file(client, table, row_id, column, path, ...)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -17,7 +17,7 @@ hb_attach_file(client, table, row_id, column, path, call = rlang::caller_env())
 
 \item{path}{Local file path. Must exist.}
 
-\item{call}{Internal: error-propagation env.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns the client.

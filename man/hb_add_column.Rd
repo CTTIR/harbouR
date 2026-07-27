@@ -4,14 +4,7 @@
 \alias{hb_add_column}
 \title{Add a column to a table}
 \usage{
-hb_add_column(
-  client,
-  table,
-  name,
-  type,
-  data = NULL,
-  call = rlang::caller_env()
-)
+hb_add_column(client, table, name, type, ..., column_data = NULL)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -22,9 +15,11 @@ hb_add_column(
 
 \item{type}{SeaTable column type, e.g. \code{"text"}, \code{"number"}, \code{"date"}.}
 
-\item{data}{Optional list of column options (e.g. select options).}
+\item{...}{These dots are for future extensions and must be empty.}
 
-\item{call}{Internal: error-propagation env.}
+\item{column_data}{Optional list of column options, e.g. the choices
+for a select column. Named \code{column_data} rather than \code{data} because
+\code{data} means "the rows you are writing" everywhere else in harbouR.}
 }
 \value{
 Invisibly returns the client.
