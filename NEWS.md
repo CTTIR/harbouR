@@ -57,6 +57,27 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+* `hb_upload_file()` returned `url = NA` on every call, so the object it
+  produced could never be written into a file cell - which is what
+  `hb_attach_file()`, the flagship helper, does with it. It now requests
+  `ret-json=1` (without it the endpoint replies in plain text, so the
+  response was unparseable), uploads to the image or file tree the server
+  nominates rather than a hard-coded `files`, and builds the asset URL from
+  the workspace id, base UUID and upload path.
+
+* `hb_delete_asset()` targeted `/api/v2.1/dtable/asset/` with an API token
+  and a `url` body. The endpoint is `/api/v2.1/dtable/app-asset/`, takes a
+  base token, and identifies the asset by a `path` query parameter.
+
+* **Writing a file, image or geolocation cell no longer corrupts it.** The
+  write path flattened every list-valued cell with `unlist()`, which is
+  right for a multiple-select column but turns a file cell's
+  `{name, size, type, url}` object into
+  `c("report.pdf", "12345", "application/pdf", "https://...")`.
+  Serialisation is now driven by the column type. Flat list-columns are
+  emitted as JSON arrays even when they hold a single value, which
+  previously auto-unboxed to a scalar and changed the cell's type.
+
 * `hb_update_column()` sends the `op_type` field SeaTable requires; without
   it the request was rejected. It gains a `new_type` argument for type
   changes, and refuses to rename and retype in one call, because SeaTable

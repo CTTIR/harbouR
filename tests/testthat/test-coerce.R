@@ -80,3 +80,64 @@ test_that("a user column named _id is refused rather than silently dropped", {
     class = "harbour_error_column_collision"
   )
 })
+
+test_that("structured cells are not flattened on write", {
+  # The write path used to unlist() every list-valued cell, which turns a
+  # file cell's {name,size,type,url} object into a bare character vector.
+  file_cell <- list(list(
+    name = "a.pdf", size = 1, type = "application/pdf", url = "/u"
+  ))
+  cols <- list(list(name = "Reports", type = "file"))
+  out <- harbouR:::.hb_tibble_to_rows(
+    tibble::tibble(Reports = list(file_cell)), cols
+  )
+  expect_type(out[[1L]]$Reports, "list")
+  expect_named(
+    out[[1L]]$Reports[[1L]], c("name", "size", "type", "url")
+  )
+  expect_identical(out[[1L]]$Reports[[1L]]$url, "/u")
+})
+
+test_that("writable structured cells keep their structure", {
+  for (type in c("geolocation", "image")) {
+    cell <- list(list(lat = 1.5, lng = 2.5))
+    out <- harbouR:::.hb_tibble_to_rows(
+      tibble::tibble(X = list(cell)),
+      list(list(name = "X", type = type))
+    )
+    expect_type(out[[1L]]$X, "list")
+    expect_type(out[[1L]]$X[[1L]], "list")
+  }
+})
+
+test_that("read-only columns are dropped from the write payload", {
+  # link, link-formula, button and digital-sign are maintained by SeaTable;
+  # sending them back would at best be ignored and at worst rejected.
+  for (type in .hb_readonly_types()) {
+    out <- harbouR:::.hb_tibble_to_rows(
+      tibble::tibble(X = list(list(a = 1))),
+      list(list(name = "X", type = type))
+    )
+    expect_null(out[[1L]]$X, info = type)
+  }
+})
+
+test_that("flat list-columns serialise as arrays even when length 1", {
+  # A length-1 character vector would auto_unbox to a JSON scalar, silently
+  # changing a multiple-select cell's type on the wire.
+  for (type in c("multiple-select", "collaborator")) {
+    out <- harbouR:::.hb_tibble_to_rows(
+      tibble::tibble(X = list("only")),
+      list(list(name = "X", type = type))
+    )
+    expect_identical(out[[1L]]$X, list("only"))
+  }
+})
+
+test_that("an empty structured cell serialises as an empty array", {
+  out <- harbouR:::.hb_tibble_to_rows(
+    tibble::tibble(X = list(NULL)),
+    list(list(name = "X", type = "file"))
+  )
+  expect_identical(out[[1L]]$X, list())
+})

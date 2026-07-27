@@ -74,7 +74,9 @@ test_that(".hb_tibble_to_rows drops read-only columns and formats dates", {
   expect_length(rows, 1L)
   expect_identical(rows[[1]]$Name, "S1")
   expect_match(rows[[1]]$Collected, "^2026-04-01")
-  expect_identical(rows[[1]]$Tags, c("a", "b"))
+  # A JSON array, not a bare vector: a length-1 character vector would
+  # auto_unbox to a scalar and change the cell's type on the wire.
+  expect_identical(rows[[1]]$Tags, list("a", "b"))
 })
 
 test_that(".hb_tibble_to_rows rejects non-data-frames", {

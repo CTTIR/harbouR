@@ -30,7 +30,7 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
   }
   .check_string(relative_path)
   link <- .hb_request(client, "/api/v2.1/dtable/app-upload-link/",
-    service = "web", auth = "api", method = "GET"
+    service = "web", auth = "base", method = "GET"
   )
   upload_url <- link$upload_link %||% link$url
   parent_dir <- link$parent_path %||% "/"
@@ -39,24 +39,79 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
       class = "harbour_error_http"
     )
   }
+  # The upload link reports where images and other files are meant to go.
+  # Using it rather than a hard-coded "files" is what puts an image in the
+  # images tree, where an image column expects to find it.
+  if (identical(relative_path, "files")) {
+    relative_path <- if (.hb_is_image(path)) {
+      link$img_relative_path %||% "images"
+    } else {
+      link$file_relative_path %||% "files"
+    }
+  }
+  # Without ret-json the endpoint answers with the stored filename as plain
+  # text, not JSON, so the response could never be parsed.
   req <- httr2::request(upload_url) |>
+    httr2::req_url_query(`ret-json` = 1L) |>
     httr2::req_user_agent(.hb_user_agent()) |>
-    httr2::req_headers(Authorization = paste("Token", client$api_token)) |>
+    httr2::req_headers(
+      Authorization = .hb_auth_header(client, "base")
+    ) |>
     httr2::req_body_multipart(
       file = curl::form_file(path),
       parent_dir = parent_dir,
       relative_path = relative_path,
       replace = "0"
     )
-  resp <- httr2::req_perform(req)
-  body <- httr2::resp_body_json(resp, simplifyVector = FALSE)
+  resp <- .hb_perform_raw(req)
+  body <- .hb_resp_json(resp)
   entry <- if (length(body) > 0L) body[[1L]] else list()
+  name <- as.character(entry$name %||% basename(path))
   list(
-    name = entry$name %||% basename(path),
+    name = name,
     size = entry$size %||% file.info(path)$size,
     type = entry$type %||% .hb_guess_mime(path),
-    url = entry$url %||% NA_character_
+    url = .hb_asset_url(client, relative_path, name)
   )
+}
+
+#' Build the asset URL for a freshly uploaded file
+#'
+#' The upload endpoint returns only `name`, `id` and `size`. The URL a
+#' file-typed cell needs has to be assembled from the workspace id, the
+#' base UUID and the path the file was uploaded to.
+#'
+#' @param client A `harbour_client`.
+#' @param relative_path Path under the base's asset root.
+#' @param name The stored file name, which may differ from the local one
+#'   if SeaTable had to deduplicate it.
+#' @return A single string.
+#' @keywords internal
+#' @noRd
+.hb_asset_url <- function(client, relative_path, name) {
+  workspace <- client$.workspace_id
+  uuid <- client$base_uuid
+  if (is.null(workspace) || is.null(uuid)) {
+    return(NA_character_)
+  }
+  paste0(
+    client$server,
+    "/workspace/", workspace,
+    "/asset/", uuid,
+    "/", relative_path,
+    "/", .hb_url_escape(name)
+  )
+}
+
+#' Does this path look like an image to SeaTable?
+#'
+#' @param path A file path.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_is_image <- function(path) {
+  ext <- tolower(tools::file_ext(path))
+  ext %in% c("png", "jpg", "jpeg", "gif", "bmp", "webp", "svg")
 }
 
 #' @keywords internal
@@ -145,7 +200,7 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
   if (!dir.exists(parent)) dir.create(parent, recursive = TRUE)
   req <- httr2::request(url) |>
     httr2::req_user_agent(.hb_user_agent()) |>
-    httr2::req_timeout(client$timeout %||% 60)
+    httr2::req_timeout(client$timeout %||% 30)
   resp <- httr2::req_perform(req, path = dest)
   if (httr2::resp_status(resp) >= 400L) {
     hb_abort(
@@ -172,9 +227,26 @@ hb_delete_asset <- function(client, url, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(url)
-  .hb_request(client, "/api/v2.1/dtable/asset/",
-    service = "web", auth = "api", method = "DELETE",
-    body = list(url = url)
+  .hb_request(client, "/api/v2.1/dtable/app-asset/",
+    service = "web", auth = "base", method = "DELETE",
+    query = list(path = .hb_asset_path(url))
   )
   invisible(client)
+}
+
+#' Reduce an asset URL to the path SeaTable's asset endpoints take
+#'
+#' Cells store a full URL; the delete endpoint wants only the part below
+#' the base's asset root.
+#'
+#' @param url A full asset URL, or an already-relative path.
+#' @return A single string beginning with `/`.
+#' @keywords internal
+#' @noRd
+.hb_asset_path <- function(url) {
+  stripped <- sub("^https?://[^/]+", "", url)
+  relative <- sub("^/workspace/[^/]+/asset/[^/]+", "", stripped)
+  if (!nzchar(relative)) relative <- stripped
+  if (!startsWith(relative, "/")) relative <- paste0("/", relative)
+  relative
 }

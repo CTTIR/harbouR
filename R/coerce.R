@@ -324,14 +324,51 @@ hb_column_types <- function() {
       cn <- col_names[[i]]
       if (!cn %in% names(data)) next
       if (col_types[[i]] %in% read_only) next
-      v <- data[[cn]][[r]]
-      if (is.list(v)) v <- unlist(v, use.names = FALSE)
-      if (inherits(v, c("Date", "POSIXt"))) {
-        v <- format(v, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-      }
-      row[[cn]] <- v
+      row[[cn]] <- .hb_serialise_cell(data[[cn]][[r]], col_types[[i]])
     }
     rows[[r]] <- row
   }
   rows
+}
+
+#' Serialise one R value into the JSON shape SeaTable expects
+#'
+#' The write path used to `unlist()` every list-valued cell. That is right
+#' for a multiple-select column, whose value is a character vector, but it
+#' destroys a `file` cell: a list of `{name, size, type, url}` objects
+#' flattens to `c("report.pdf", "12345", "application/pdf", "https://...")`.
+#' `geolocation` and `link` cells break the same way. The type decides.
+#'
+#' @param value One cell's value, taken from a data frame column.
+#' @param type The SeaTable column type.
+#' @return A value ready to be passed to `jsonlite`.
+#' @keywords internal
+#' @noRd
+.hb_serialise_cell <- function(value, type) {
+  if (inherits(value, c("Date", "POSIXt"))) {
+    return(format(value, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
+  }
+  # Structured cells stay structured. Their elements are objects, and each
+  # one must reach the server as an object.
+  if (type %in% c("file", "image", "geolocation", "link", "digital-sign")) {
+    if (is.null(value)) {
+      return(list())
+    }
+    if (!is.list(value)) {
+      return(as.list(value))
+    }
+    return(unname(value))
+  }
+  # Flat list-columns - multiple-select, collaborator - are vectors of
+  # scalars, so flattening is exactly right.
+  if (type %in% c("multiple-select", "collaborator")) {
+    if (is.null(value)) {
+      return(list())
+    }
+    return(as.list(unlist(value, use.names = FALSE)))
+  }
+  if (is.list(value)) {
+    value <- unlist(value, use.names = FALSE)
+  }
+  value
 }

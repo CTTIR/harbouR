@@ -202,17 +202,19 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
   }
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
+  types <- .hb_chr_field(cols, "type", default = "text")
+  names(types) <- .hb_chr_field(cols, "name")
   updates <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
     row <- list()
     for (cn in names(data)) {
       if (cn == row_id_col) next
-      v <- data[[cn]][[r]]
-      if (is.list(v)) v <- unlist(v, use.names = FALSE)
-      if (inherits(v, c("Date", "POSIXt"))) {
-        v <- format(v, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-      }
-      row[[cn]] <- v
+      # Same type-aware serialisation the append path uses, so a file or
+      # geolocation cell is not flattened into a bare character vector.
+      row[[cn]] <- .hb_serialise_cell(
+        data[[cn]][[r]],
+        types[[cn]] %||% "text"
+      )
     }
     updates[[r]] <- list(
       row_id = as.character(data[[row_id_col]][[r]]),

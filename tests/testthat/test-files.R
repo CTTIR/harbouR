@@ -65,7 +65,11 @@ test_that("hb_delete_asset routes a DELETE through the request engine", {
   )
   expect_identical(res, cl)
   expect_identical(rec$calls[[1]]$method, "DELETE")
-  expect_identical(rec$calls[[1]]$body$url, "https://server/path/file.pdf")
+  expect_identical(rec$calls[[1]]$path, "/api/v2.1/dtable/app-asset/")
+  expect_identical(rec$calls[[1]]$auth, "base")
+  # The endpoint takes the path below the base's asset root as a query
+  # parameter, not the whole URL in the body.
+  expect_identical(rec$calls[[1]]$query$path, "/path/file.pdf")
 })
 
 test_that("hb_upload_file requests a link then uploads and returns a file object", {
@@ -75,22 +79,34 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
   testthat::local_mocked_bindings(
     .hb_request = function(client, path, ...) list(
       upload_link = "https://up.example.org/upload",
-      parent_path = "/files"
+      parent_path = "/asset/demo-uuid",
+      file_relative_path = "files/2026-07"
     ),
     .package = "harbouR"
   )
+  captured <- NULL
   testthat::local_mocked_bindings(
-    req_perform = function(req, ...) structure(list(), class = "httr2_response"),
+    req_perform = function(req, ...) {
+      captured <<- req
+      structure(list(), class = "httr2_response")
+    },
     resp_body_json = function(resp, ...) list(list(
-      name = "doc.pdf", size = 99, type = "application/pdf",
-      url = "https://up.example.org/files/doc.pdf"
+      name = "doc.pdf", size = 99, type = "application/pdf"
     )),
     .package = "httr2"
   )
+  cl$.workspace_id <- 42L
   obj <- hb_upload_file(cl, src)
   expect_identical(obj$name, "doc.pdf")
   expect_identical(obj$type, "application/pdf")
-  expect_match(obj$url, "doc.pdf")
+  # The upload response carries no URL; harbouR builds it from the
+  # workspace id, the base uuid and the path the file went to.
+  expect_identical(
+    obj$url,
+    "https://demo.example.org/workspace/42/asset/demo-uuid/files/2026-07/doc.pdf"
+  )
+  # Without ret-json the endpoint answers in plain text, not JSON.
+  expect_match(captured$url, "ret-json=1", fixed = TRUE)
 })
 
 test_that("hb_upload_file errors when no upload URL is returned", {
@@ -128,4 +144,32 @@ test_that("hb_attach_file validates row/column args", {
   cl <- mock_client()
   expect_error(hb_attach_file(cl, "Samples", "", "Reports", "x.pdf"),
                regexp = "`row_id` must be a single non-empty string\\.")
+})
+
+test_that(".hb_asset_path strips the workspace and base prefix", {
+  expect_identical(
+    harbouR:::.hb_asset_path(
+      "https://cloud.seatable.io/workspace/42/asset/uu-id/files/a.pdf"
+    ),
+    "/files/a.pdf"
+  )
+  expect_identical(
+    harbouR:::.hb_asset_path("/workspace/7/asset/x/images/2026-07/p.png"),
+    "/images/2026-07/p.png"
+  )
+  # An already-relative path is left alone.
+  expect_identical(harbouR:::.hb_asset_path("/files/x.pdf"), "/files/x.pdf")
+})
+
+test_that("images upload to the image tree, other files to the file tree", {
+  expect_true(harbouR:::.hb_is_image("a.PNG"))
+  expect_true(harbouR:::.hb_is_image("b.jpeg"))
+  expect_false(harbouR:::.hb_is_image("c.pdf"))
+})
+
+test_that(".hb_asset_url returns NA rather than a wrong URL when unbound", {
+  cl <- mock_client()
+  cl$.workspace_id <- NULL
+  expect_identical(harbouR:::.hb_asset_url(cl, "files", "a.pdf"),
+                   NA_character_)
 })
