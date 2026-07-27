@@ -281,3 +281,96 @@ test_that("print, format and summary describe the base", {
   expect_named(schema, c("table", "column", "type", "key"))
   expect_identical(nrow(schema), 29L)
 })
+
+test_that("hb_read_xlsx builds a base from a workbook", {
+  skip_if_not_installed("writexl")
+  skip_if_not_installed("readxl")
+  path <- withr::local_tempfile(fileext = ".xlsx")
+  writexl::write_xlsx(
+    list(Alpha = data.frame(x = 1:2), Beta = data.frame(y = c("a", "b"))),
+    path
+  )
+  base <- hb_read_xlsx(path)
+  expect_setequal(names(base), c("Alpha", "Beta"))
+  expect_identical(nrow(hb_read_table(base, "Alpha")), 2L)
+
+  only <- hb_read_xlsx(path, sheets = "Beta")
+  expect_identical(names(only), "Beta")
+  expect_error(hb_read_xlsx(path, sheets = "Gamma"),
+               class = "harbour_error_not_found")
+})
+
+test_that("hb_read_csv validates its inputs", {
+  expect_error(hb_read_csv(1L), class = "harbour_error_bad_argument")
+  expect_error(hb_read_csv("nope.csv"), class = "harbour_error_not_found")
+})
+
+test_that("hb_read_xlsx refuses a file that is not there", {
+  skip_if_not_installed("readxl")
+  expect_error(hb_read_xlsx("nope.xlsx"), class = "harbour_error_not_found")
+})
+
+test_that("hb_dtable refuses input it cannot turn into a base", {
+  expect_error(hb_dtable(), class = "harbour_error_bad_argument")
+  expect_error(hb_dtable(data.frame(x = 1)),
+               class = "harbour_error_bad_argument")
+  expect_error(hb_dtable(A = 1:3), class = "harbour_error_bad_argument")
+})
+
+test_that("hb_write_dtable refuses to clobber unless asked", {
+  base <- hb_dtable(A = data.frame(x = 1))
+  out <- withr::local_tempfile(fileext = ".dtable")
+  hb_write_dtable(base, out)
+  expect_error(hb_write_dtable(base, out, overwrite = FALSE),
+               class = "harbour_error_bad_argument")
+  expect_no_error(hb_write_dtable(base, out))
+})
+
+test_that("a dtable with no tables still behaves", {
+  base <- hb_dtable(A = data.frame(x = 1))
+  base$content$tables <- list()
+  expect_identical(length(base), 0L)
+  expect_identical(names(base), character())
+  expect_identical(nrow(tibble::as_tibble(base)), 0L)
+  expect_identical(nrow(summary(base)), 0L)
+  expect_identical(format(base), character())
+  expect_true(any(hb_validate_dtable(base)$severity == "warning"))
+})
+
+test_that("a view restricts the rows a local read returns", {
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  # The default view lists no rows, which means "all of them".
+  expect_identical(nrow(hb_read_table(base, "Samples", view = "Default View")),
+                   2L)
+  base$content$tables[[1L]]$views[[1L]]$rows <- list("CwD7tBAETtSXLQKQXhaR6A")
+  expect_identical(nrow(hb_read_table(base, "Samples", view = "Default View")),
+                   1L)
+  expect_error(hb_read_table(base, "Samples", view = "Nope"),
+               class = "harbour_error_not_found")
+})
+
+test_that("values beyond 2^53 warn about lost precision", {
+  base <- hb_dtable(A = data.frame(big = 2^60))
+  expect_warning(hb_read_table(base, "A"), "2\\^53")
+})
+
+test_that("empty and NA cells are omitted from a built base", {
+  base <- hb_dtable(A = data.frame(
+    x = c("a", NA), y = c(1, NA), stringsAsFactors = FALSE
+  ))
+  rows <- base$content$tables[[1L]]$rows
+  # SeaTable records an empty cell by leaving the key out entirely.
+  expect_false("0000" %in% names(rows[[2L]]))
+  data <- hb_read_table(base, "A")
+  expect_true(is.na(data$x[[2L]]))
+})
+
+test_that("dates survive a build and read", {
+  base <- hb_dtable(A = data.frame(when = as.Date("2026-07-27")))
+  expect_identical(hb_list_columns(base, "A")$type, "date")
+  expect_identical(
+    format(hb_read_table(base, "A")$when, "%Y-%m-%d"), "2026-07-27"
+  )
+})

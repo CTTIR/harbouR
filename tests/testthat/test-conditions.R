@@ -104,3 +104,25 @@ test_that("no cli message interpolates an expression starting with a dot", {
   offenders <- grep("\\{\\.[a-zA-Z_]+[a-zA-Z0-9_.]*\\(", code, value = TRUE)
   expect_identical(offenders, character())
 })
+
+test_that("every pluralised message can actually be formatted", {
+  # cli's {?s} needs a quantity in the same message element. Get it wrong
+  # and the message throws "Cannot pluralize without a quantity" - but
+  # only when that error path is taken, which is exactly when the user
+  # least wants a second failure.
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  expect_error(hb_read_csv("nope.csv"), "1 file not found")
+  expect_error(hb_read_csv(c("a.csv", "b.csv")), "2 files not found")
+  expect_error(hb_write_csv(base, withr::local_tempdir(), tables = "Nope"),
+               "Table not found")
+  expect_error(
+    hb_write_csv(base, withr::local_tempdir(), tables = c("A", "B")),
+    "Tables not found"
+  )
+  expect_message(hb_write_csv(base, withr::local_tempdir()),
+                 "columns were flattened")
+  expect_warning(hb_read_table(hb_dtable(A = data.frame(b = 2^60)), "A"),
+                 "Affected column:")
+})

@@ -1,4 +1,16 @@
-# harbouR 0.1.0.9000 (development version)
+# harbouR 0.1.0
+
+First release.
+
+harbouR is an unofficial R client for the SeaTable REST API. It
+connects to a SeaTable server, reads and writes rows as tidy
+tibbles, manages tables, columns and views, uploads and attaches
+files, reads and writes local `.dtable` exports with no server at
+all, and ships a Shiny explorer for doing all of that without
+writing code.
+
+The notes below record what changed during development, against an
+0.1.0 that was tagged but never published.
 
 * The maintainer address is now `raban.heller@uni-ulm.de`, and `URL` /
   `BugReports` point at <https://github.com/CTTIR/harbouR>, which is where
@@ -256,28 +268,4 @@
   `hb_export_table()`, the `hb_admin_*()` and `hb_team_*()` families, and
   the rest. They were half the exported surface and none of them worked.
   The remaining areas are listed under Roadmap in the README.
-
-# harbouR 0.1.0
-
-Initial release.
-
-* Tier 1 (fully implemented):
-  * Client & auth: `hb_client()`, `hb_ping()`, `hb_server_info()`,
-    `print.harbour_client()`.
-  * Metadata: `hb_metadata()`, `hb_list_tables()`, `hb_list_collaborators()`,
-    `print.harbour_metadata()`, `as_tibble.harbour_metadata()`,
-    `summary.harbour_metadata()`.
-  * Rows: `hb_read_table()`, `hb_query()`, `hb_get_row()`, `hb_append_rows()`,
-    `hb_update_rows()`, `hb_delete_rows()`, `hb_lock_rows()`, `hb_unlock_rows()`.
-  * Tables: `hb_create_table()`, `hb_rename_table()`, `hb_delete_table()`,
-    `hb_duplicate_table()`.
-  * Columns: `hb_list_columns()`, `hb_add_column()`, `hb_update_column()`,
-    `hb_delete_column()`, `hb_add_columns()`, `hb_add_select_option()`,
-    `hb_update_select_option()`, `hb_delete_select_option()`.
-  * Views: `hb_list_views()`, `hb_get_view()`, `hb_create_view()`,
-    `hb_update_view()`, `hb_delete_view()`.
-  * Files: `hb_upload_file()`, `hb_attach_file()`, `hb_download_file()`,
-    `hb_delete_asset()`.
-  * Offline example data: `hb_example_metadata()`, `hb_example_rows()`.
-  * Shiny explorer launcher: `hb_run_explorer()`.
 

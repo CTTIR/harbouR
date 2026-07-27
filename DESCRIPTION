@@ -1,6 +1,6 @@
 Package: harbouR
 Title: R Client for 'SeaTable' Collaborative Databases
-Version: 0.1.0.9000
+Version: 0.1.0
 Authors@R: c(
     person("Raban", "Heller",
            email = "raban.heller@uni-ulm.de",

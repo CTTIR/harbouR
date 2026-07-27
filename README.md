@@ -62,11 +62,11 @@ library(harbouR)
 
 meta <- hb_example_metadata()
 tibble::as_tibble(meta)
-#> # A tibble: 2 × 4
-#>   name     n_rows n_columns n_views
-#>   <chr>     <int>     <int>   <int>
-#> 1 Samples       0         7       1
-#> 2 Patients      0         4       1
+#> # A tibble: 2 × 3
+#>   name     n_columns n_views
+#>   <chr>        <int>   <int>
+#> 1 Samples          7       1
+#> 2 Patients         4       1
 
 hb_example_rows("Samples")
 #> # A tibble: 3 × 8

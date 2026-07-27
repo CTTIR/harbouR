@@ -111,10 +111,10 @@ hb_read_csv <- function(files, ..., base_name = "harbouR base") {
       class = "harbour_error_bad_argument"
     )
   }
-  missing <- files[!file.exists(files)]
-  if (length(missing) > 0L) {
+  absent <- files[!file.exists(files)]
+  if (length(absent) > 0L) {
     hb_abort(
-      c("File{?s} not found.", "x" = "{.path {missing}}"),
+      c("{length(absent)} file{?s} not found.", "x" = "{.path {absent}}"),
       class = "harbour_error_not_found"
     )
   }

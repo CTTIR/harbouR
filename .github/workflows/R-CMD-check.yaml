@@ -37,4 +37,57 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+          error-on: '"warning"'
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+
+  # The suite must pass with nothing from Suggests installed. Without this
+  # job, a package declared in Suggests but never used - or used without a
+  # guard - turns R CMD check red for every user and green for us.
+  no-suggests:
+    runs-on: ubuntu-latest
+    name: ubuntu-latest (release, no suggests)
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      _R_CHECK_FORCE_SUGGESTS_: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"hard"'
+          extra-packages: any::rcmdcheck, any::testthat, any::withr
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"warning"'
+          args: 'c("--no-manual", "--no-vignettes", "--no-build-vignettes")'
+          build_args: 'c("--no-manual", "--no-build-vignettes")'
+
+  # CRAN's own incoming checks - URL validity, spelling, policy - which
+  # are not run by a plain check and are what a submission is judged on.
+  cran-incoming:
+    runs-on: ubuntu-latest
+    name: CRAN incoming
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      _R_CHECK_CRAN_INCOMING_: true
+      _R_CHECK_CRAN_INCOMING_REMOTE_: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck, any::urlchecker
+          needs: check
+      - name: Check URLs
+        run: urlchecker::url_check()
+        shell: Rscript {0}
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"warning"'
+          args: 'c("--no-manual", "--as-cran")'

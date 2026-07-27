@@ -159,3 +159,56 @@ test_that(".hb_safe_types never stops a table from listing", {
   # the table list down with it.
   expect_identical(harbouR:::.hb_safe_types(list(), "nope"), character())
 })
+
+test_that("a source with no base shows the empty state, not an error", {
+  skip_if_no_ui()
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    listing <- as.character(htmltools::renderTags(output$table_list)$html)
+    expect_match(listing, "No base open")
+    expect_identical(output$table_count, "")
+    panel <- as.character(htmltools::renderTags(output$data_panel$html)$html)
+    expect_match(panel, "Open a base")
+    export <- as.character(htmltools::renderTags(output$export_panel$html)$html)
+    expect_match(export, "Open a base to export")
+  })
+})
+
+test_that("the source panel opens when there is nothing to browse", {
+  skip_if_no_ui()
+  open_html <- as.character(
+    htmltools::renderTags(harbouR:::.hb_source_fields(open = TRUE))$html
+  )
+  shut_html <- as.character(
+    htmltools::renderTags(harbouR:::.hb_source_fields(open = FALSE))$html
+  )
+  expect_match(open_html, "open", fixed = TRUE)
+  expect_false(grepl("<details open", shut_html, fixed = TRUE))
+})
+
+test_that("a first table is chosen, or NULL when there is none", {
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  expect_identical(harbouR:::.hb_first_table(base), "Samples")
+  expect_null(harbouR:::.hb_first_table(NULL))
+  base$content$tables <- list()
+  expect_null(harbouR:::.hb_first_table(base))
+})
+
+test_that("the source kind is reported from the object", {
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  expect_identical(harbouR:::.hb_source_kind(base), "file")
+  expect_identical(harbouR:::.hb_source_kind(mock_client()), "server")
+  expect_null(harbouR:::.hb_source_kind(NULL))
+})
+
+test_that("the theme is built from the logo's palette", {
+  pal <- harbouR:::.hb_palette()
+  expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", pal)))
+  css <- as.character(harbouR:::.hb_styles())
+  for (colour in pal) {
+    expect_match(css, colour, fixed = TRUE)
+  }
+})
