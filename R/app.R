@@ -42,6 +42,14 @@ hb_run_explorer <- function(client = NULL, ..., host = "127.0.0.1", port = NULL)
       class = "harbour_error_unsupported"
     )
   }
+  # shinyOptions() is process-global. Without this, a client carrying a
+  # plaintext token stays reachable for the rest of the R session after the
+  # app closes.
+  previous <- shiny::getShinyOption("harbouR_preset_client", default = NULL)
+  on.exit(
+    shiny::shinyOptions(harbouR_preset_client = previous),
+    add = TRUE
+  )
   shiny::shinyOptions(harbouR_preset_client = client)
   shiny::runApp(app_dir, host = host, port = port, ...)
   invisible(NULL)

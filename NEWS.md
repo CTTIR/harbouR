@@ -23,6 +23,25 @@
 * A `403` response is no longer retried as though the base token had
   expired. Only `401` triggers a refresh.
 
+* `hb_ping()` and `hb_server_info()` no longer send an `Authorization`
+  header. Both endpoints are unauthenticated, and demanding an API token
+  made them fail for username/password clients - exactly the case where
+  checking connectivity matters most.
+
+* `hb_ping()` now returns the client invisibly rather than `TRUE`, so it
+  composes: `client |> hb_ping() |> hb_read_table("Samples")`. New
+  `hb_check_credentials()` covers the other half of the old behaviour -
+  proving the credentials are accepted, not just that the server is up.
+
+* Reading a table whose schema contains a column literally named `_id` now
+  errors with a `harbour_error_column_collision` condition instead of
+  silently overwriting it with the SeaTable row identifier.
+
+* `hb_run_explorer()` restores the previous value of the
+  `harbouR_preset_client` Shiny option when it exits. A client carrying a
+  plaintext token used to stay reachable in process-global state for the
+  rest of the session.
+
 * **Breaking:** the 39 scaffolded endpoints that only ever raised "not yet
   implemented" have been removed - `hb_list_links()`, `hb_create_base()`,
   `hb_export_table()`, the `hb_admin_*()` and `hb_team_*()` families, and

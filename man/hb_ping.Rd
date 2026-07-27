@@ -2,7 +2,7 @@
 % Please edit documentation in R/auth.R
 \name{hb_ping}
 \alias{hb_ping}
-\title{Ping the SeaTable server}
+\title{Check that a SeaTable server is reachable}
 \usage{
 hb_ping(client, ...)
 }
@@ -12,12 +12,16 @@ hb_ping(client, ...)
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A single \code{TRUE} on success; errors otherwise.
+The \code{client}, invisibly. Errors if the server is unreachable.
 }
 \description{
-Issues a lightweight request against the server's ping endpoint to
-verify connectivity and credentials. Returns \code{TRUE} on success and
-errors informatively on failure.
+Issues a lightweight, unauthenticated request against the server's ping
+endpoint. This tests \emph{connectivity only} - use \code{\link[=hb_check_credentials]{hb_check_credentials()}}
+to test whether the client's credentials are accepted.
+}
+\details{
+Returns the client invisibly, so it composes:
+\code{client |> hb_ping() |> hb_read_table("Samples")}.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
@@ -26,7 +30,10 @@ hb_ping(client)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
+\code{\link[=hb_check_credentials]{hb_check_credentials()}}
+
 Other client:
+\code{\link[=hb_check_credentials]{hb_check_credentials()}},
 \code{\link[=hb_client]{hb_client()}},
 \code{\link[=hb_server_info]{hb_server_info()}},
 \code{\link[=is_harbour_client]{is_harbour_client()}}

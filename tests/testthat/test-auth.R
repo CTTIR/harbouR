@@ -61,3 +61,50 @@ test_that("is_harbour_client discriminates", {
   expect_true(is_harbour_client(mock_client()))
   expect_false(is_harbour_client(list()))
 })
+
+test_that("hb_server_info sends no credentials", {
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    info <- hb_server_info(cl),
+    response = list(version = "6.2.0", edition = "enterprise")
+  )
+  expect_identical(rec$calls[[1]]$auth, "none")
+  expect_identical(rec$calls[[1]]$path, "/server-info/")
+  expect_identical(info$version, "6.2.0")
+})
+
+test_that("hb_check_credentials refetches a base token for API clients", {
+  cl <- mock_client()
+  refreshed <- 0L
+  testthat::local_mocked_bindings(
+    .hb_refresh_base_token = function(client, call = NULL) {
+      refreshed <<- refreshed + 1L
+      "TOK"
+    },
+    .package = "harbouR"
+  )
+  expect_identical(hb_check_credentials(cl), cl)
+  expect_identical(refreshed, 1L)
+})
+
+test_that("hb_check_credentials fetches an account token for password clients", {
+  cl <- new_harbour_client(
+    server = "https://x.example.org", api_token = NULL,
+    username = "u", password = "p", base_uuid = NULL, timeout = 5
+  )
+  asked <- 0L
+  testthat::local_mocked_bindings(
+    .hb_get_account_token = function(client, call = NULL) {
+      asked <<- asked + 1L
+      "ACCT"
+    },
+    .package = "harbouR"
+  )
+  expect_identical(hb_check_credentials(cl), cl)
+  expect_identical(asked, 1L)
+})
+
+test_that("auth = 'none' drops the Authorization header entirely", {
+  cl <- mock_client()
+  expect_null(harbouR:::.hb_auth_header(cl, "none"))
+})

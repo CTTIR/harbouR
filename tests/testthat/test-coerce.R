@@ -46,3 +46,15 @@ test_that(".hb_rows_to_tibble degrades malformed numbers to NA", {
   tbl <- harbouR:::.hb_rows_to_tibble(rows, cols)
   expect_true(is.na(tbl$Concentration[[1]]))
 })
+
+test_that("a user column named _id is refused rather than silently dropped", {
+  columns <- list(
+    list(name = "Name", type = "text", key = "k1"),
+    list(name = "_id", type = "text", key = "k2")
+  )
+  rows <- list(list(`_id` = "r1", Name = "a", `_id` = "clash"))
+  expect_error(
+    harbouR:::.hb_rows_to_tibble(rows, columns),
+    class = "harbour_error_column_collision"
+  )
+})

@@ -13,6 +13,7 @@ reference:
   contents:
   - hb_client
   - hb_ping
+  - hb_check_credentials
   - hb_server_info
   - print.harbour_client
   - is_harbour_client

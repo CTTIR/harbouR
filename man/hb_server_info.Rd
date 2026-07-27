@@ -16,7 +16,8 @@ A one-row tibble with columns \code{server} (chr), \code{version} (chr) and
 \code{edition} (chr) where reported.
 }
 \description{
-Returns the SeaTable server's reported version and basic info.
+Returns the SeaTable server's reported version and basic info. This
+endpoint is unauthenticated.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
@@ -26,6 +27,7 @@ hb_server_info(client)
 }
 \seealso{
 Other client:
+\code{\link[=hb_check_credentials]{hb_check_credentials()}},
 \code{\link[=hb_client]{hb_client()}},
 \code{\link[=hb_ping]{hb_ping()}},
 \code{\link[=is_harbour_client]{is_harbour_client()}}

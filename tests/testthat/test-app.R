@@ -22,3 +22,17 @@ test_that("app.R and module files source without error", {
     expect_silent(parse(file = file.path(app_dir, f)))
   }
 })
+
+test_that("hb_run_explorer restores the previous preset client on exit", {
+  skip_if_not_installed("shiny")
+  needed <- c("shiny", "bslib", "DT", "reactable", "ggplot2")
+  skip_if_not(all(vapply(needed, requireNamespace, logical(1), quietly = TRUE)))
+  shiny::shinyOptions(harbouR_preset_client = NULL)
+  testthat::local_mocked_bindings(
+    runApp = function(...) NULL,
+    .package = "shiny"
+  )
+  hb_run_explorer(mock_client())
+  # A client carrying a plaintext token must not outlive the app.
+  expect_null(shiny::getShinyOption("harbouR_preset_client"))
+})

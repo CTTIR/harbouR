@@ -208,11 +208,24 @@ hb_column_types <- function() {
       out[[i]] <- vapply(coerced, function(v) if (length(v) == 0L) NA_character_ else as.character(v[[1L]]), character(1))
     }
   }
-  ids <- vapply(rows, function(r) as.character(r[["_id"]] %||% NA_character_), character(1))
-  if (length(rows) > 0L) {
-    out[["_id"]] <- ids
+  if ("_id" %in% names(out)) {
+    hb_abort(
+      c("A column in this table is named {.field _id}.",
+        "x" = "harbouR uses {.field _id} for the SeaTable row identifier.",
+        "i" = "Rename the column in SeaTable, or read it with
+               {.fn hb_query} and alias it."),
+      class = "harbour_error_column_collision",
+      call = rlang::caller_env()
+    )
+  }
+  out[["_id"]] <- if (length(rows) > 0L) {
+    vapply(
+      rows,
+      function(row) as.character(row[["_id"]] %||% NA_character_),
+      character(1)
+    )
   } else {
-    out[["_id"]] <- character()
+    character()
   }
   tibble::as_tibble(out)
 }

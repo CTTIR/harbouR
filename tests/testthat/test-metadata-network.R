@@ -71,15 +71,19 @@ test_that("hb_server_info returns a one-row tibble", {
   expect_identical(res$edition, "enterprise")
 })
 
-test_that("hb_ping returns TRUE on success and errors on failure", {
+test_that("hb_ping returns the client and needs no credentials and errors on failure", {
   cl <- mock_client()
-  with_mocked_request(
-    ok <- hb_ping(cl),
+  rec <- with_mocked_request(
+    out <- hb_ping(cl),
     response = list()
   )
-  expect_true(ok)
+  # It returns the client so it composes in a pipe, and it asks for no
+  # credentials: /api2/ping/ is unauthenticated.
+  expect_identical(out, cl)
+  expect_identical(rec$calls[[1]]$path, "/api2/ping/")
+  expect_identical(rec$calls[[1]]$auth, "none")
 
   fail <- function(...) stop("boom")
   testthat::local_mocked_bindings(.hb_request = fail, .package = "harbouR")
-  expect_error(hb_ping(cl), "Could not reach")
+  expect_error(hb_ping(cl), class = "harbour_error_http")
 })

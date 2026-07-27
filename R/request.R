@@ -26,11 +26,13 @@
 
 #' @keywords internal
 #' @noRd
-.hb_auth_header <- function(client, auth = c("base", "account", "api"),
+.hb_auth_header <- function(client,
+                            auth = c("base", "account", "api", "none"),
                             call = rlang::caller_env()) {
   auth <- rlang::arg_match(auth)
   switch(
     auth,
+    none = NULL,
     api = {
       tok <- client$api_token
       if (is.null(tok)) {
@@ -130,7 +132,7 @@
 .hb_req <- function(client,
                     path,
                     service = c("web", "dtable_server", "dtable_db"),
-                    auth = c("base", "account", "api"),
+                    auth = c("base", "account", "api", "none"),
                     query = NULL,
                     call = rlang::caller_env()) {
   service <- rlang::arg_match(service)
@@ -143,6 +145,8 @@
     httr2::req_url_path(path) |>
     httr2::req_user_agent(.hb_user_agent()) |>
     httr2::req_headers(
+      # NULL drops the header, which is what `auth = "none"` wants: some
+      # endpoints (ping, server-info) reject a token they did not expect.
       Authorization = .hb_auth_header(client, auth, call = call),
       Accept = "application/json"
     ) |>

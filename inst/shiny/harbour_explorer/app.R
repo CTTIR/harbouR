@@ -2,6 +2,10 @@
 # UI packages are in Suggests; the launcher gates on requireNamespace().
 # Do not call library() or require() here.
 
+# base R gained %||% only in 4.4.0 and DESCRIPTION declares R (>= 4.1);
+# shiny does not export it. Define it here so the modules can use it.
+`%||%` <- function(x, y) if (is.null(x)) y else x
+
 source(file.path("modules", "mod_connect.R"), local = TRUE)
 source(file.path("modules", "mod_base_overview.R"), local = TRUE)
 source(file.path("modules", "mod_table_browser.R"), local = TRUE)

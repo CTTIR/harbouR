@@ -17,6 +17,7 @@ Test whether an object is a harbour client
 }
 \seealso{
 Other client:
+\code{\link[=hb_check_credentials]{hb_check_credentials()}},
 \code{\link[=hb_client]{hb_client()}},
 \code{\link[=hb_ping]{hb_ping()}},
 \code{\link[=hb_server_info]{hb_server_info()}}
