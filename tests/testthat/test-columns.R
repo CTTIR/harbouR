@@ -1,7 +1,7 @@
 test_that("hb_list_columns returns typed tibble and marks editability", {
   cl <- mock_client()
   res <- hb_list_columns(cl, "Samples")
-  expect_named(res, c("name", "type", "key", "editable"))
+  expect_named(res, c("name", "type", "key", "editable", "data"))
   expect_true("Name" %in% res$name)
   expect_true(all(res$editable))  # example base has only editable types
 })
@@ -62,13 +62,12 @@ test_that("hb_update_column sends optional fields when present", {
   expect_error(hb_update_column(cl, "Samples", "n", new_name = 1L),
                regexp = "`new_name` must be a single non-empty string\\.")
   rec <- with_mocked_request(
-    hb_update_column(cl, "Samples", "Notes", new_name = "Comments",
-                   column_data = list(a = 1)),
+    hb_update_column(cl, "Samples", "Notes", new_name = "Comments"),
     response = list()
   )
   expect_identical(rec$calls[[1]]$method, "PUT")
   expect_identical(rec$calls[[1]]$body$new_column_name, "Comments")
-  expect_identical(rec$calls[[1]]$body$column_data, list(a = 1))
+  expect_identical(rec$calls[[1]]$body$op_type, "rename_column")
 })
 
 test_that("hb_delete_column issues a DELETE", {
@@ -88,12 +87,32 @@ test_that("select-option helpers post/put/delete with validation", {
   ra <- with_mocked_request(
     hb_add_select_option(cl, "Samples", "Status", "Done"), response = list())
   expect_identical(ra$calls[[1]]$method, "POST")
+  # Updating addresses the option by id, so the column is read first.
   ru <- with_mocked_request(
     hb_update_select_option(cl, "Samples", "Status", "Done", "Complete"),
-    response = list())
-  expect_identical(ru$calls[[1]]$method, "PUT")
-  expect_identical(ru$calls[[1]]$body$new_option, "Complete")
+    response = select_column_response()
+  )
+  expect_identical(ru$calls[[1]]$method, "GET")
+  expect_identical(ru$calls[[2]]$method, "PUT")
+  expect_identical(
+    ru$calls[[2]]$body$options,
+    list(list(id = "opt-done", name = "Complete"))
+  )
+
+  # Deleting addresses options by name, and takes an array.
   rd <- with_mocked_request(
     hb_delete_select_option(cl, "Samples", "Status", "Old"), response = list())
   expect_identical(rd$calls[[1]]$method, "DELETE")
+  expect_identical(rd$calls[[1]]$body$option_names, list("Old"))
+})
+
+test_that("updating an unknown select option lists the ones that exist", {
+  cl <- mock_client()
+  expect_error(
+    with_mocked_request(
+      hb_update_select_option(cl, "Samples", "Status", "Nope", "New"),
+      response = select_column_response()
+    ),
+    class = "harbour_error_not_found"
+  )
 })

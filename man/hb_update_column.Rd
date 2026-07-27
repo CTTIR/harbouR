@@ -4,7 +4,15 @@
 \alias{hb_update_column}
 \title{Update a column}
 \usage{
-hb_update_column(client, table, name, ..., new_name = NULL, column_data = NULL)
+hb_update_column(
+  client,
+  table,
+  name,
+  ...,
+  new_name = NULL,
+  new_type = NULL,
+  column_data = NULL
+)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -15,7 +23,10 @@ hb_update_column(client, table, name, ..., new_name = NULL, column_data = NULL)
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{new_name}{Optional new column name.}
+\item{new_name}{Optional new column name. Sends \code{op_type = "rename_column"}.}
+
+\item{new_type}{Optional new SeaTable column type. Sends \code{op_type = "modify_column_type"}. SeaTable performs one operation per request,
+so this cannot be combined with \code{new_name}.}
 
 \item{column_data}{Optional list of column options, e.g. the choices
 for a select column. Named \code{column_data} rather than \code{data} because

@@ -104,7 +104,11 @@ hb_query <- function(client, sql, ...) {
 #' @param row_id The SeaTable row identifier.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A 1-row tibble, or a 0-row tibble if the row is not found.
+#' @return A one-row tibble with one column per SeaTable column, plus
+#'   `_id` (chr). An unknown `row_id` is an error - a
+#'   `harbour_error_not_found` condition - not an empty result, because
+#'   asking for a specific row that does not exist is a mistake worth
+#'   surfacing.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()

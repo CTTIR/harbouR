@@ -27,7 +27,7 @@ test_that("hb_list_columns returns 0-row tibble with declared columns when no co
     base_name = "empty"
   )
   res <- hb_list_columns(cl, "T")
-  expect_named(res, c("name", "type", "key", "editable"))
+  expect_named(res, c("name", "type", "key", "editable", "data"))
   expect_identical(nrow(res), 0L)
 })
 

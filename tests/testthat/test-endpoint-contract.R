@@ -122,6 +122,8 @@ ENDPOINTS <- list(
     fn = "hb_update_select_option", method = "PUT",
     path = paste0(GATEWAY, "column-options/"),
     service = "gateway", auth = "base",
+    # Addresses the option by id, so it reads the column first.
+    index = 2L, response = select_column_response(),
     call = function(cl) {
       hb_update_select_option(cl, "Samples", "Status", "draft", "pending")
     }
@@ -197,10 +199,11 @@ test_that("every wrapper targets the documented path, verb, host and auth", {
     cl <- contract_client()
     rec <- with_mocked_request(
       try(spec$call(cl), silent = TRUE),
-      response = list()
+      response = spec$response %||% list()
     )
-    expect_gt(length(rec$calls), 0L)
-    got <- rec$calls[[1L]]
+    idx <- spec$index %||% 1L
+    expect_gte(length(rec$calls), idx)
+    got <- rec$calls[[idx]]
     expect_identical(got$path, spec$path, info = spec$fn)
     expect_identical(got$method, spec$method, info = spec$fn)
     expect_identical(got$service, spec$service, info = spec$fn)
@@ -218,9 +221,10 @@ test_that("every base-scoped path carries the base UUID", {
     cl <- contract_client()
     rec <- with_mocked_request(
       try(spec$call(cl), silent = TRUE),
-      response = list()
+      response = spec$response %||% list()
     )
-    expect_true(grepl(UUID, rec$calls[[1L]]$path, fixed = TRUE),
+    idx <- spec$index %||% 1L
+    expect_true(grepl(UUID, rec$calls[[idx]]$path, fixed = TRUE),
                 info = spec$fn)
   }
 })

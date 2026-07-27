@@ -16,7 +16,11 @@ hb_get_row(client, table, row_id, ...)
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A 1-row tibble, or a 0-row tibble if the row is not found.
+A one-row tibble with one column per SeaTable column, plus
+\verb{_id} (chr). An unknown \code{row_id} is an error - a
+\code{harbour_error_not_found} condition - not an empty result, because
+asking for a specific row that does not exist is a mistake worth
+surfacing.
 }
 \description{
 Get a single row by ID

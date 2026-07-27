@@ -57,6 +57,25 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+* `hb_update_column()` sends the `op_type` field SeaTable requires; without
+  it the request was rejected. It gains a `new_type` argument for type
+  changes, and refuses to rename and retype in one call, because SeaTable
+  performs one operation per request.
+
+* `hb_update_select_option()` sent `option`/`new_option` scalars. The API
+  identifies an option by id, so harbouR now reads the column's options and
+  resolves the name first. `hb_delete_select_option()` sends the
+  `option_names` array the API expects rather than a scalar `option`.
+
+* `hb_list_columns()` and `hb_list_views()` read the `columns/` and `views/`
+  endpoints rather than only the cached base metadata, and both gain a
+  `refresh` argument. `hb_list_columns()` gains a `data` list-column
+  carrying each column's type-specific configuration - the select options,
+  the date format - which is what makes option ids resolvable.
+
+* `hb_get_view()` coerces its scalars like every sibling function, and
+  reports `is_default` and `hidden_columns`.
+
 * Table, view and row names are percent-encoded into the path, so a view
   called `Erwartungswerte Toxine 1` or `a/b` no longer produces a broken
   or ambiguous URL.

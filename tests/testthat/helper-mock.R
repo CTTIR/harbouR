@@ -36,8 +36,9 @@ new_request_recorder <- function(response = list()) {
 with_mocked_request <- function(code, response = list(), recorder = NULL,
                                 .env = rlang::caller_env()) {
   rec <- recorder %||% new_request_recorder(response)
-  fake <- function(client, path, service = "dtable_server", auth = "base",
-                   method = "GET", query = NULL, body = NULL) {
+  fake <- function(client, path, service = "gateway", auth = "base",
+                   method = "GET", query = NULL, body = NULL,
+                   call = NULL) {
     rec$calls[[length(rec$calls) + 1L]] <- list(
       path = path, service = service, auth = auth,
       method = method, query = query, body = body
@@ -55,4 +56,18 @@ with_mocked_request <- function(code, response = list(), recorder = NULL,
   )
   force(code)
   rec
+}
+
+# A columns/ response carrying a select column with known option ids, for
+# the tests that exercise option lookup.
+select_column_response <- function() {
+  list(columns = list(
+    list(
+      name = "Status", type = "single-select", key = "k3",
+      data = list(options = list(
+        list(id = "opt-draft", name = "draft", color = "#aaa"),
+        list(id = "opt-done", name = "Done", color = "#bbb")
+      ))
+    )
+  ))
 }

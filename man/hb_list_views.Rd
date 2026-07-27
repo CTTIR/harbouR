@@ -4,7 +4,7 @@
 \alias{hb_list_views}
 \title{List views of a table}
 \usage{
-hb_list_views(client, table, ...)
+hb_list_views(client, table, ..., refresh = FALSE)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -12,6 +12,9 @@ hb_list_views(client, table, ...)
 \item{table}{Table name.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{refresh}{Logical. Ask the server rather than reusing the cached
+base metadata. Default \code{FALSE}.}
 }
 \value{
 A tibble with columns \code{name} (chr), \code{type} (chr) and \code{is_default}

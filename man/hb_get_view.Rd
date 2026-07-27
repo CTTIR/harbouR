@@ -16,8 +16,9 @@ hb_get_view(client, table, view, ...)
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A 1-row tibble with the view's name, type and filters/sorts as
-list-columns.
+A one-row tibble with columns \code{name} (chr), \code{type} (chr),
+\code{is_default} (lgl), \code{filters} (list), \code{sorts} (list) and
+\code{hidden_columns} (list of chr).
 }
 \description{
 Get a view's settings
