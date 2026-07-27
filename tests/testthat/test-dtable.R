@@ -374,3 +374,66 @@ test_that("dates survive a build and read", {
     format(hb_read_table(base, "A")$when, "%Y-%m-%d"), "2026-07-27"
   )
 })
+
+test_that("a round trip through the app preserves bundled assets", {
+  src <- system.file("extdata", "example.dtable", package = "harbouR")
+  out <- withr::local_tempfile(fileext = ".dtable")
+  hb_write_dtable(hb_read_dtable(src, assets = "extract"), out)
+  expect_setequal(zip::zip_list(out)$filename, zip::zip_list(src)$filename)
+})
+
+test_that("writing a base whose assets were not extracted warns loudly", {
+  # Reading with the default assets = "none" keeps the cells that point at
+  # file://dtable-bundle/... but not the files, so writing it back would
+  # otherwise silently produce an archive with dangling attachments.
+  src <- system.file("extdata", "example.dtable", package = "harbouR")
+  out <- withr::local_tempfile(fileext = ".dtable")
+  expect_warning(hb_write_dtable(hb_read_dtable(src), out),
+                 "bundled asset")
+  expect_identical(nrow(zip::zip_list(out)), 1L)
+})
+
+test_that("a base with no assets writes without warning", {
+  base <- hb_dtable(A = data.frame(x = 1))
+  out <- withr::local_tempfile(fileext = ".dtable")
+  expect_no_warning(hb_write_dtable(base, out))
+})
+
+test_that("assets = FALSE is an explicit choice, and says so", {
+  src <- system.file("extdata", "example.dtable", package = "harbouR")
+  out <- withr::local_tempfile(fileext = ".dtable")
+  expect_warning(
+    hb_write_dtable(hb_read_dtable(src, assets = "extract"), out,
+                    assets = FALSE),
+    "assets = FALSE"
+  )
+})
+
+test_that("a value JSON cannot hold warns rather than vanishing", {
+  # JSON has no Inf or NaN, so null is the only option - but a number
+  # quietly becoming NA on the next read is the wrong way to learn that.
+  expect_warning(hb_dtable(A = data.frame(x = c(1, Inf))), "cannot be")
+  expect_warning(hb_dtable(A = data.frame(x = c(1, -Inf))), "cannot be")
+  expect_no_warning(hb_dtable(A = data.frame(x = c(1, 2))))
+  expect_no_warning(hb_dtable(A = data.frame(x = c(1, NA))))
+})
+
+test_that("the documented asset URL actually resolves in the fixture", {
+  # The example in hb_asset_path.Rd demonstrated the failure path; assert
+  # the documented URL so a future fixture rebuild fails here instead.
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR"),
+    assets = "extract"
+  )
+  path <- hb_asset_path(
+    base, "file://dtable-bundle/asset/files/2026-07/readme.txt"
+  )
+  expect_false(is.na(path))
+  expect_true(file.exists(path))
+})
+
+test_that("hb_read_dtable validates assets_dir", {
+  src <- system.file("extdata", "example.dtable", package = "harbouR")
+  expect_error(hb_read_dtable(src, assets = "extract", assets_dir = 42),
+               class = "harbour_error_bad_argument")
+})

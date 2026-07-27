@@ -222,8 +222,12 @@ body { background: var(--hb-paper); }
   if (length(types) == 0L) {
     return("")
   }
+  # Only palette colours reach the style attribute; .hb_type_colour() maps
+  # anything unrecognised onto a fixed default rather than echoing input.
+  colours <- .hb_type_colour(types)
+  stopifnot(all(grepl("^#[0-9A-Fa-f]{6}$", colours)))
   segments <- paste0(
-    '<i style="background:', .hb_type_colour(types), '"></i>',
+    '<i style="background:', colours, '"></i>',
     collapse = ""
   )
   paste0('<div class="hb-sounding" aria-hidden="true">', segments, "</div>")
@@ -237,11 +241,16 @@ body { background: var(--hb-paper); }
 #' @noRd
 .hb_type_chip <- function(type) {
   colour <- .hb_type_colour(type)
+  # `type` comes from the opened file, so it is untrusted: reactable renders
+  # this with html = TRUE, and an unescaped type string would let a hostile
+  # .dtable run script in a session that may hold the user's API token.
+  # `colour` is safe by construction - it is looked up from a fixed palette.
+  label <- htmltools::htmlEscape(as.character(type))
   # The family colour tints the chip; the text stays dark ink. Using the
   # family colour for the text fails contrast on the lighter families -
   # mint and beacon are unreadable at 4.5:1 on their own tint.
   paste0(
     '<span class="hb-chip hb-type" style="background:', colour, "2E",
-    ";border-color:", colour, '99">', type, "</span>"
+    ";border-color:", colour, '99">', label, "</span>"
   )
 }

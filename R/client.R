@@ -49,6 +49,12 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
                       base_name = NULL,
                       timeout = 30) {
   rlang::check_dots_empty()
+  # Validate the shape before normalising: nzchar() on a non-string or a
+  # vector errors before .check_string() can say what was wrong. Empty is
+  # allowed here because Sys.getenv() returns "" for an unset variable,
+  # which the next two lines turn into NULL.
+  .check_string(server, allow_null = TRUE, allow_empty = TRUE)
+  .check_string(api_token, allow_null = TRUE, allow_empty = TRUE)
   server <- if (is.null(server) || !nzchar(server)) NULL else server
   api_token <- if (is.null(api_token) || !nzchar(api_token)) NULL else api_token
 

@@ -21,8 +21,10 @@ temporary directory.}
 }
 \value{
 A \code{harbour_dtable}: a list with components \code{content} (the
-parsed tree), \code{path}, \code{assets} (a tibble of bundled files) and
-\code{assets_dir}.
+parsed tree), \code{path}, \code{assets} (a tibble of bundled files),
+\code{assets_dir} and \code{base_name}. Note that \code{names()} on a
+\code{harbour_dtable} gives its \emph{table} names, not these components -
+reach them with \code{$} or \code{unclass()}.
 }
 \description{
 Opens a \code{.dtable} export and returns a \code{harbour_dtable} object. The

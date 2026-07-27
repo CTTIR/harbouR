@@ -28,8 +28,10 @@
     shiny::observeEvent(input$dtable_file, {
       file <- input$dtable_file
       shiny::req(file)
-      .hb_try(session, "Could not open that file", {
-        open_source(hb_read_dtable(file$datapath), "file")
+      .hb_try(session, sprintf("Could not open %s", file$name), {
+        # Extract the assets: without them a download would write an
+        # archive whose attachment cells point at files it does not carry.
+        open_source(hb_read_dtable(file$datapath, assets = "extract"), "file")
         # datapath is a temporary upload name; keep the real one for the
         # download filename.
         state$source$base_name <- tools::file_path_sans_ext(file$name)
@@ -37,7 +39,8 @@
     })
 
     shiny::observeEvent(input$use_demo, {
-      open_source(hb_read_dtable(.hb_example_dtable()), "demo")
+      open_source(hb_read_dtable(.hb_example_dtable(), assets = "extract"),
+                  "demo")
     })
 
     shiny::observeEvent(input$connect, {
@@ -216,6 +219,17 @@
       )
     })
 
+    output$run_sql_ui <- shiny::renderUI({
+      # Offering a button that cannot work is worse than not offering it.
+      ready <- identical(state$kind, "server")
+      shiny::actionButton(
+        "run_sql", "Run query",
+        class = "btn-primary btn-sm",
+        disabled = !ready,
+        title = if (ready) NULL else "Connect to a server to run SQL"
+      )
+    })
+
     shiny::observeEvent(input$run_sql, {
       .hb_try(session, "The query failed", {
         state$query <- hb_query(state$source, input$sql)
@@ -259,51 +273,50 @@
       )
     })
 
+    # An output inside a hidden nav panel is suspended, so switching tab
+    # shows an empty card. This must cover the reactable widgets as well as
+    # the uiOutputs that wrap them: opting out only the wrapper renders the
+    # widget's container and leaves the widget itself blank.
+    for (id in c("data_panel", "schema_panel", "schema_legend",
+                 "query_panel", "export_panel",
+                 "data_table", "schema_table", "query_table",
+                 "run_sql_ui")) {
+      shiny::outputOptions(output, id, suspendWhenHidden = FALSE)
+    }
+
+    # The handlers delegate to .hb_export(), which is an ordinary function
+    # and so can be tested directly. A downloadHandler's content closure
+    # cannot be reached through shiny::testServer(), so inlining this logic
+    # would leave every download untested.
     output$dl_dtable <- shiny::downloadHandler(
       filename = function() .hb_download_name(state, "dtable"),
-      content = function(file) {
-        hb_write_dtable(.hb_as_dtable(state$source), file)
-      }
+      content = function(file) .hb_export(state$source, "dtable", file)
     )
 
     output$dl_xlsx <- shiny::downloadHandler(
       filename = function() .hb_download_name(state, "xlsx"),
       content = function(file) {
-        hb_write_xlsx(state$source, file)
+        .hb_notify_flattening(session, {
+          .hb_export(state$source, "xlsx", file)
+        })
       }
     )
 
     output$dl_csv <- shiny::downloadHandler(
       filename = function() .hb_download_name(state, "zip"),
       content = function(file) {
-        dir <- tempfile("harbour-csv-")
-        dir.create(dir)
-        on.exit(unlink(dir, recursive = TRUE), add = TRUE)
-        hb_write_csv(state$source, dir)
-        zip::zip(
-          zipfile = .hb_absolute_path(file),
-          files = list.files(dir), root = dir, mode = "cherry-pick"
-        )
+        .hb_notify_flattening(session, {
+          .hb_export(state$source, "csv-zip", file)
+        })
       }
     )
-
-    # A uiOutput inside a hidden nav panel is suspended, so switching tab
-    # shows an empty card until the next reactive flush happens to run.
-    # These four decide what their panel contains, so they must stay live.
-    for (id in c("data_panel", "schema_panel", "schema_legend",
-                 "query_panel", "export_panel")) {
-      shiny::outputOptions(output, id, suspendWhenHidden = FALSE)
-    }
 
     output$dl_table_csv <- shiny::downloadHandler(
       filename = function() {
         paste0(.hb_safe_filename(state$table %||% "table"), ".csv")
       },
       content = function(file) {
-        utils::write.csv(
-          .hb_display_frame(table_data()), file,
-          row.names = FALSE, fileEncoding = "UTF-8"
-        )
+        .hb_export(state$source, "table-csv", file, data = table_data())
       }
     )
   }
@@ -343,9 +356,14 @@
 #' @keywords internal
 #' @noRd
 .hb_plain_message <- function(cnd) {
-  text <- conditionMessage(cnd)
+  # inherit = FALSE keeps this condition's own message and bullets but
+  # drops the chained parents. conditionMessage() would include them, which
+  # for a failed upload means showing a C-level zip error and an internal
+  # temp path the user never chose.
+  text <- rlang::cnd_message(cnd, inherit = FALSE, prefix = FALSE)
   text <- gsub("\033\\[[0-9;]*m", "", text)
   text <- gsub("[\u2716\u2139\u2022]", "", text)
+  text <- text[nzchar(trimws(text))]
   trimws(paste(text, collapse = " "))
 }
 
@@ -413,7 +431,13 @@
     return(x)
   }
   index <- hb_list_tables(x)
-  frames <- lapply(index$name, function(table) hb_read_table(x, table))
+  frames <- lapply(index$name, function(table) {
+    data <- hb_read_table(x, table)
+    # SeaTable maintains _id and the other system fields itself. Writing
+    # them back as ordinary columns produces a file whose read collides on
+    # the reserved _id name - an export that cannot be re-opened.
+    data[, !names(data) %in% .hb_dtable_row_system_fields, drop = FALSE]
+  })
   names(frames) <- index$name
   rlang::exec(hb_dtable, !!!frames, base_name = x$.base_name %||% "base")
 }
@@ -469,4 +493,82 @@
 #' @noRd
 .hb_placeholder <- function(message) {
   shiny::tags$div(class = "hb-empty", message)
+}
+
+#' Write one export to a path
+#'
+#' The body of every download the explorer offers. Kept as a plain
+#' function so it can be called directly from tests: a downloadHandler's
+#' content closure is not reachable through `shiny::testServer()`, so
+#' inlining this logic would leave every download untested.
+#'
+#' @param source A `harbour_dtable` or `harbour_client`.
+#' @param kind One of `"dtable"`, `"xlsx"`, `"csv-zip"`, `"table-csv"`.
+#' @param path Destination path.
+#' @param data For `"table-csv"`, the tibble to write.
+#' @param call The frame to blame for any error.
+#' @return `path`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_export <- function(source, kind, path, data = NULL,
+                       call = rlang::caller_env()) {
+  kind <- rlang::arg_match(kind, c("dtable", "xlsx", "csv-zip", "table-csv"))
+  if (is.null(source)) {
+    hb_abort("No base is open.", class = "harbour_error_bad_argument",
+             call = call)
+  }
+  switch(
+    kind,
+    dtable = hb_write_dtable(.hb_as_dtable(source), path),
+    xlsx = hb_write_xlsx(source, path),
+    `csv-zip` = {
+      dir <- tempfile("harbour-csv-")
+      dir.create(dir)
+      on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+      hb_write_csv(source, dir)
+      zip::zip(
+        zipfile = .hb_absolute_path(path),
+        files = list.files(dir), root = dir, mode = "cherry-pick"
+      )
+    },
+    `table-csv` = {
+      if (is.null(data)) {
+        hb_abort("No table is open.", class = "harbour_error_bad_argument",
+                 call = call)
+      }
+      utils::write.csv(
+        .hb_display_frame(data), path,
+        row.names = FALSE, fileEncoding = "UTF-8"
+      )
+    }
+  )
+  invisible(path)
+}
+
+#' Surface the export's flattening report in the browser
+#'
+#' `hb_write_xlsx()` and `hb_write_csv()` report which columns had to be
+#' flattened as a message. In a Shiny session that would go to the console
+#' the user cannot see, so it is caught and shown as a notification - which
+#' is what the explorer vignette promises.
+#'
+#' @param session The shiny session.
+#' @param expr The export call.
+#' @return The value of `expr`.
+#' @keywords internal
+#' @noRd
+.hb_notify_flattening <- function(session, expr) {
+  withCallingHandlers(
+    expr,
+    message = function(cnd) {
+      shiny::showNotification(
+        shiny::tags$div(
+          shiny::tags$strong("Some columns were flattened"),
+          shiny::tags$div(class = "small", .hb_plain_message(cnd))
+        ),
+        type = "warning", duration = 12
+      )
+      invokeRestart("muffleMessage")
+    }
+  )
 }

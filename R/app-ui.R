@@ -151,7 +151,7 @@
       "sql", NULL, width = "100%", height = "110px",
       placeholder = "select * from Samples limit 100"
     ),
-    shiny::actionButton("run_sql", "Run query", class = "btn-primary btn-sm"),
+    shiny::uiOutput("run_sql_ui"),
     shiny::tags$hr(),
     shiny::uiOutput("query_panel")
   )

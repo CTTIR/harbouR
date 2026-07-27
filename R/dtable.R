@@ -25,8 +25,10 @@
 #'   temporary directory.
 #'
 #' @return A `harbour_dtable`: a list with components `content` (the
-#'   parsed tree), `path`, `assets` (a tibble of bundled files) and
-#'   `assets_dir`.
+#'   parsed tree), `path`, `assets` (a tibble of bundled files),
+#'   `assets_dir` and `base_name`. Note that `names()` on a
+#'   `harbour_dtable` gives its *table* names, not these components -
+#'   reach them with `$` or `unclass()`.
 #'
 #' @family dtable
 #' @seealso [hb_write_dtable()], [hb_dtable()]
@@ -42,6 +44,7 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
                            assets_dir = NULL) {
   rlang::check_dots_empty()
   .check_string(path)
+  .check_string(assets_dir, allow_null = TRUE)
   assets <- rlang::arg_match(assets)
   if (!file.exists(path)) {
     hb_abort(
@@ -52,9 +55,9 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
   listing <- .hb_dtable_listing(path)
   if (!.hb_dtable_entry %in% listing$filename) {
     hb_abort(
-      c("{.path {path}} is not a SeaTable export.",
+      c("That file is not a SeaTable export.",
         "x" = "It contains no {.file content.json}.",
-        "i" = "Found: {.file {listing$filename}}."),
+        "i" = "Found instead: {.file {listing$filename}}."),
       class = "harbour_error_bad_argument"
     )
   }
@@ -117,6 +120,7 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
       class = "harbour_error_bad_argument"
     )
   }
+  .hb_warn_dropped_assets(x, assets)
   problems <- hb_validate_dtable(x)
   if (nrow(problems) > 0L) {
     fatal <- problems[problems$severity == "error", ]
@@ -412,7 +416,8 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     zip::zip_list(path),
     error = function(cnd) {
       hb_abort(
-        c("{.path {path}} could not be opened as a ZIP archive.",
+        c("That file is not a SeaTable export.",
+          "x" = "It could not be opened as a ZIP archive.",
           "i" = "A {.file .dtable} file is a ZIP containing
                  {.file content.json}."),
         class = "harbour_error_bad_argument",
@@ -607,7 +612,19 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     return(isTRUE(value))
   }
   if (type == "number") {
-    return(as.double(value))
+    out <- as.double(value)
+    if (!is.finite(out)) {
+      # JSON has no Inf or NaN, so this genuinely cannot be written - but
+      # a value quietly becoming NA on the next read is the wrong way to
+      # find that out.
+      cli::cli_warn(c(
+        "{.val {out}} cannot be represented in JSON and is written as
+         {.code null}.",
+        "i" = "It will read back as {.val {NA_real_}}."
+      ))
+      return(NULL)
+    }
+    return(out)
   }
   as.character(value)
 }
@@ -626,4 +643,39 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     return(path)
   }
   file.path(normalizePath(dirname(path), mustWork = FALSE), basename(path))
+}
+
+#' Warn before writing a base whose bundled assets are not available
+#'
+#' A base read with `assets = "none"` keeps the cells that point at
+#' `file://dtable-bundle/...` but not the files themselves. Writing it
+#' back produces an archive whose attachment cells reference files that
+#' are not in it - a silent, and easily missed, loss.
+#'
+#' @param x A `harbour_dtable`.
+#' @param assets Whether the caller asked for assets to be repacked.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_warn_dropped_assets <- function(x, assets = TRUE) {
+  have <- !is.null(x$assets_dir) && dir.exists(x$assets_dir)
+  if (have && assets) {
+    return(invisible(NULL))
+  }
+  referenced <- nrow(x$assets %||% .hb_empty_asset_tibble())
+  if (referenced == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_warn(c(
+    "This base references {referenced} bundled asset{?s} that will not be
+     written.",
+    "x" = "The attachment cells will point at files the archive does not
+           contain.",
+    "i" = if (!assets) {
+      "You passed {.code assets = FALSE}."
+    } else {
+      "Re-read it with {.code hb_read_dtable(path, assets = \"extract\")}."
+    }
+  ))
+  invisible(NULL)
 }

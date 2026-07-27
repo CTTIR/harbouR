@@ -9,15 +9,21 @@
 .check_string <- function(x,
                           arg = rlang::caller_arg(x),
                           allow_null = FALSE,
+                          allow_empty = FALSE,
                           call = rlang::caller_env()) {
   if (allow_null && is.null(x)) {
     return(invisible(NULL))
   }
-  if (!is.character(x) || length(x) != 1L || is.na(x) || !nzchar(x)) {
+  bad <- !is.character(x) || length(x) != 1L || is.na(x) ||
+    (!allow_empty && !nzchar(x))
+  if (bad) {
+    what <- if (allow_empty) {
+      "{.arg {arg}} must be a single string."
+    } else {
+      "{.arg {arg}} must be a single non-empty string."
+    }
     hb_abort(
-      c("{.arg {arg}} must be a single non-empty string.",
-        "x" = "You supplied {.val {x}}."
-      ),
+      c(what, "x" = "You supplied {.val {x}}."),
       call = call,
       class = "harbour_error_bad_argument"
     )

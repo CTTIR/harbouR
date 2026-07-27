@@ -369,16 +369,33 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   types <- .hb_chr_field(cols, "type", default = "text")
   names(types) <- .hb_chr_field(cols, "name")
+  writable <- names(types)[!types %in% .hb_readonly_types()]
+  unknown <- setdiff(setdiff(names(data), row_id_col), names(types))
+  if (length(unknown) > 0L) {
+    hb_abort(
+      c("{length(unknown)} column{?s} in {.arg data} {?is/are} not in
+         {.val {table}}.",
+        "x" = "{.field {unknown}}",
+        "i" = "Known columns: {.field {names(types)}}."),
+      class = "harbour_error_not_found"
+    )
+  }
   updates <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
     row <- list()
     for (cn in names(data)) {
       if (cn == row_id_col) next
+      # Server-computed columns are dropped, matching hb_append_rows().
+      if (!cn %in% writable) next
       # Same type-aware serialisation the append path uses, so a file or
       # geolocation cell is not flattened into a bare character vector.
+      # types[[cn]] would throw "subscript out of bounds" for a column the
+      # table does not have, so %||% could never fire. Single-bracket
+      # indexing gives NA, which the fallback can actually catch.
+      type <- unname(types[cn])
       row[[cn]] <- .hb_serialise_cell(
         data[[cn]][[r]],
-        types[[cn]] %||% "text"
+        if (is.na(type)) "text" else type
       )
     }
     updates[[r]] <- list(

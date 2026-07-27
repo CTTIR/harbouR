@@ -301,3 +301,37 @@ test_that("hb_query passes placeholders through as parameters", {
   )
   expect_identical(rec$calls[[1]]$body$parameters, list("S-001"))
 })
+
+test_that("an out-of-schema column is a clear error, not a subscript crash", {
+  cl <- mock_client()
+  # types[[cn]] on a named vector errors for an absent name, so the
+  # %||% "text" fallback beside it could never fire: the everyday
+  # read |> mutate() |> update path crashed with a base R condition.
+  expect_error(
+    with_mocked_request(
+      hb_update_rows(cl, "Samples", tibble::tibble(`_id` = "r1", ratio = 1.5)),
+      response = list()
+    ),
+    class = "harbour_error_not_found"
+  )
+})
+
+test_that("both write verbs drop server-computed columns", {
+  meta <- hb_example_metadata()
+  meta$tables[[1L]]$columns <- c(
+    meta$tables[[1L]]$columns,
+    list(list(name = "Serial", type = "auto-number", key = "z1"))
+  )
+  cl <- mock_client()
+  cl$.metadata <- meta
+  data <- tibble::tibble(`_id` = "r1", Name = "a", Serial = "0007")
+
+  appended <- with_mocked_request(
+    hb_append_rows(cl, "Samples", data), response = list()
+  )
+  updated <- with_mocked_request(
+    hb_update_rows(cl, "Samples", data), response = list()
+  )
+  expect_false("Serial" %in% names(appended$calls[[1]]$body$rows[[1]]))
+  expect_false("Serial" %in% names(updated$calls[[1]]$body$updates[[1]]$row))
+})

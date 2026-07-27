@@ -56,10 +56,13 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 #' @param refresh Logical; refetch metadata even if cached. Default `FALSE`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A tibble with one row per table and columns
-#'   `name` (chr), `n_columns` (int) and `n_views` (int). The metadata
-#'   endpoint carries no row payloads, so there is no row count here;
-#'   use [hb_read_table()] if you need one.
+#' @return A tibble with one row per table and columns `name` (chr),
+#'   `n_columns` (int) and `n_views` (int).
+#'
+#'   The server path stops there: the metadata endpoint carries no row
+#'   payloads, so there is no row count to report - use [hb_read_table()]
+#'   if you need one. The `.dtable` path additionally returns `n_rows`
+#'   (int), because in a file the rows are right there.
 #'
 #' @family metadata
 #' @examplesIf interactive()

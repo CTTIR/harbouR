@@ -24,10 +24,13 @@ hb_list_tables(x, ...)
 \item{refresh}{Logical; refetch metadata even if cached. Default \code{FALSE}.}
 }
 \value{
-A tibble with one row per table and columns
-\code{name} (chr), \code{n_columns} (int) and \code{n_views} (int). The metadata
-endpoint carries no row payloads, so there is no row count here;
-use \code{\link[=hb_read_table]{hb_read_table()}} if you need one.
+A tibble with one row per table and columns \code{name} (chr),
+\code{n_columns} (int) and \code{n_views} (int).
+
+The server path stops there: the metadata endpoint carries no row
+payloads, so there is no row count to report - use \code{\link[=hb_read_table]{hb_read_table()}}
+if you need one. The \code{.dtable} path additionally returns \code{n_rows}
+(int), because in a file the rows are right there.
 }
 \description{
 List the tables in a base

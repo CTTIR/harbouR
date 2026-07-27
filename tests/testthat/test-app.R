@@ -212,3 +212,169 @@ test_that("the theme is built from the logo's palette", {
     expect_match(css, colour, fixed = TRUE)
   }
 })
+
+test_that("opening a base extracts its assets, so a download keeps them", {
+  skip_if_no_ui()
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    session$setInputs(use_demo = 1)
+    base <- session$env$state$source
+    expect_false(is.null(base$assets_dir))
+    expect_true(dir.exists(base$assets_dir))
+    # and the download it would produce keeps them
+    out <- withr::local_tempfile(fileext = ".dtable")
+    hb_write_dtable(harbouR:::.hb_as_dtable(base), out)
+    expect_true(any(grepl("readme.txt", zip::zip_list(out)$filename)))
+  })
+})
+
+test_that("Run query is disabled without a server", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  # actionButton(disabled = ) takes a logical; NA is not truthy and was
+  # silently ignored, leaving the button live on a source that cannot run SQL.
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    html <- as.character(htmltools::renderTags(output$run_sql_ui$html)$html)
+    expect_match(html, "disabled", fixed = TRUE)
+  })
+})
+
+test_that("every export produces a file with valid content", {
+  skip_if_not_installed("writexl")
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR"),
+    assets = "extract"
+  )
+
+  f1 <- withr::local_tempfile(fileext = ".dtable")
+  suppressMessages(harbouR:::.hb_export(base, "dtable", f1))
+  expect_identical(length(hb_read_dtable(f1)), 2L)
+  # the .dtable export is the lossless one: assets come with it
+  expect_true(any(grepl("readme.txt", zip::zip_list(f1)$filename)))
+
+  f2 <- withr::local_tempfile(fileext = ".xlsx")
+  suppressMessages(harbouR:::.hb_export(base, "xlsx", f2))
+  expect_setequal(readxl::excel_sheets(f2), c("Samples", "Reference"))
+
+  f3 <- withr::local_tempfile(fileext = ".zip")
+  suppressMessages(harbouR:::.hb_export(base, "csv-zip", f3))
+  expect_setequal(zip::zip_list(f3)$filename,
+                  c("Samples.csv", "Reference.csv"))
+
+  f4 <- withr::local_tempfile(fileext = ".csv")
+  data <- hb_read_table(base, "Samples")
+  harbouR:::.hb_export(base, "table-csv", f4, data = data)
+  back <- utils::read.csv(f4, check.names = FALSE)
+  expect_identical(nrow(back), 2L)
+  expect_true("Name" %in% names(back))
+})
+
+test_that("exporting with nothing open is a clear error, not a corrupt file", {
+  f <- withr::local_tempfile()
+  expect_error(harbouR:::.hb_export(NULL, "dtable", f),
+               class = "harbour_error_bad_argument")
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  expect_error(harbouR:::.hb_export(base, "table-csv", f),
+               class = "harbour_error_bad_argument")
+  expect_error(harbouR:::.hb_export(base, "nonsense", f))
+})
+
+test_that("failure notifications stay readable and leak no internals", {
+  # conditionMessage() appends every chained parent, so a failed upload
+  # showed the user a C-level zip error and Shiny's upload temp path -
+  # which is not even the file they chose.
+  junk <- withr::local_tempfile(fileext = ".dtable")
+  writeLines("not a zip", junk)
+  cnd <- rlang::catch_cnd(hb_read_dtable(junk))
+  shown <- harbouR:::.hb_plain_message(cnd)
+  expect_match(shown, "not a SeaTable export")
+  expect_false(grepl("rzip", shown, fixed = TRUE))
+  expect_false(grepl("Rtmp", shown, fixed = TRUE))
+  expect_false(grepl("\033", shown, fixed = TRUE))
+
+  # but the guidance survives
+  wrong <- withr::local_tempfile(fileext = ".dtable")
+  dir <- withr::local_tempdir()
+  writeLines("x", file.path(dir, "other.txt"))
+  zip::zip(wrong, "other.txt", root = dir, mode = "cherry-pick")
+  shown2 <- harbouR:::.hb_plain_message(rlang::catch_cnd(hb_read_dtable(wrong)))
+  expect_match(shown2, "content.json")
+  expect_match(shown2, "other.txt")
+})
+
+test_that("a bad upload leaves the open base alone", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    junk <- withr::local_tempfile(fileext = ".dtable")
+    writeLines("not a zip", junk)
+    session$setInputs(
+      dtable_file = data.frame(
+        name = "junk.dtable", datapath = junk,
+        size = 9, type = "", stringsAsFactors = FALSE
+      )
+    )
+    # The previous base must survive a failed open.
+    expect_true(is_harbour_dtable(session$env$state$source))
+    expect_identical(session$env$state$table, "Samples")
+  })
+})
+
+test_that("switching source clears the table selected in the old one", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    session$setInputs(pick_table = "Reference")
+    expect_identical(session$env$state$table, "Reference")
+    session$setInputs(use_demo = 1)
+    # A table name from the old base must not survive into the new one.
+    expect_identical(session$env$state$table, "Samples")
+    expect_null(session$env$state$query)
+  })
+})
+
+test_that("an out-of-range row count falls back rather than blanking", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  for (bad in list(0, -1, NA_integer_, NULL)) {
+    shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+      session$setInputs(n_max = bad)
+      expect_no_error(session$env$table_data())
+      expect_identical(nrow(session$env$table_data()), 2L)
+    })
+  }
+})
+
+test_that("a hostile column type cannot inject markup into the schema tab", {
+  # The Schema tab renders the type through reactable with html = TRUE.
+  # An unescaped type string from an opened .dtable would run script in a
+  # session that may hold the user's API token.
+  evil <- "text\"><img src=x onerror=alert(1)>"
+  chip <- harbouR:::.hb_type_chip(evil)
+  expect_false(grepl("<img", chip, fixed = TRUE))
+  expect_match(chip, "&lt;img", fixed = TRUE)
+  # the colour is looked up, never echoed
+  expect_match(chip, "background:#", fixed = TRUE)
+})
+
+test_that("exporting a live base to .dtable produces a readable file", {
+  # hb_read_table() includes _id, and writing it back as an ordinary
+  # column made the export collide on the reserved name when re-opened.
+  cl <- mock_client()
+  base <- NULL
+  with_mocked_request(base <- harbouR:::.hb_as_dtable(cl),
+                      response = list(rows = list()))
+  expect_false("_id" %in% hb_list_columns(base, "Samples")$name)
+  out <- withr::local_tempfile(fileext = ".dtable")
+  hb_write_dtable(base, out)
+  expect_no_error(hb_read_table(hb_read_dtable(out), "Samples"))
+})

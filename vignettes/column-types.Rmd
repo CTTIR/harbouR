@@ -13,7 +13,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 
-SeaTable bases have around twenty column types. harbouR maps every one
+SeaTable bases have `r nrow(harbouR::hb_column_types())` column types. harbouR maps every one
 of them onto a predictable R type so the tibble you get back is
 analysis-ready, not raw JSON. This vignette is the reference.
 
@@ -24,12 +24,14 @@ out of sync with the code:
 
 ```{r mapping}
 library(harbouR)
-hb_column_types()
+knitr::kable(hb_column_types())
 ```
 
 ## What the rows look like
 
-The bundled example data exercises every column-type harbouR supports.
+`hb_example_rows()` is a small hand-written frame covering the common
+types. The bundled `.dtable` fixture is the exhaustive one - it carries a
+column of nearly every type - and the last section reads it.
 
 ```{r samples}
 samples <- hb_example_rows("Samples")
@@ -46,14 +48,18 @@ str(samples[, c("Name", "Concentration", "Status", "Collected")])
 * `number` becomes a `double` (caveat: SeaTable's numeric column is
   64-bit; large integers may round - if precision matters store them
   as text).
-* `date` becomes `POSIXct` when there is a time component and `Date`
-  otherwise; harbouR detects this from the value.
+* `date` always becomes `POSIXct`, in UTC. A date-only column simply has
+  a zero time component. Call `as.Date()` if you want a calendar date.
 
 ### List-columns
 
-`multiple-select`, `collaborator`, `image` and `file` always come back
-as list-columns, even when every row has one value or none. That is the
-type-stability rule: the same column has the same R type for every row.
+These types always come back as list-columns, even when every row has
+one value or none. That is the type-stability rule: the same column has
+the same R type for every row.
+
+```{r list-types}
+subset(hb_column_types(), is_list)$seatable
+```
 
 ```{r tags}
 samples$Tags
@@ -76,11 +82,17 @@ Each entry is a list of file objects with `name`, `size`, `type` and
 
 ### Read-only columns
 
-`formula`, `auto-number`, `creator`, `last-modifier`, `ctime`, `mtime`
-and `link-formula` are read-only on SeaTable; harbouR silently drops
-them when you call `hb_update_rows()` or `hb_append_rows()`, so you can
-round-trip a tibble through harbouR without writing back computed
-values by accident.
+These types are maintained by SeaTable, so harbouR drops them from any
+write. You can round-trip a tibble through harbouR without writing back
+computed values by accident.
+
+```{r read-only}
+subset(hb_column_types(), read_only)$seatable
+```
+
+Note that `link`, `button` and `digital-sign` are in that list too:
+links are maintained through SeaTable's link endpoints rather than by
+writing the cell.
 
 ## Empty tables
 
@@ -98,6 +110,25 @@ Every column keeps the type it would have had with rows present -
 `Concentration` is still a double, `Collected` still a `POSIXct`, and
 `Tags` still a list-column - so downstream code that expects a schema
 does not have to special-case the empty result.
+
+## Every type at once
+
+`hb_example_rows()` is deliberately small. The bundled `.dtable` fixture
+carries a column of nearly every type SeaTable defines, so it is the
+better place to see the whole mapping at work:
+
+```{r fixture}
+base <- hb_read_dtable(
+  system.file("extdata", "example.dtable", package = "harbouR")
+)
+schema <- hb_list_columns(base, "Samples")
+knitr::kable(schema[, c("name", "type", "editable")])
+```
+
+```{r fixture-types}
+data <- hb_read_table(base, "Samples")
+vapply(data, function(col) class(col)[[1L]], character(1))
+```
 
 ## Next steps
 

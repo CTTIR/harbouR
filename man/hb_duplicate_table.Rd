@@ -4,7 +4,7 @@
 \alias{hb_duplicate_table}
 \title{Duplicate a table}
 \usage{
-hb_duplicate_table(client, table, ..., new_name = NULL)
+hb_duplicate_table(client, table, ..., duplicate_records = TRUE)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
@@ -13,7 +13,8 @@ hb_duplicate_table(client, table, ..., new_name = NULL)
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{new_name}{Optional new name. If \code{NULL} the server picks one.}
+\item{duplicate_records}{Copy the rows as well as the structure.
+Default \code{TRUE}.}
 }
 \value{
 Invisibly returns the client.
@@ -21,10 +22,18 @@ Invisibly returns the client.
 \description{
 Duplicate a table
 }
+\section{Naming}{
+
+SeaTable names the copy after the original with \code{(copy)} appended, and
+offers no way to set the name in the same request. Follow with
+\code{\link[=hb_rename_table]{hb_rename_table()}} if you need a particular name.
+}
+
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()
-hb_duplicate_table(client, "Samples", "Samples_copy")
+hb_duplicate_table(client, "Samples")
+hb_rename_table(client, "Samples (copy)", "Samples_backup")
 \dontshow{\}) # examplesIf}
 }
 \seealso{

@@ -53,47 +53,55 @@ ENDPOINTS <- list(
     call = function(cl) hb_get_row(cl, "Samples", "r0001")
   ),
   list(
-    fn = "hb_query", method = "POST",
+    fn = "hb_query",
+    body = c("sql", "convert_keys"), method = "POST",
     path = paste0(GATEWAY, "sql/"), service = "gateway", auth = "base",
     call = function(cl) hb_query(cl, "SELECT * FROM Samples")
   ),
   list(
-    fn = "hb_append_rows", method = "POST",
+    fn = "hb_append_rows",
+    body = c("table_name", "rows"), method = "POST",
     path = paste0(GATEWAY, "rows/"), service = "gateway", auth = "base",
     call = function(cl) {
       hb_append_rows(cl, "Samples", tibble::tibble(Name = "x"))
     }
   ),
   list(
-    fn = "hb_update_rows", method = "PUT",
+    fn = "hb_update_rows",
+    body = c("table_name", "updates"), method = "PUT",
     path = paste0(GATEWAY, "rows/"), service = "gateway", auth = "base",
     call = function(cl) {
       hb_update_rows(cl, "Samples", tibble::tibble(`_id` = "r1", Name = "x"))
     }
   ),
   list(
-    fn = "hb_delete_rows", method = "DELETE",
+    fn = "hb_delete_rows",
+    body = c("table_name", "row_ids"), method = "DELETE",
     path = paste0(GATEWAY, "rows/"), service = "gateway", auth = "base",
     call = function(cl) hb_delete_rows(cl, "Samples", "r1")
   ),
   list(
-    fn = "hb_lock_rows", method = "PUT",
+    fn = "hb_lock_rows",
+    body = c("table_name", "row_ids"), method = "PUT",
     path = paste0(GATEWAY, "lock-rows/"), service = "gateway", auth = "base",
     call = function(cl) hb_lock_rows(cl, "Samples", "r1")
   ),
   list(
-    fn = "hb_unlock_rows", method = "PUT",
+    fn = "hb_unlock_rows",
+    body = c("table_name", "row_ids"), method = "PUT",
     path = paste0(GATEWAY, "unlock-rows/"),
     service = "gateway", auth = "base",
     call = function(cl) hb_unlock_rows(cl, "Samples", "r1")
   ),
   list(
-    fn = "hb_add_column", method = "POST",
+    fn = "hb_add_column",
+    body = c("table_name", "column_name", "column_type"), method = "POST",
     path = paste0(GATEWAY, "columns/"), service = "gateway", auth = "base",
     call = function(cl) hb_add_column(cl, "Samples", "Notes", "text")
   ),
   list(
-    fn = "hb_add_columns", method = "POST",
+    fn = "hb_add_columns",
+    body = c("table_name", "columns"), method = "POST",
     path = paste0(GATEWAY, "batch-append-columns/"),
     service = "gateway", auth = "base",
     call = function(cl) {
@@ -101,25 +109,29 @@ ENDPOINTS <- list(
     }
   ),
   list(
-    fn = "hb_update_column", method = "PUT",
+    fn = "hb_update_column",
+    body = c("table_name", "column", "op_type", "new_column_name"), method = "PUT",
     path = paste0(GATEWAY, "columns/"), service = "gateway", auth = "base",
     call = function(cl) {
       hb_update_column(cl, "Samples", "Notes", new_name = "Comments")
     }
   ),
   list(
-    fn = "hb_delete_column", method = "DELETE",
+    fn = "hb_delete_column",
+    body = c("table_name", "column"), method = "DELETE",
     path = paste0(GATEWAY, "columns/"), service = "gateway", auth = "base",
     call = function(cl) hb_delete_column(cl, "Samples", "Notes")
   ),
   list(
-    fn = "hb_add_select_option", method = "POST",
+    fn = "hb_add_select_option",
+    body = c("table_name", "column", "options"), method = "POST",
     path = paste0(GATEWAY, "column-options/"),
     service = "gateway", auth = "base",
     call = function(cl) hb_add_select_option(cl, "Samples", "Status", "new")
   ),
   list(
-    fn = "hb_update_select_option", method = "PUT",
+    fn = "hb_update_select_option",
+    body = c("table_name", "column", "options"), method = "PUT",
     path = paste0(GATEWAY, "column-options/"),
     service = "gateway", auth = "base",
     # Addresses the option by id, so it reads the column first.
@@ -129,7 +141,8 @@ ENDPOINTS <- list(
     }
   ),
   list(
-    fn = "hb_delete_select_option", method = "DELETE",
+    fn = "hb_delete_select_option",
+    body = c("table_name", "column", "option_names"), method = "DELETE",
     path = paste0(GATEWAY, "column-options/"),
     service = "gateway", auth = "base",
     call = function(cl) {
@@ -137,7 +150,8 @@ ENDPOINTS <- list(
     }
   ),
   list(
-    fn = "hb_create_view", method = "POST",
+    fn = "hb_create_view",
+    body = c("table_name", "name"), method = "POST",
     path = paste0(GATEWAY, "views/"), service = "gateway", auth = "base",
     call = function(cl) hb_create_view(cl, "Samples", "New view")
   ),
@@ -148,7 +162,10 @@ ENDPOINTS <- list(
     call = function(cl) hb_get_view(cl, "Samples", "Default")
   ),
   list(
-    fn = "hb_update_view", method = "PUT",
+    fn = "hb_update_view",
+    # view_name is redundant with the path segment but harmless, and
+    # pinning it here documents that harbouR sends both.
+    body = c("table_name", "view_name", "row_height"), method = "PUT",
     path = paste0(GATEWAY, "views/Default/"),
     service = "gateway", auth = "base",
     call = function(cl) {
@@ -156,28 +173,33 @@ ENDPOINTS <- list(
     }
   ),
   list(
-    fn = "hb_delete_view", method = "DELETE",
+    fn = "hb_delete_view",
+    body = c("table_name", "view_name"), method = "DELETE",
     path = paste0(GATEWAY, "views/Default/"),
     service = "gateway", auth = "base",
     call = function(cl) hb_delete_view(cl, "Samples", "Default")
   ),
   list(
-    fn = "hb_create_table", method = "POST",
+    fn = "hb_create_table",
+    body = c("table_name", "columns"), method = "POST",
     path = paste0(GATEWAY, "tables/"), service = "gateway", auth = "base",
     call = function(cl) hb_create_table(cl, "NewTable")
   ),
   list(
-    fn = "hb_rename_table", method = "PUT",
+    fn = "hb_rename_table",
+    body = c("table_name", "new_table_name"), method = "PUT",
     path = paste0(GATEWAY, "tables/"), service = "gateway", auth = "base",
     call = function(cl) hb_rename_table(cl, "Samples", "Specimens")
   ),
   list(
-    fn = "hb_delete_table", method = "DELETE",
+    fn = "hb_delete_table",
+    body = c("table_name"), method = "DELETE",
     path = paste0(GATEWAY, "tables/"), service = "gateway", auth = "base",
     call = function(cl) hb_delete_table(cl, "Samples")
   ),
   list(
-    fn = "hb_duplicate_table", method = "POST",
+    fn = "hb_duplicate_table",
+    body = c("table_name", "is_duplicate_records"), method = "POST",
     path = paste0(GATEWAY, "tables/duplicate-table/"),
     service = "gateway", auth = "base",
     call = function(cl) hb_duplicate_table(cl, "Samples")
@@ -208,6 +230,12 @@ test_that("every wrapper targets the documented path, verb, host and auth", {
     expect_identical(got$method, spec$method, info = spec$fn)
     expect_identical(got$service, spec$service, info = spec$fn)
     expect_identical(got$auth, spec$auth, info = spec$fn)
+    # The body's field names are the half of the contract the server
+    # actually parses; pinning only the URL let any field be renamed to
+    # garbage with the suite still green.
+    if (!is.null(spec$body)) {
+      expect_setequal(names(got$body), spec$body)
+    }
   }
 })
 
