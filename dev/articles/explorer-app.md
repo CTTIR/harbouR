@@ -1,22 +1,5 @@
 # The harbouR explorer
 
-[![R-CMD-check](https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/harbouR/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/CTTIR/harbouR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/harbouR/)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/harbouR)](https://CRAN.R-project.org/package=harbouR)
-[![Codecov test
-coverage](https://codecov.io/gh/CTTIR/harbouR/branch/main/graph/badge.svg)](https://app.codecov.io/gh/CTTIR/harbouR?branch=main)
-[![CRAN
-downloads](https://cranlogs.r-pkg.org/badges/harbouR)](https://cran.r-project.org/package=harbouR)
-[![CRAN downloads
-total](https://cranlogs.r-pkg.org/badges/grand-total/harbouR)](https://cran.r-project.org/package=harbouR)
-[![License:
-MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-
-![harbouR logo](../reference/figures/logo.png)
-
 [`hb_run_explorer()`](https://cttir.github.io/harbouR/dev/reference/hb_run_explorer.md)
 launches a Shiny app for inspecting a SeaTable base interactively. Reach
 for it when you want to *see* what is in a base quickly; reach for the
@@ -45,23 +28,21 @@ without a network call.
 
 ## The panels
 
-- **Connect.** Server URL, API token (masked), optional base UUID. The
-  values default to `SEATABLE_SERVER` and `SEATABLE_API_TOKEN`. Try demo
-  bypasses this entirely.
-- **Overview.** Value boxes for base name, table count and total rows; a
-  `reactable` of the tables and a small ggplot of rows-per-table.
-- **Tables.** The centrepiece. Pick a table; the app fetches it lazily
-  via
+- **Connect.** Server URL and API token, defaulting to `SEATABLE_SERVER`
+  and `SEATABLE_API_TOKEN`. **Try demo** bypasses this entirely.
+- **Overview.** Value boxes for base name, table count and cached row
+  count; a table of the tables, and a bar chart of rows per table.
+- **Tables.** Pick a table; the app fetches it via
   [`hb_read_table()`](https://cttir.github.io/harbouR/dev/reference/hb_read_table.md),
-  caches it, and shows the typed tibble in a `reactable` with the
-  column-type badges and list-column chips. A side panel lists every
-  column’s SeaTable type and the R type it maps to.
-- **Query.** A SeaTable SQL console, results in a `reactable`.
+  caches it, and shows the typed tibble. A second table lists every
+  column’s SeaTable type.
+- **Query.** A SeaTable SQL console. Results are shown as a table.
+  Disabled in demo mode, which has no server to query.
 
 ## Launching with a pre-built client
 
-If you already have a `harbour_client`, hand it in and the app skips the
-connect screen:
+If you already have a `harbour_client`, hand it in and the app starts
+connected:
 
 ``` r
 
