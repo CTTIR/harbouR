@@ -1,16 +1,16 @@
 # --- validation / guard branches -------------------------------------------
 
 test_that("hb_read_table validates client, table, view and limit", {
-  cl <- local_mock_client()
-  expect_error(hb_read_table(1L, "Samples"), class = "rlang_error")
-  expect_error(hb_read_table(cl, ""), class = "rlang_error")
-  expect_error(hb_read_table(cl, "Samples", view = 1L), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_read_table(1L, "Samples"), regexp = "`client` must be a <harbour_client>\\.")
+  expect_error(hb_read_table(cl, ""), regexp = "`table` must be a single non-empty string\\.")
+  expect_error(hb_read_table(cl, "Samples", view = 1L), regexp = "`view` must be a single non-empty string\\.")
   expect_error(hb_read_table(cl, "Samples", limit = 0L), "positive integer")
   expect_error(hb_read_table(cl, "Samples", limit = NA), "positive integer")
 })
 
 test_that("hb_read_table paginates and returns a typed tibble", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   page1 <- lapply(1:2, function(i) list(Name = paste0("S", i), `_id` = paste0("r", i)))
   state <- new.env(); state$n <- 0L
   resp <- function(path, method, query, body) {
@@ -29,7 +29,7 @@ test_that("hb_read_table paginates and returns a typed tibble", {
 })
 
 test_that("hb_read_table forwards the view name", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   rec <- with_mocked_request(
     hb_read_table(cl, "Samples", view = "Default"),
     response = list(rows = list())
@@ -38,7 +38,7 @@ test_that("hb_read_table forwards the view name", {
 })
 
 test_that("hb_query returns a tibble and handles empty results", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   rec <- with_mocked_request(
     out <- hb_query(cl, "select * from Samples"),
     response = list(results = list())
@@ -50,7 +50,7 @@ test_that("hb_query returns a tibble and handles empty results", {
 })
 
 test_that("hb_query assembles scalar and list columns", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   rows <- list(
     list(a = 1, b = list("x", "y")),
     list(a = 2, b = list("z"))
@@ -64,12 +64,12 @@ test_that("hb_query assembles scalar and list columns", {
 })
 
 test_that("hb_query rejects non-string sql", {
-  cl <- local_mock_client()
-  expect_error(hb_query(cl, 1L), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_query(cl, 1L), regexp = "`sql` must be a single non-empty string\\.")
 })
 
 test_that("hb_get_row returns a 1-row or 0-row tibble", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   with_mocked_request(
     one <- hb_get_row(cl, "Samples", "r1"),
     response = list(Name = "A", `_id` = "r1")
@@ -83,7 +83,7 @@ test_that("hb_get_row returns a 1-row or 0-row tibble", {
 })
 
 test_that("hb_append_rows validates data and posts converted rows", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_append_rows(cl, "Samples", 1L), "data frame")
   data <- tibble::tibble(Name = "S-new", Concentration = 9.9)
   rec <- with_mocked_request(
@@ -96,7 +96,7 @@ test_that("hb_append_rows validates data and posts converted rows", {
 })
 
 test_that("hb_update_rows requires the id column and summarises updates", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_update_rows(cl, "Samples", 1L), "data frame")
   expect_error(
     hb_update_rows(cl, "Samples", tibble::tibble(Name = "x")),
@@ -113,7 +113,7 @@ test_that("hb_update_rows requires the id column and summarises updates", {
 })
 
 test_that("hb_update_rows formats date cells and drops the id column", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   data <- tibble::tibble(`_id` = "r1",
                          Collected = as.POSIXct("2026-01-02", tz = "UTC"))
   rec <- with_mocked_request(
@@ -127,7 +127,7 @@ test_that("hb_update_rows formats date cells and drops the id column", {
 })
 
 test_that("hb_delete_rows validates ids and reports deletions", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_delete_rows(cl, "Samples", character()), "non-empty")
   expect_error(hb_delete_rows(cl, "Samples", 1L), "non-empty")
   rec <- with_mocked_request(
@@ -140,7 +140,7 @@ test_that("hb_delete_rows validates ids and reports deletions", {
 })
 
 test_that("hb_lock_rows and hb_unlock_rows validate and return the client", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_lock_rows(cl, "Samples", character()), "non-empty")
   expect_error(hb_unlock_rows(cl, "Samples", 1L), "non-empty")
   rec <- with_mocked_request(

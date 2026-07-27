@@ -1,6 +1,6 @@
 test_that("hb_create_table validates and posts columns", {
-  cl <- local_mock_client()
-  expect_error(hb_create_table(cl, ""), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_create_table(cl, ""), regexp = "`table` must be a single non-empty string\\.")
   expect_error(hb_create_table(cl, "T", columns = "x"), "list of column specs")
   rec <- with_mocked_request(
     res <- hb_create_table(cl, "NewT", list(list(name = "N", type = "text"))),
@@ -13,8 +13,8 @@ test_that("hb_create_table validates and posts columns", {
 })
 
 test_that("hb_rename_table sends both names", {
-  cl <- local_mock_client()
-  expect_error(hb_rename_table(cl, "Old", ""), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_rename_table(cl, "Old", ""), regexp = "`new_name` must be a single non-empty string\\.")
   rec <- with_mocked_request(
     hb_rename_table(cl, "Old", "New"), response = list())
   expect_identical(rec$calls[[1]]$method, "PUT")
@@ -22,7 +22,7 @@ test_that("hb_rename_table sends both names", {
 })
 
 test_that("hb_delete_table issues a DELETE and clears cache", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   rec <- with_mocked_request(
     hb_delete_table(cl, "DropMe"), response = list())
   expect_identical(rec$calls[[1]]$method, "DELETE")
@@ -30,8 +30,8 @@ test_that("hb_delete_table issues a DELETE and clears cache", {
 })
 
 test_that("hb_duplicate_table includes new_name only when supplied", {
-  cl <- local_mock_client()
-  expect_error(hb_duplicate_table(cl, "S", new_name = 1L), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_duplicate_table(cl, "S", new_name = 1L), regexp = "`new_name` must be a single non-empty string\\.")
   rec1 <- with_mocked_request(
     hb_duplicate_table(cl, "S"), response = list())
   expect_null(rec1$calls[[1]]$body$new_table_name)

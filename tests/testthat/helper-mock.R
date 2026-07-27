@@ -1,5 +1,5 @@
-local_mock_client <- function(server = "https://demo.example.org",
-                              api_token = "TOKENSECRET1234") {
+mock_client <- function(server = "https://demo.example.org",
+                        api_token = "TOKENSECRET1234") {
   cl <- new_harbour_client(
     server = server,
     api_token = api_token,
@@ -29,7 +29,12 @@ new_request_recorder <- function(response = list()) {
 
 # Run `code` with .hb_request() replaced by a recorder. `response` is what the
 # fake .hb_request returns (a body list, or a function of the call args).
-with_mocked_request <- function(code, response = list(), recorder = NULL) {
+#
+# The mock is registered against `.env` - by default the calling test_that()
+# frame - so it stays in force for the whole test rather than being unwound
+# the instant this helper returns.
+with_mocked_request <- function(code, response = list(), recorder = NULL,
+                                .env = rlang::caller_env()) {
   rec <- recorder %||% new_request_recorder(response)
   fake <- function(client, path, service = "dtable_server", auth = "base",
                    method = "GET", query = NULL, body = NULL) {
@@ -43,9 +48,11 @@ with_mocked_request <- function(code, response = list(), recorder = NULL) {
       rec$response
     }
   }
-  testthat::local_mocked_bindings(.hb_request = fake, .package = "harbouR")
+  testthat::local_mocked_bindings(
+    .hb_request = fake,
+    .package = "harbouR",
+    .env = .env
+  )
   force(code)
   rec
 }
-
-`%||%` <- function(x, y) if (is.null(x)) y else x

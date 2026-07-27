@@ -1,5 +1,5 @@
 test_that(".hb_translate_error never includes the token", {
-  cl <- local_mock_client(api_token = "supersecret-token-12345")
+  cl <- mock_client(api_token = "supersecret-token-12345")
   # Build a fake httr2 condition by hand to test translation
   fake_resp <- structure(
     list(status_code = 401L, headers = list(),
@@ -18,8 +18,8 @@ test_that(".hb_translate_error never includes the token", {
   expect_false(grepl("supersecret-token-12345", msg, fixed = TRUE))
 })
 
-test_that("local_mock_client never prints the API token", {
-  cl <- local_mock_client(api_token = "supersecret-token-abcdef")
+test_that("mock_client never prints the API token", {
+  cl <- mock_client(api_token = "supersecret-token-abcdef")
   out <- paste(capture.output(print(cl)), collapse = "\n")
   expect_false(grepl("supersecret-token-abcdef", out, fixed = TRUE))
 })

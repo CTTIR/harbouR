@@ -36,7 +36,7 @@ test_that("hb_client requires an http(s) server", {
 })
 
 test_that("validate_harbour_client checks structure", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_invisible(harbouR:::validate_harbour_client(cl))
   expect_error(harbouR:::validate_harbour_client(1L), "not a")
   expect_error(
@@ -46,7 +46,7 @@ test_that("validate_harbour_client checks structure", {
 })
 
 test_that("print.harbour_client reports auth mode and masks tokens", {
-  cl <- local_mock_client(api_token = "supersecret-token-1234567890")
+  cl <- mock_client(api_token = "supersecret-token-1234567890")
   out <- cli::cli_fmt(print(cl))
   out <- paste(out, collapse = "\n")
   expect_match(out, "api_token")
@@ -58,6 +58,6 @@ test_that("print.harbour_client reports auth mode and masks tokens", {
 })
 
 test_that("is_harbour_client discriminates", {
-  expect_true(is_harbour_client(local_mock_client()))
+  expect_true(is_harbour_client(mock_client()))
   expect_false(is_harbour_client(list()))
 })

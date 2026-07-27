@@ -1,5 +1,5 @@
 test_that("hb_metadata builds and caches a harbour_metadata", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   cl$.metadata <- NULL
   meta_body <- list(metadata = list(
     tables = list(list(name = "T", columns = list(), views = list())),
@@ -15,11 +15,11 @@ test_that("hb_metadata builds and caches a harbour_metadata", {
 })
 
 test_that("hb_metadata validates the client", {
-  expect_error(hb_metadata(1L), class = "rlang_error")
+  expect_error(hb_metadata(1L), regexp = "`client` must be a <harbour_client>\\.")
 })
 
 test_that("hb_list_tables refreshes only when asked", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   rec <- with_mocked_request(
     res <- hb_list_tables(cl),
     response = list(metadata = list(tables = list()))
@@ -36,12 +36,12 @@ test_that("hb_list_tables refreshes only when asked", {
 })
 
 test_that("hb_list_tables validates the refresh flag", {
-  cl <- local_mock_client()
-  expect_error(hb_list_tables(cl, refresh = "yes"), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_list_tables(cl, refresh = "yes"), regexp = "`refresh` must be a single `TRUE` or `FALSE`\\.")
 })
 
 test_that("hb_list_collaborators parses users and handles empties", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   with_mocked_request(
     res <- hb_list_collaborators(cl),
     response = list(user_list = list(
@@ -61,7 +61,7 @@ test_that("hb_list_collaborators parses users and handles empties", {
 })
 
 test_that("hb_server_info returns a one-row tibble", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   with_mocked_request(
     res <- hb_server_info(cl),
     response = list(version = "5.0", edition = "enterprise")
@@ -72,7 +72,7 @@ test_that("hb_server_info returns a one-row tibble", {
 })
 
 test_that("hb_ping returns TRUE on success and errors on failure", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   with_mocked_request(
     ok <- hb_ping(cl),
     response = list()

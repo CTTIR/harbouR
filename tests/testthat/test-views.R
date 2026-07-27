@@ -1,5 +1,5 @@
 test_that("hb_list_views returns a typed tibble", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   res <- hb_list_views(cl, "Samples")
   expect_named(res, c("name", "type", "is_default"))
   expect_identical(res$name, "Default")
@@ -7,13 +7,13 @@ test_that("hb_list_views returns a typed tibble", {
 })
 
 test_that("hb_list_views validates and errors on unknown table", {
-  cl <- local_mock_client()
-  expect_error(hb_list_views(1L, "Samples"), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_list_views(1L, "Samples"), regexp = "`client` must be a <harbour_client>\\.")
   expect_error(hb_list_views(cl, "Nope"), "not found")
 })
 
 test_that("hb_list_views returns 0-row tibble when a table has no views", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   cl$.metadata <- new_harbour_metadata(
     list(tables = list(list(name = "T", columns = list(), views = list()))),
     base_name = "b"
@@ -24,7 +24,7 @@ test_that("hb_list_views returns 0-row tibble when a table has no views", {
 })
 
 test_that("hb_get_view returns a 1-row tibble with list-columns", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   with_mocked_request(
     res <- hb_get_view(cl, "Samples", "Default"),
     response = list(name = "Default", type = "table",
@@ -36,7 +36,7 @@ test_that("hb_get_view returns a 1-row tibble with list-columns", {
 })
 
 test_that("hb_get_view falls back to the requested name when none returned", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   with_mocked_request(
     res <- hb_get_view(cl, "Samples", "Active"),
     response = list()
@@ -45,8 +45,8 @@ test_that("hb_get_view falls back to the requested name when none returned", {
 })
 
 test_that("hb_create_view merges settings and clears cache", {
-  cl <- local_mock_client()
-  expect_error(hb_create_view(cl, "Samples", ""), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_create_view(cl, "Samples", ""), regexp = "`view` must be a single non-empty string\\.")
   rec <- with_mocked_request(
     hb_create_view(cl, "Samples", "Active", settings = list(foo = "bar")),
     response = list()
@@ -57,7 +57,7 @@ test_that("hb_create_view merges settings and clears cache", {
 })
 
 test_that("hb_update_view validates the settings list", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_update_view(cl, "Samples", "Active", settings = "x"),
                "must be a list")
   rec <- with_mocked_request(
@@ -69,7 +69,7 @@ test_that("hb_update_view validates the settings list", {
 })
 
 test_that("hb_delete_view issues a DELETE", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   rec <- with_mocked_request(
     hb_delete_view(cl, "Samples", "Old"), response = list())
   expect_identical(rec$calls[[1]]$method, "DELETE")

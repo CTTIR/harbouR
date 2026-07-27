@@ -11,7 +11,7 @@ test_that("hb_example_rows is type-stable across tables", {
 })
 
 test_that("list_tables returns a 0-row tibble with the expected columns when no tables", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   cl$.metadata <- new_harbour_metadata(list(tables = list()),
                                        base_name = "empty")
   res <- hb_list_tables(cl)
@@ -21,7 +21,7 @@ test_that("list_tables returns a 0-row tibble with the expected columns when no 
 })
 
 test_that("hb_list_columns returns 0-row tibble with declared columns when no cols", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   cl$.metadata <- new_harbour_metadata(
     list(tables = list(list(name = "T", columns = list(), views = list()))),
     base_name = "empty"

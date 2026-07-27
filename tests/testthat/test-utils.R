@@ -23,18 +23,18 @@ test_that(".check_class enforces inheritance", {
 })
 
 test_that(".check_client requires a harbour_client", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_null(harbouR:::.check_client(cl))
   expect_error(harbouR:::.check_client(1L), "harbour_client")
 })
 
 test_that(".check_table validates against cached metadata", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_null(harbouR:::.check_table(cl, "Samples"))
   expect_error(harbouR:::.check_table(cl, "Nope"), "not found")
   expect_error(harbouR:::.check_table(cl, ""), "non-empty string")
 
-  cl2 <- local_mock_client()
+  cl2 <- mock_client()
   cl2$.metadata <- NULL
   # With no metadata cached, only the string check runs.
   expect_null(harbouR:::.check_table(cl2, "Anything"))

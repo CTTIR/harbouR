@@ -1,20 +1,5 @@
-make_resp <- function(status = 200L, body = NULL) {
-  structure(list(status_code = status, body = body),
-            class = "httr2_response")
-}
-
-make_http_cond <- function(status, body_json = "{}") {
-  resp <- structure(
-    list(status_code = status, headers = list(),
-         body = charToRaw(body_json)),
-    class = "httr2_response")
-  structure(list(message = "x", resp = resp),
-            class = c(paste0("httr2_http_", status), "httr2_http",
-                      "rlang_error", "error", "condition"))
-}
-
 test_that(".hb_base_url picks the right host per service", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   cl$.dtable_server <- "https://ds.example.org"
   cl$.dtable_db <- "https://db.example.org"
   expect_identical(harbouR:::.hb_base_url(cl, "web"), cl$server)
@@ -23,7 +8,7 @@ test_that(".hb_base_url picks the right host per service", {
 })
 
 test_that(".hb_auth_header builds api/account/base headers", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_identical(harbouR:::.hb_auth_header(cl, "api"),
                    paste("Token", cl$api_token))
   cl$.account_token <- "ACCT"
@@ -102,7 +87,7 @@ test_that(".hb_get_base_token rejects account-only auth", {
 })
 
 test_that(".hb_refresh_base_token clears and refetches", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   testthat::local_mocked_bindings(
     .hb_perform_raw = function(req) make_resp(),
     .hb_resp_json = function(resp) list(access_token = "NEWTOK"),
@@ -149,7 +134,7 @@ test_that(".hb_resp_json errors on unparseable bodies", {
 })
 
 test_that(".hb_perform retries once on a 401 for base auth", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   attempts <- new.env(); attempts$n <- 0L
   testthat::local_mocked_bindings(
     req_perform = function(req, ...) {
@@ -170,7 +155,7 @@ test_that(".hb_perform retries once on a 401 for base auth", {
 })
 
 test_that(".hb_request returns NULL invisibly on 204", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   testthat::local_mocked_bindings(
     .hb_req = function(...) list(url = "u"),
     .hb_perform = function(req, client, auth = "base") make_resp(204L),
@@ -185,7 +170,7 @@ test_that(".hb_request returns NULL invisibly on 204", {
 })
 
 test_that(".hb_request parses JSON for non-204 responses", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   testthat::local_mocked_bindings(
     .hb_req = function(...) list(url = "u"),
     .hb_perform = function(req, client, auth = "base") make_resp(200L),
@@ -203,7 +188,7 @@ test_that(".hb_request parses JSON for non-204 responses", {
 })
 
 test_that(".hb_req constructs a request object with a query", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   req <- harbouR:::.hb_req(cl, "/api2/ping/", service = "web", auth = "api",
                            query = list(table_name = "Samples"))
   expect_s3_class(req, "httr2_request")

@@ -1,5 +1,5 @@
 test_that("hb_client validates inputs", {
-  expect_error(hb_client(server = ""), class = "rlang_error")
+  expect_error(hb_client(server = ""), regexp = "`server` must be a single non-empty string\\.")
   expect_error(hb_client(server = "not-a-url", api_token = "x"))
   expect_error(hb_client(server = "https://x", api_token = "y",
                          username = "u", password = "p"))
@@ -19,9 +19,13 @@ test_that("hb_client builds a valid client from env vars", {
 })
 
 test_that("print.harbour_client masks the token", {
-  cl <- local_mock_client(api_token = "supersecret-token-1234567890")
+  cl <- mock_client(api_token = "supersecret-token-1234567890")
   out <- capture.output(print(cl))
   expect_false(any(grepl("supersecret-token-1234567890", out, fixed = TRUE)))
+})
+
+test_that("print.harbour_client renders the connection summary", {
+  expect_snapshot(print(mock_client(api_token = "supersecret-token-1234")))
 })
 
 test_that(".mask_token never reveals more than 8 chars", {

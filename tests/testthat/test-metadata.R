@@ -22,3 +22,11 @@ test_that("print.harbour_metadata returns invisibly", {
   m <- hb_example_metadata()
   expect_invisible(print(m))
 })
+
+test_that("print.harbour_metadata renders the base summary", {
+  expect_snapshot(print(hb_example_metadata()))
+})
+
+test_that("summary.harbour_metadata renders the column breakdown", {
+  expect_snapshot(summary(hb_example_metadata()))
+})

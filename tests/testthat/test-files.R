@@ -9,16 +9,16 @@ test_that(".hb_guess_mime maps known extensions and defaults otherwise", {
 })
 
 test_that("hb_upload_file errors when the file is missing", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_upload_file(cl, "no-such-file.pdf"), "File not found")
-  expect_error(hb_upload_file(1L, "x"), class = "rlang_error")
+  expect_error(hb_upload_file(1L, "x"), regexp = "`client` must be a <harbour_client>\\.")
 })
 
 test_that("hb_download_file validates inputs and refuses to clobber", {
-  cl <- local_mock_client()
-  expect_error(hb_download_file(cl, 1L, "d"), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_download_file(cl, 1L, "d"), regexp = "`url` must be a single non-empty string\\.")
   expect_error(hb_download_file(cl, "u", "d", overwrite = "yes"),
-               class = "rlang_error")
+               regexp = "`overwrite` must be a single `TRUE` or `FALSE`\\.")
   existing <- withr::local_tempfile(fileext = ".bin")
   writeLines("hi", existing)
   expect_error(
@@ -28,7 +28,7 @@ test_that("hb_download_file validates inputs and refuses to clobber", {
 })
 
 test_that("hb_download_file writes the body and returns dest", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   dest <- withr::local_tempfile(fileext = ".bin")
   fake_resp <- structure(list(status_code = 200L), class = "httr2_response")
   testthat::local_mocked_bindings(
@@ -45,7 +45,7 @@ test_that("hb_download_file writes the body and returns dest", {
 })
 
 test_that("hb_download_file errors on an HTTP failure status", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   dest <- withr::local_tempfile(fileext = ".bin")
   testthat::local_mocked_bindings(
     req_perform = function(req, path = NULL, ...)
@@ -57,8 +57,8 @@ test_that("hb_download_file errors on an HTTP failure status", {
 })
 
 test_that("hb_delete_asset routes a DELETE through the request engine", {
-  cl <- local_mock_client()
-  expect_error(hb_delete_asset(cl, 1L), class = "rlang_error")
+  cl <- mock_client()
+  expect_error(hb_delete_asset(cl, 1L), regexp = "`url` must be a single non-empty string\\.")
   rec <- with_mocked_request(
     res <- hb_delete_asset(cl, "https://server/path/file.pdf"),
     response = list()
@@ -69,7 +69,7 @@ test_that("hb_delete_asset routes a DELETE through the request engine", {
 })
 
 test_that("hb_upload_file requests a link then uploads and returns a file object", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   src <- withr::local_tempfile(fileext = ".pdf")
   writeLines("content", src)
   testthat::local_mocked_bindings(
@@ -94,7 +94,7 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
 })
 
 test_that("hb_upload_file errors when no upload URL is returned", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   src <- withr::local_tempfile(fileext = ".pdf")
   writeLines("content", src)
   testthat::local_mocked_bindings(
@@ -105,7 +105,7 @@ test_that("hb_upload_file errors when no upload URL is returned", {
 })
 
 test_that("hb_attach_file uploads then updates the target cell", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   src <- withr::local_tempfile(fileext = ".pdf")
   writeLines("content", src)
   calls <- new.env(); calls$update <- NULL
@@ -125,7 +125,7 @@ test_that("hb_attach_file uploads then updates the target cell", {
 })
 
 test_that("hb_attach_file validates row/column args", {
-  cl <- local_mock_client()
+  cl <- mock_client()
   expect_error(hb_attach_file(cl, "Samples", "", "Reports", "x.pdf"),
-               class = "rlang_error")
+               regexp = "`row_id` must be a single non-empty string\\.")
 })
