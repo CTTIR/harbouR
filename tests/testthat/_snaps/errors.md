@@ -49,8 +49,9 @@
       hb_read_table(1L, "Samples")
     Condition
       Error in `hb_read_table()`:
-      ! `client` must be a <harbour_client>.
-      i Create one with `harbouR::hb_client()`.
+      ! `x` must be a <harbour_client> or a <harbour_dtable>.
+      x You supplied an object of class <integer>.
+      i Connect with `hb_client()`, or open a file with `hb_read_dtable()`.
 
 ---
 

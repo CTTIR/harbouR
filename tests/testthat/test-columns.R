@@ -8,7 +8,7 @@ test_that("hb_list_columns returns typed tibble and marks editability", {
 
 test_that("hb_list_columns validates inputs", {
   cl <- mock_client()
-  expect_error(hb_list_columns(1L, "Samples"), regexp = "`client` must be a <harbour_client>\\.")
+  expect_error(hb_list_columns(1L, "Samples"), class = "harbour_error_bad_argument")
   expect_error(hb_list_columns(cl, ""), regexp = "`table` must be a single non-empty string\\.")
   expect_error(hb_list_columns(cl, "Nope"), "not found")
 })

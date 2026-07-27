@@ -9,7 +9,7 @@ hb_append_rows(client, table, data, ..., chunk_size = 1000L)
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{table}{Name of the table.}
+\item{table}{Table name.}
 
 \item{data}{A tibble or data frame whose columns match the table schema.}
 
@@ -39,7 +39,7 @@ Other rows:
 \code{\link[=hb_get_row]{hb_get_row()}},
 \code{\link[=hb_lock_rows]{hb_lock_rows()}},
 \code{\link[=hb_query]{hb_query()}},
-\code{\link[=hb_read_table]{hb_read_table()}},
+\code{\link[=hb_read_table.harbour_dtable]{hb_read_table.harbour_dtable()}},
 \code{\link[=hb_unlock_rows]{hb_unlock_rows()}},
 \code{\link[=hb_update_rows]{hb_update_rows()}}
 }

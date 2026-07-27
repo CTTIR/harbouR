@@ -9,7 +9,7 @@ hb_get_row(client, table, row_id, ...)
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{table}{Name of the table.}
+\item{table}{Table name.}
 
 \item{row_id}{The SeaTable row identifier.}
 
@@ -37,7 +37,7 @@ Other rows:
 \code{\link[=hb_delete_rows]{hb_delete_rows()}},
 \code{\link[=hb_lock_rows]{hb_lock_rows()}},
 \code{\link[=hb_query]{hb_query()}},
-\code{\link[=hb_read_table]{hb_read_table()}},
+\code{\link[=hb_read_table.harbour_dtable]{hb_read_table.harbour_dtable()}},
 \code{\link[=hb_unlock_rows]{hb_unlock_rows()}},
 \code{\link[=hb_update_rows]{hb_update_rows()}}
 }

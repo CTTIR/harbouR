@@ -20,7 +20,7 @@ Other metadata:
 \code{\link[=as_tibble.harbour_metadata]{as_tibble.harbour_metadata()}},
 \code{\link[=hb_column_types]{hb_column_types()}},
 \code{\link[=hb_list_collaborators]{hb_list_collaborators()}},
-\code{\link[=hb_list_tables]{hb_list_tables()}},
+\code{\link[=hb_list_tables.harbour_dtable]{hb_list_tables.harbour_dtable()}},
 \code{\link[=hb_metadata]{hb_metadata()}},
 \code{\link[=print.harbour_metadata]{print.harbour_metadata()}},
 \code{\link[=summary.harbour_metadata]{summary.harbour_metadata()}}

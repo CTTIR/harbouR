@@ -2,7 +2,7 @@
 
 test_that("hb_read_table validates client, table, view and paging", {
   cl <- mock_client()
-  expect_error(hb_read_table(1L, "Samples"), regexp = "`client` must be a <harbour_client>\\.")
+  expect_error(hb_read_table(1L, "Samples"), class = "harbour_error_bad_argument")
   expect_error(hb_read_table(cl, ""), regexp = "`table` must be a single non-empty string\\.")
   expect_error(hb_read_table(cl, "Samples", view = 1L), regexp = "`view` must be a single non-empty string\\.")
   expect_error(hb_read_table(cl, "Samples", page_size = 0L), "positive integer")

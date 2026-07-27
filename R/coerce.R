@@ -160,7 +160,6 @@ hb_column_types <- function() {
 #' @noRd
 .hb_type_cache <- new.env(parent = emptyenv())
 
-#' @rdname dot-hb_type_cache
 #' @keywords internal
 #' @noRd
 .hb_type_lookup <- function() {
@@ -192,7 +191,6 @@ hb_column_types <- function() {
   if (is.na(hit)) "character" else unname(hit)
 }
 
-#' @rdname dot-hb_prototype
 #' @keywords internal
 #' @noRd
 .hb_empty_vector_for_type <- function(type) {

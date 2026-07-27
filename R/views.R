@@ -1,6 +1,7 @@
 #' List views of a table
 #'
-#' @inheritParams hb_metadata
+#' @param x A `harbour_client` connected to a base, or a
+#'   `harbour_dtable` read from a local file.
 #' @param table Table name.
 #'
 #' @param ... These dots are for future extensions and must be empty.
@@ -13,12 +14,20 @@
 #' client <- hb_client()
 #' hb_list_views(client, "Samples")
 #' @export
-hb_list_views <- function(client, table, ..., refresh = FALSE) {
+hb_list_views <- function(x, table, ...) {
+  UseMethod("hb_list_views")
+}
+
+#' @rdname hb_list_views
+#' @method hb_list_views harbour_client
+#' @export
+hb_list_views.harbour_client <- function(x, table, ...,
+                                         refresh = FALSE) {
   rlang::check_dots_empty()
-  .check_client(client)
+  .check_client(x, arg = "x")
   .check_string(table)
   .check_flag(refresh)
-  views <- .hb_fetch_views(client, table, refresh = refresh)
+  views <- .hb_fetch_views(x, table, refresh = refresh)
   if (length(views) == 0L) {
     return(tibble::tibble(
       name = character(), type = character(),
@@ -37,7 +46,8 @@ hb_list_views <- function(client, table, ..., refresh = FALSE) {
 }
 
 #' Get a view's settings
-#' @inheritParams hb_list_views
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param view View name.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A one-row tibble with columns `name` (chr), `type` (chr),
@@ -70,7 +80,8 @@ hb_get_view <- function(client, table, view, ...) {
 }
 
 #' Create a view
-#' @inheritParams hb_list_views
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param view New view name.
 #' @param settings Optional list of view settings.
 #' @param ... These dots are for future extensions and must be empty.
@@ -124,7 +135,8 @@ hb_update_view <- function(client, table, view, settings, ...) {
 }
 
 #' Delete a view
-#' @inheritParams hb_list_views
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param view View name.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.

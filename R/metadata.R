@@ -51,7 +51,8 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 
 #' List the tables in a base
 #'
-#' @inheritParams hb_metadata
+#' @param x A `harbour_client` connected to a base, or a
+#'   `harbour_dtable` read from a local file.
 #' @param refresh Logical; refetch metadata even if cached. Default `FALSE`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
@@ -65,14 +66,21 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 #' client <- hb_client()
 #' hb_list_tables(client)
 #' @export
-hb_list_tables <- function(client, ..., refresh = FALSE) {
+hb_list_tables <- function(x, ...) {
+  UseMethod("hb_list_tables")
+}
+
+#' @rdname hb_list_tables
+#' @method hb_list_tables harbour_client
+#' @export
+hb_list_tables.harbour_client <- function(x, ..., refresh = FALSE) {
   rlang::check_dots_empty()
-  .check_client(client)
+  .check_client(x, arg = "x")
   .check_flag(refresh)
-  meta <- if (!is.null(client$.metadata) && !refresh) {
-    client$.metadata
+  meta <- if (!is.null(x$.metadata) && !refresh) {
+    x$.metadata
   } else {
-    hb_metadata(client)
+    hb_metadata(x)
   }
   tibble::as_tibble(meta)
 }

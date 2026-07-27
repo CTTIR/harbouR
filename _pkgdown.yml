@@ -73,6 +73,27 @@ reference:
   - hb_download_file
   - hb_delete_asset
 
+- title: Local .dtable files
+  contents:
+  - hb_read_dtable
+  - hb_write_dtable
+  - hb_dtable
+  - hb_validate_dtable
+  - hb_asset_path
+  - is_harbour_dtable
+  - print.harbour_dtable
+  - names.harbour_dtable
+  - length.harbour_dtable
+  - as_tibble.harbour_dtable
+  - summary.harbour_dtable
+
+- title: Import and export
+  contents:
+  - hb_write_xlsx
+  - hb_write_csv
+  - hb_read_xlsx
+  - hb_read_csv
+
 - title: Example data
   contents:
   - hb_example_metadata

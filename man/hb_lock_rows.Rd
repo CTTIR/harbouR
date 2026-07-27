@@ -9,7 +9,7 @@ hb_lock_rows(client, table, row_ids, ...)
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{table}{Name of the table.}
+\item{table}{Table name.}
 
 \item{row_ids}{A character vector of row IDs to delete.}
 
@@ -33,7 +33,7 @@ Other rows:
 \code{\link[=hb_delete_rows]{hb_delete_rows()}},
 \code{\link[=hb_get_row]{hb_get_row()}},
 \code{\link[=hb_query]{hb_query()}},
-\code{\link[=hb_read_table]{hb_read_table()}},
+\code{\link[=hb_read_table.harbour_dtable]{hb_read_table.harbour_dtable()}},
 \code{\link[=hb_unlock_rows]{hb_unlock_rows()}},
 \code{\link[=hb_update_rows]{hb_update_rows()}}
 }

@@ -5,7 +5,8 @@
 #' tibble always has the table's columns in declared order plus an `_id`
 #' column.
 #'
-#' @inheritParams hb_metadata
+#' @param x A `harbour_client` connected to a base, or a
+#'   `harbour_dtable` read from a local file.
 #' @param table Name of the table.
 #' @param view Optional view name.
 #' @param page_size Rows fetched per request. SeaTable caps this at 1000
@@ -26,17 +27,28 @@
 #' # just the first 10 rows
 #' hb_read_table(client, "Samples", n_max = 10)
 #' @export
-hb_read_table <- function(client, table, ..., view = NULL,
-                          page_size = 1000L, n_max = Inf) {
+hb_read_table <- function(x, table, ...) {
+  UseMethod("hb_read_table")
+}
+
+#' @rdname hb_read_table
+#' @method hb_read_table harbour_client
+#' @export
+hb_read_table.harbour_client <- function(x,
+                                         table,
+                                         ...,
+                                         view = NULL,
+                                         page_size = 1000L,
+                                         n_max = Inf) {
   rlang::check_dots_empty()
-  .check_client(client)
+  .check_client(x, arg = "x")
   .check_string(table)
   .check_string(view, allow_null = TRUE)
   page_size <- .hb_check_page_size(page_size)
   .hb_check_n_max(n_max)
 
-  if (is.null(client$.metadata)) hb_metadata(client)
-  cols <- .hb_columns_from_metadata(client$.metadata, table)
+  if (is.null(x$.metadata)) hb_metadata(x)
+  cols <- .hb_columns_from_metadata(x$.metadata, table)
 
   start <- 0L
   rows <- list()
@@ -48,7 +60,7 @@ hb_read_table <- function(client, table, ..., view = NULL,
     if (want <= 0L) break
     q <- list(table_name = table, start = start, limit = as.integer(want))
     if (!is.null(view)) q$view_name <- view
-    body <- .hb_request(client, .hb_base_path(client, "rows", ""),
+    body <- .hb_request(x, .hb_base_path(x, "rows", ""),
       service = "gateway", auth = "base",
       method = "GET", query = q
     )
@@ -201,7 +213,8 @@ hb_query <- function(client, sql, ..., parameters = NULL,
 
 #' Get a single row by ID
 #'
-#' @inheritParams hb_read_table
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param row_id The SeaTable row identifier.
 #'
 #' @param ... These dots are for future extensions and must be empty.
@@ -234,7 +247,8 @@ hb_get_row <- function(client, table, row_id, ...) {
 
 #' Append rows to a table
 #'
-#' @inheritParams hb_read_table
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param data A tibble or data frame whose columns match the table schema.
 #'
 #' @param ... These dots are for future extensions and must be empty.
@@ -388,7 +402,8 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
 
 #' Delete rows
 #'
-#' @inheritParams hb_read_table
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param row_ids A character vector of row IDs to delete.
 #'
 #' @param ... These dots are for future extensions and must be empty.

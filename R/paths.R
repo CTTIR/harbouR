@@ -108,7 +108,6 @@
 #' @noRd
 .hb_max_page_size <- 1000L
 
-#' @rdname dot-hb_max_page_size
 #' @keywords internal
 #' @noRd
 .hb_max_batch_size <- 1000L

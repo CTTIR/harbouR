@@ -1,6 +1,7 @@
 #' List columns of a table
 #'
-#' @inheritParams hb_metadata
+#' @param x A `harbour_client` connected to a base, or a
+#'   `harbour_dtable` read from a local file.
 #' @param table Table name.
 #'
 #' @param ... These dots are for future extensions and must be empty.
@@ -15,12 +16,20 @@
 #' client <- hb_client()
 #' hb_list_columns(client, "Samples")
 #' @export
-hb_list_columns <- function(client, table, ..., refresh = FALSE) {
+hb_list_columns <- function(x, table, ...) {
+  UseMethod("hb_list_columns")
+}
+
+#' @rdname hb_list_columns
+#' @method hb_list_columns harbour_client
+#' @export
+hb_list_columns.harbour_client <- function(x, table, ...,
+                                           refresh = FALSE) {
   rlang::check_dots_empty()
-  .check_client(client)
+  .check_client(x, arg = "x")
   .check_string(table)
   .check_flag(refresh)
-  cols <- .hb_fetch_columns(client, table, refresh = refresh)
+  cols <- .hb_fetch_columns(x, table, refresh = refresh)
   if (length(cols) == 0L) {
     return(tibble::tibble(
       name = character(), type = character(),
@@ -63,7 +72,8 @@ hb_list_columns <- function(client, table, ..., refresh = FALSE) {
 }
 
 #' Add a column to a table
-#' @inheritParams hb_list_columns
+#' @inheritParams hb_metadata
+#' @param table Table name.
 #' @param name Column name.
 #' @param type SeaTable column type, e.g. `"text"`, `"number"`, `"date"`.
 #' @param column_data Optional list of column options, e.g. the choices

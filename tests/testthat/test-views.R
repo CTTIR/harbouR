@@ -8,7 +8,7 @@ test_that("hb_list_views returns a typed tibble", {
 
 test_that("hb_list_views validates and errors on unknown table", {
   cl <- mock_client()
-  expect_error(hb_list_views(1L, "Samples"), regexp = "`client` must be a <harbour_client>\\.")
+  expect_error(hb_list_views(1L, "Samples"), class = "harbour_error_bad_argument")
   expect_error(hb_list_views(cl, "Nope"), "not found")
 })
 

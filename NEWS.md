@@ -57,6 +57,39 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+## Local `.dtable` files
+
+* **harbouR reads and writes SeaTable `.dtable` exports.**
+  `hb_read_dtable()` opens one; `hb_write_dtable()` writes it back.
+  Round-tripping is lossless, verified against a real 750 KB export: read
+  then write then read yields an identical structure, including fields
+  harbouR does not model.
+
+* The same verbs work on a file as on a live base. `hb_list_tables()`,
+  `hb_list_columns()`, `hb_list_views()` and `hb_read_table()` are now S3
+  generics with `harbour_client` and `harbour_dtable` methods, so an
+  analysis can be written once and run either way. Their first argument is
+  named `x`; the write verbs keep `client`, because they need a server.
+
+* `hb_dtable()` builds a base from R data frames, inferring column types,
+  so a set of tables can be written out and imported into SeaTable.
+  `hb_validate_dtable()` reports what would stop a base importing, and the
+  writer refuses to produce a file that would fail.
+
+* `hb_write_xlsx()` and `hb_write_csv()` export to spreadsheets, naming
+  exactly which columns had to be flattened; `hb_read_xlsx()` and
+  `hb_read_csv()` build a new base from them. The lossy direction is
+  documented rather than implied.
+
+* Select-option ids are translated to their display names, because a file
+  stores the id where the API returns the name - without this a local read
+  and a server read of the same column disagreed.
+
+* `hb_asset_path()` resolves a bundled `file://dtable-bundle/` URL to a
+  local file when the base was read with `assets = "extract"`.
+
+## The SeaTable API
+
 * `hb_query()` types its result from the schema SeaTable returns alongside
   the rows, which harbouR previously discarded. It inferred types from the
   values instead, so an all-`NULL` column came back `logical` and one stray
