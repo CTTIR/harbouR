@@ -244,3 +244,60 @@ test_that("hb_append_rows reports the count the server confirmed", {
   expect_identical(out$n_rows, 2L)
   expect_identical(out$table, "Samples")
 })
+
+test_that("hb_query types its result from the schema the server reports", {
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    out <- hb_query(cl, "select n, d from Samples limit 5"),
+    response = list(
+      metadata = list(
+        list(name = "n", type = "number", key = "a"),
+        list(name = "d", type = "date", key = "b")
+      ),
+      results = list(
+        list(n = 1, d = "2023-01-01T00:00:00+00:00"),
+        list(n = NULL, d = NULL)
+      )
+    )
+  )
+  # Inferring from values instead would make an all-NULL column logical and
+  # let one stray string turn a numeric column into character.
+  expect_type(out$n, "double")
+  expect_s3_class(out$d, "POSIXct")
+  expect_true(is.na(out$n[[2L]]))
+})
+
+test_that("hb_query warns about SeaTable's implicit LIMIT 100", {
+  cl <- mock_client()
+  # The warning is rate-limited so a loop does not spam it; ask rlang to
+  # emit it every time for the duration of this test.
+  withr::local_options(rlib_warning_verbosity = "verbose")
+  expect_warning(
+    with_mocked_request(
+      hb_query(cl, "select * from Samples"),
+      response = list(metadata = list(), results = list())
+    ),
+    "LIMIT"
+  )
+})
+
+test_that("hb_query stays quiet when the query has its own LIMIT", {
+  cl <- mock_client()
+  withr::local_options(rlib_warning_verbosity = "verbose")
+  expect_no_warning(
+    with_mocked_request(
+      hb_query(cl, "select * from Samples LIMIT 10"),
+      response = list(metadata = list(), results = list())
+    )
+  )
+})
+
+test_that("hb_query passes placeholders through as parameters", {
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    hb_query(cl, "select * from Samples where Name = ? limit 1",
+             parameters = list("S-001")),
+    response = list(metadata = list(), results = list())
+  )
+  expect_identical(rec$calls[[1]]$body$parameters, list("S-001"))
+})

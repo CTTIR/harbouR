@@ -293,3 +293,24 @@ test_that("base tokens are sent as Bearer, web tokens as Token", {
   cl$.account_token <- "ACCT"
   expect_match(harbouR:::.hb_auth_header(cl, "account"), "^Token ")
 })
+
+test_that("an escaped path segment reaches the wire without double-encoding", {
+  # httr2::req_url_path() percent-encodes, so handing it an already-escaped
+  # path turns %20 into %2520 - and it leaves "/" alone, so a view named
+  # "a/b" would split into two segments. Neither is visible to a test that
+  # only inspects the path string, so assert on the built URL.
+  cl <- contract_client()
+  req <- harbouR:::.hb_req(
+    cl,
+    harbouR:::.hb_base_path(cl, "views", "Erwartungswerte Toxine 1", ""),
+    service = "gateway", auth = "base"
+  )
+  expect_match(req$url, "views/Erwartungswerte%20Toxine%201/", fixed = TRUE)
+  expect_false(grepl("%25", req$url, fixed = TRUE))
+
+  req2 <- harbouR:::.hb_req(
+    cl, harbouR:::.hb_base_path(cl, "views", "a/b", ""),
+    service = "gateway", auth = "base"
+  )
+  expect_match(req2$url, "views/a%2Fb/", fixed = TRUE)
+})

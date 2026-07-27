@@ -13,6 +13,8 @@ hb_client(
   username = NULL,
   password = NULL,
   base_uuid = NULL,
+  workspace_id = NULL,
+  base_name = NULL,
   timeout = 30
 )
 
@@ -35,6 +37,11 @@ token. Mutually exclusive with \code{api_token}.}
 
 \item{base_uuid}{Optional base UUID hint; usually discovered from the
 base-token exchange.}
+
+\item{workspace_id, base_name}{Which base to work on. Required for a
+\code{username}/\code{password} client, because an account token is scoped to
+the user rather than to a base. Ignored when \code{api_token} is used,
+since an API token names its base implicitly.}
 
 \item{timeout}{Per-request timeout in seconds. Default \code{30}.}
 

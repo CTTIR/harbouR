@@ -80,12 +80,36 @@ test_that(".hb_get_base_token populates client state from the response", {
   expect_s3_class(cl$.base_token_expires, "POSIXct")
 })
 
-test_that(".hb_get_base_token rejects account-only auth", {
+test_that(".hb_get_base_token asks an account client to name its base", {
   cl <- new_harbour_client(server = "https://x", api_token = NULL,
                            username = "u", password = "p",
                            base_uuid = NULL, timeout = 5)
   expect_error(harbouR:::.hb_get_base_token(cl),
-               class = "harbour_error_unsupported")
+               class = "harbour_error_auth")
+})
+
+test_that(".hb_get_base_token exchanges an account token for a base token", {
+  cl <- new_harbour_client(server = "https://x", api_token = NULL,
+                           username = "u", password = "p",
+                           base_uuid = NULL, timeout = 5,
+                           workspace_id = 7, base_name = "My Base")
+  cl$.account_token <- "ACCT"
+  seen <- NULL
+  testthat::local_mocked_bindings(
+    .hb_perform_raw = function(req, call = NULL) {
+      seen <<- req
+      make_resp()
+    },
+    .hb_resp_json = function(resp, call = NULL) list(access_token = "BASETOK"),
+    .package = "harbouR"
+  )
+  expect_identical(harbouR:::.hb_get_base_token(cl), "BASETOK")
+  # The base is named in the path, and a space in its name is encoded.
+  expect_match(
+    seen$url,
+    "/api/v2.1/workspace/7/dtable/My%20Base/access-token/",
+    fixed = TRUE
+  )
 })
 
 test_that(".hb_refresh_base_token clears and refetches", {

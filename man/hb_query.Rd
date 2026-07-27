@@ -4,17 +4,27 @@
 \alias{hb_query}
 \title{Run a SeaTable SQL query}
 \usage{
-hb_query(client, sql, ...)
+hb_query(client, sql, ..., parameters = NULL, convert_keys = TRUE)
 }
 \arguments{
 \item{client}{A \code{harbour_client}.}
 
-\item{sql}{SeaTable SQL query string.}
+\item{sql}{SeaTable SQL query string. SeaTable applies an implicit
+\verb{LIMIT 100} when the query has none, and caps results at 10000 rows.
+harbouR warns if there is no \code{LIMIT} clause.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{parameters}{Optional list of values for \verb{?} placeholders in \code{sql}.}
+
+\item{convert_keys}{Return column names rather than column keys.
+Default \code{TRUE}.}
 }
 \value{
-A tibble. Always a tibble, even when the query returns no rows.
+A tibble, typed from the result schema SeaTable reports
+alongside the rows, so the same table read via \code{\link[=hb_read_table]{hb_read_table()}} and
+via \code{hb_query()} yields the same column types. Always a tibble, even
+when the query returns no rows.
 }
 \description{
 Run a SeaTable SQL query

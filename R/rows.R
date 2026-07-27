@@ -117,46 +117,86 @@ hb_read_table <- function(client, table, ..., view = NULL,
 #' Run a SeaTable SQL query
 #'
 #' @inheritParams hb_metadata
-#' @param sql SeaTable SQL query string.
+#' @param sql SeaTable SQL query string. SeaTable applies an implicit
+#'   `LIMIT 100` when the query has none, and caps results at 10000 rows.
+#'   harbouR warns if there is no `LIMIT` clause.
+#' @param parameters Optional list of values for `?` placeholders in `sql`.
+#' @param convert_keys Return column names rather than column keys.
+#'   Default `TRUE`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A tibble. Always a tibble, even when the query returns no rows.
+#' @return A tibble, typed from the result schema SeaTable reports
+#'   alongside the rows, so the same table read via [hb_read_table()] and
+#'   via `hb_query()` yields the same column types. Always a tibble, even
+#'   when the query returns no rows.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_query(client, "select * from Samples limit 5")
 #' @export
-hb_query <- function(client, sql, ...) {
+hb_query <- function(client, sql, ..., parameters = NULL,
+                     convert_keys = TRUE) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(sql)
-  body <- .hb_request(client, .hb_base_path(client, "sql", ""),
+  .check_flag(convert_keys)
+  if (!grepl("\\blimit\\b", sql, ignore.case = TRUE)) {
+    # SeaTable applies an implicit LIMIT 100. A query that looks like it
+    # wants everything but silently gets a hundred rows is a wrong answer.
+    cli::cli_warn(
+      c("This query has no {.code LIMIT} clause.",
+        "i" = "SeaTable applies an implicit {.code LIMIT 100}.",
+        "i" = "Add one explicitly, up to the 10000-row ceiling."),
+      .frequency = "regularly",
+      .frequency_id = "harbour_query_limit"
+    )
+  }
+  body <- list(sql = sql, convert_keys = convert_keys)
+  if (!is.null(parameters)) body$parameters <- as.list(parameters)
+  resp <- .hb_request(client, .hb_base_path(client, "sql", ""),
     service = "gateway", auth = "base",
-    method = "POST",
-    body = list(sql = sql, convert_keys = TRUE)
+    method = "POST", body = body
   )
-  rows <- body$results %||% body$rows %||% list()
+  rows <- resp$results %||% resp$rows %||% list()
+  # SeaTable reports the result schema alongside the rows. Using it is what
+  # makes hb_query() and hb_read_table() agree on types: inferring from the
+  # values instead means an all-NULL column comes back logical, and one
+  # stray string turns a numeric column into character.
+  columns <- resp$metadata %||% resp$columns %||% list()
+  if (length(columns) > 0L) {
+    return(.hb_rows_to_tibble(rows, columns))
+  }
   if (length(rows) == 0L) {
     return(tibble::tibble())
   }
+  .hb_untyped_rows_to_tibble(rows)
+}
+
+#' Build a tibble from rows whose schema the server did not report
+#'
+#' A fallback only. Types are inferred from the values, which is exactly
+#' the guessing [hb_query()] avoids when metadata is available.
+#'
+#' @param rows A list of row objects.
+#' @return A tibble.
+#' @keywords internal
+#' @noRd
+.hb_untyped_rows_to_tibble <- function(rows) {
   cols <- unique(unlist(lapply(rows, names), use.names = FALSE))
   out <- lapply(cols, function(cn) {
-    vals <- lapply(rows, function(r) r[[cn]])
+    vals <- lapply(rows, function(row) row[[cn]])
     ragged <- vapply(
       vals,
       function(value) is.list(value) || length(value) > 1L,
       logical(1)
     )
     if (any(ragged)) {
-      vals
-    } else {
-      filled <- lapply(vals, function(value) value %||% NA)
-      v <- unlist(filled, use.names = FALSE)
-      v
+      return(vals)
     }
+    unlist(lapply(vals, function(value) value %||% NA), use.names = FALSE)
   })
   names(out) <- cols
-  tibble::as_tibble(out)
+  tibble::as_tibble(out, .name_repair = "minimal")
 }
 
 #' Get a single row by ID

@@ -57,6 +57,30 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+* `hb_query()` types its result from the schema SeaTable returns alongside
+  the rows, which harbouR previously discarded. It inferred types from the
+  values instead, so an all-`NULL` column came back `logical` and one stray
+  string turned a numeric column into `character` - the same query could
+  return different types on different days. `hb_query()` and
+  `hb_read_table()` now agree.
+
+* `hb_query()` warns when the SQL has no `LIMIT` clause, because SeaTable
+  applies an implicit `LIMIT 100`, and gains `parameters` for `?`
+  placeholders and `convert_keys`.
+
+* **The username/password flow works.** `hb_client()` accepted `username`
+  and `password` and documented a three-token model, but every base call
+  then aborted with "not supported" and every web call with "API token
+  required": such a client could do nothing at all. harbouR now performs
+  the account-token to base-token exchange. Because an account token is
+  scoped to the user rather than to a base, `hb_client()` gains
+  `workspace_id` and `base_name`, and says so if they are missing.
+
+* Percent-encoded path segments no longer reach the server double-encoded.
+  `httr2::req_url_path()` escapes what it is given, so an already-escaped
+  `%20` became `%2520`; it also leaves `/` alone, so a view named `a/b`
+  would have split into two path segments.
+
 * **Dates parse.** `_ctime` and `_mtime` come back as full ISO-8601 with a
   UTC offset - `2025-11-28T14:00:24.395+00:00` - and the parser's format
   list covered none of the offset-bearing forms, so every creation and

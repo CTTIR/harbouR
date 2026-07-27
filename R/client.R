@@ -22,6 +22,10 @@
 #'   token. Mutually exclusive with `api_token`.
 #' @param base_uuid Optional base UUID hint; usually discovered from the
 #'   base-token exchange.
+#' @param workspace_id,base_name Which base to work on. Required for a
+#'   `username`/`password` client, because an account token is scoped to
+#'   the user rather than to a base. Ignored when `api_token` is used,
+#'   since an API token names its base implicitly.
 #' @param timeout Per-request timeout in seconds. Default `30`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
@@ -41,6 +45,8 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
                       username = NULL,
                       password = NULL,
                       base_uuid = NULL,
+                      workspace_id = NULL,
+                      base_name = NULL,
                       timeout = 30) {
   rlang::check_dots_empty()
   server <- if (is.null(server) || !nzchar(server)) NULL else server
@@ -80,12 +86,21 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
     .check_string(password)
   }
 
+  if (has_acct && (is.null(workspace_id) || is.null(base_name))) {
+    cli::cli_warn(c(
+      "A username/password client also needs {.arg workspace_id} and
+       {.arg base_name} before it can reach a base.",
+      "i" = "An {.arg api_token} is scoped to one base and needs neither."
+    ))
+  }
   cl <- new_harbour_client(
     server = server,
     api_token = api_token,
     username = username,
     password = password,
     base_uuid = base_uuid,
+    workspace_id = workspace_id,
+    base_name = base_name,
     timeout = timeout
   )
   validate_harbour_client(cl)
@@ -95,13 +110,16 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
 #' @keywords internal
 #' @noRd
 new_harbour_client <- function(server, api_token, username, password,
-                               base_uuid, timeout) {
+                               base_uuid, timeout,
+                               workspace_id = NULL, base_name = NULL) {
   env <- new.env(parent = emptyenv())
   env$server <- server
   env$api_token <- api_token
   env$username <- username
   env$password <- password
   env$base_uuid <- base_uuid
+  env$workspace_id <- workspace_id
+  env$base_name <- base_name
   env$timeout <- timeout
   env$.account_token <- NULL
   env$.base_token <- NULL
@@ -169,7 +187,8 @@ format.harbour_client <- function(x, ...) {
     sprintf("server   : %s", x$server),
     sprintf("auth     : %s", auth_mode),
     sprintf("token    : %s", .mask_token(x$api_token %||% x$.account_token)),
-    sprintf("base     : %s", x$.base_name %||% "<not yet fetched>"),
+    sprintf("base     : %s", x$.base_name %||% x$base_name %||%
+              "<not yet fetched>"),
     sprintf("base uuid: %s", x$base_uuid %||% "<unknown>"),
     sprintf("expires  : %s", .hb_format_expiry(x$.base_token_expires))
   )

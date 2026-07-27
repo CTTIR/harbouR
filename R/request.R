@@ -98,18 +98,25 @@
 #' @keywords internal
 #' @noRd
 .hb_get_base_token <- function(client, call = rlang::caller_env()) {
-  if (is.null(client$api_token)) {
-    hb_abort(
-      c("Base access from an account token is not supported.",
-        "i" = "Create the client with {.arg api_token}."
-      ),
-      class = "harbour_error_unsupported",
-      call = call
-    )
+  req <- if (!is.null(client$api_token)) {
+    # An API token is issued for one base, so it names the base implicitly.
+    httr2::request(client$server) |>
+      httr2::req_url_path("/api/v2.1/dtable/app-access-token/") |>
+      httr2::req_headers(Authorization = paste("Token", client$api_token))
+  } else {
+    # An account token is issued for the user, so the base must be named.
+    .hb_check_account_base(client, call = call)
+    httr2::request(sprintf(
+      "%s/api/v2.1/workspace/%s/dtable/%s/access-token/",
+      client$server,
+      .hb_url_escape(client$workspace_id),
+      .hb_url_escape(client$base_name)
+    )) |>
+      httr2::req_headers(
+        Authorization = .hb_auth_header(client, "account", call = call)
+      )
   }
-  req <- httr2::request(client$server) |>
-    httr2::req_url_path("/api/v2.1/dtable/app-access-token/") |>
-    httr2::req_headers(Authorization = paste("Token", client$api_token)) |>
+  req <- req |>
     httr2::req_user_agent(.hb_user_agent()) |>
     httr2::req_timeout(client$timeout %||% 30)
   resp <- .hb_perform_raw(req, call = call)
@@ -144,8 +151,11 @@
   transient <- function(resp) {
     httr2::resp_status(resp) %in% c(429L, 500L, 502L, 503L, 504L)
   }
-  req <- httr2::request(base) |>
-    httr2::req_url_path(path) |>
+  # Build the full URL and hand it to request() rather than using
+  # req_url_path(): that re-encodes, turning an already-escaped %20 into
+  # %2520, and it leaves "/" alone, so a view named "a/b" would split into
+  # two path segments. .hb_base_path() has already escaped every segment.
+  req <- httr2::request(paste0(base, path)) |>
     httr2::req_user_agent(.hb_user_agent()) |>
     httr2::req_headers(
       # NULL drops the header, which is what `auth = "none"` wants: some
@@ -259,4 +269,33 @@
     return(invisible(NULL))
   }
   .hb_resp_json(resp, call = call)
+}
+
+#' An account client must name the base it wants
+#'
+#' An API token is issued for one base, so it identifies the base by
+#' itself. An account token is issued for the user, so the workspace and
+#' base have to be named explicitly.
+#'
+#' @param client A `harbour_client`.
+#' @param call The frame to blame for any error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_account_base <- function(client, call = rlang::caller_env()) {
+  absent <- c(
+    if (is.null(client$workspace_id)) "workspace_id",
+    if (is.null(client$base_name)) "base_name"
+  )
+  if (length(absent) > 0L) {
+    hb_abort(
+      c("A username/password client must name the base it works on.",
+        "x" = "Missing: {.arg {absent}}.",
+        "i" = "Pass them to {.fn hb_client}, or use an {.arg api_token},
+               which is scoped to a single base."),
+      class = "harbour_error_auth",
+      call = call
+    )
+  }
+  invisible(NULL)
 }
