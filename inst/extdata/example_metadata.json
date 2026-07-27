@@ -1,20 +1,43 @@
 {
   "base_name": "harbouR demo base",
   "tables": [
-    {"name": "Samples", "columns": [
-      {"name": "Name", "type": "text"},
-      {"name": "Concentration", "type": "number"},
-      {"name": "Status", "type": "single-select"},
-      {"name": "Tags", "type": "multiple-select"},
-      {"name": "Collected", "type": "date"},
-      {"name": "Collaborators", "type": "collaborator"},
-      {"name": "Reports", "type": "file"}
-    ]},
-    {"name": "Patients", "columns": [
-      {"name": "Patient ID", "type": "text"},
-      {"name": "Age", "type": "number"},
-      {"name": "Consented", "type": "checkbox"},
-      {"name": "Last visit", "type": "date"}
-    ]}
+    {
+      "name": "Samples",
+      "columns": [
+        { "name": "Name", "type": "text", "key": "k1" },
+        { "name": "Concentration", "type": "number", "key": "k2" },
+        {
+          "name": "Status",
+          "type": "single-select",
+          "key": "k3",
+          "data": {
+            "options": [
+              { "name": "draft" },
+              { "name": "ready" },
+              { "name": "shipped" }
+            ]
+          }
+        },
+        { "name": "Tags", "type": "multiple-select", "key": "k4" },
+        { "name": "Collected", "type": "date", "key": "k5" },
+        { "name": "Collaborators", "type": "collaborator", "key": "k6" },
+        { "name": "Reports", "type": "file", "key": "k7" }
+      ],
+      "views": [
+        { "name": "Default", "type": "table", "is_default": true }
+      ]
+    },
+    {
+      "name": "Patients",
+      "columns": [
+        { "name": "Patient ID", "type": "text", "key": "p1" },
+        { "name": "Age", "type": "number", "key": "p2" },
+        { "name": "Consented", "type": "checkbox", "key": "p3" },
+        { "name": "Last visit", "type": "date", "key": "p4" }
+      ],
+      "views": [
+        { "name": "Default", "type": "table", "is_default": true }
+      ]
+    }
   ]
 }

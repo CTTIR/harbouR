@@ -1,5 +1,3 @@
-^_build\.R$
-^_coverage$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
@@ -7,14 +5,13 @@
 ^README\.Rmd$
 ^cran-comments\.md$
 ^LICENSE\.md$
-^.*\.svg$
+^harbouR icon\.svg$
 ^\.lintr$
 ^codecov\.yml$
-^\.Rproj\.user$
 ^data-raw$
+^dev$
 ^\.DS_Store$
 ^\.idea$
 ^\.vscode$
 ^doc$
 ^Meta$
-^dev$

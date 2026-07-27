@@ -13,7 +13,7 @@
 #' or endorsed by SeaTable GmbH.
 #'
 #' @keywords internal
-#' @importFrom rlang .data %||%
+#' @importFrom rlang %||%
 #' @importFrom tibble tibble as_tibble
 "_PACKAGE"
 

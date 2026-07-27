@@ -133,7 +133,8 @@ print.harbour_metadata <- function(x, ...) {
               length(t$rows %||% list()))
     }, character(1))
     cli::cli_text("")
-    for (line in utils::head(overview, 10L)) cli::cli_text("  - {line}")
+    shown <- overview[seq_len(min(10L, length(overview)))]
+    for (line in shown) cli::cli_text("  - {line}")
     if (length(overview) > 10L) {
       cli::cli_text("  ... and {length(overview) - 10L} more.")
     }

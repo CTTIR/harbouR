@@ -6,10 +6,12 @@
 
 ## Test environments
 
-* local: macOS, R 4.6.0
+* local: x86_64-pc-linux-gnu (Ubuntu 24.04), R 4.6.1
 * GitHub Actions: ubuntu (release, devel, oldrel-1), macOS, windows
 
 ## Notes
 
-* All tests, examples and vignettes run fully offline; HTTP traffic is
-  mocked with `httptest2` and the bundled offline fixtures.
+* All tests, examples and vignettes run fully offline. HTTP traffic is
+  replaced at the package's internal request seam, and the bundled
+  offline fixtures under `inst/extdata/` supply the example base. No
+  check-time code contacts a network service.

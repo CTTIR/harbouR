@@ -31,19 +31,17 @@ Imports:
     cli,
     curl,
     httr2,
+    jsonlite,
     lubridate,
     rlang,
     tibble,
     tools
 Suggests:
     bslib,
-    covr,
     dplyr,
     DT,
     ggplot2,
-    httptest2,
     knitr,
-    pkgdown,
     reactable,
     rmarkdown,
     shiny,
@@ -54,4 +52,5 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
-Config/Needs/website: CTTIR/themakR
+Config/Needs/website: CTTIR/themakR, pkgdown
+Config/Needs/coverage: covr

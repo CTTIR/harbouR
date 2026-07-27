@@ -5,6 +5,11 @@
 #' the returned object matches what the SeaTable metadata endpoint would
 #' yield.
 #'
+#' The base is defined once, in `inst/extdata/example_metadata.json`, and
+#' parsed on each call. Keeping it in a data file rather than in R source
+#' means the demo base is also readable from outside R, and there is only
+#' one definition to keep in step with the coercion layer.
+#'
 #' @return A `harbour_metadata` object describing a tiny base with two
 #'   tables: `Samples` and `Patients`.
 #' @family example data
@@ -13,35 +18,15 @@
 #' tibble::as_tibble(meta)
 #' @export
 hb_example_metadata <- function() {
-  tables <- list(
-    list(
-      name = "Samples",
-      columns = list(
-        list(name = "Name", type = "text", key = "k1"),
-        list(name = "Concentration", type = "number", key = "k2"),
-        list(name = "Status", type = "single-select", key = "k3",
-             data = list(options = list(list(name = "draft"),
-                                        list(name = "ready"),
-                                        list(name = "shipped")))),
-        list(name = "Tags", type = "multiple-select", key = "k4"),
-        list(name = "Collected", type = "date", key = "k5"),
-        list(name = "Collaborators", type = "collaborator", key = "k6"),
-        list(name = "Reports", type = "file", key = "k7")
-      ),
-      views = list(list(name = "Default", type = "table", is_default = TRUE))
-    ),
-    list(
-      name = "Patients",
-      columns = list(
-        list(name = "Patient ID", type = "text", key = "p1"),
-        list(name = "Age", type = "number", key = "p2"),
-        list(name = "Consented", type = "checkbox", key = "p3"),
-        list(name = "Last visit", type = "date", key = "p4")
-      ),
-      views = list(list(name = "Default", type = "table", is_default = TRUE))
-    )
+  path <- system.file("extdata", "example_metadata.json", package = "harbouR")
+  if (!nzchar(path)) {
+    cli::cli_abort("Could not locate the bundled example metadata.")
+  }
+  body <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  new_harbour_metadata(
+    list(tables = body$tables),
+    base_name = body$base_name
   )
-  new_harbour_metadata(list(tables = tables), base_name = "harbouR demo base")
 }
 
 #' Offline example rows

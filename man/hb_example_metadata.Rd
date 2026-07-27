@@ -16,6 +16,12 @@ tests, the column-types vignette and the Shiny demo mode. The shape of
 the returned object matches what the SeaTable metadata endpoint would
 yield.
 }
+\details{
+The base is defined once, in \code{inst/extdata/example_metadata.json}, and
+parsed on each call. Keeping it in a data file rather than in R source
+means the demo base is also readable from outside R, and there is only
+one definition to keep in step with the coercion layer.
+}
 \examples{
 meta <- hb_example_metadata()
 tibble::as_tibble(meta)
