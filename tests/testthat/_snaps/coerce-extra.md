@@ -59,13 +59,7 @@
             {
               "type": "list",
               "attributes": {},
-              "value": [
-                {
-                  "type": "list",
-                  "attributes": {},
-                  "value": []
-                }
-              ]
+              "value": []
             }
           ]
         },

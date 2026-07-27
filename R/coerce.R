@@ -89,16 +89,14 @@ hb_column_types <- function() {
 #' @keywords internal
 #' @noRd
 .hb_list_types <- function() {
-  types <- hb_column_types()
-  types$seatable[types$is_list]
+  .hb_type_lookup()$list_types
 }
 
 #' Column types that cannot be written
 #' @keywords internal
 #' @noRd
 .hb_readonly_types <- function() {
-  types <- hb_column_types()
-  types$seatable[types$read_only]
+  .hb_type_lookup()$read_only
 }
 
 #' @keywords internal
@@ -125,113 +123,183 @@ hb_column_types <- function() {
   cols
 }
 
+#' The R prototype each SeaTable column type reads as
+#'
+#' One table, consulted by both the empty-column and the empty-cell paths,
+#' so the two can no longer disagree. They previously encoded the same
+#' knowledge twice and had drifted: a `multiple-select` column produced a
+#' `character` vector for a populated cell and a `list` for an empty one,
+#' which breaks `tidyr::unnest()`, `purrr::map_chr()` and `vctrs`.
+#'
+#' @param type A SeaTable column type.
+#' @return A zero-length vector of the right type.
 #' @keywords internal
 #' @noRd
-.hb_empty_vector_for_type <- function(type) {
-  switch(type %||% "text",
-    "text" = ,
-    "long-text" = ,
-    "email" = ,
-    "url" = ,
-    "auto-number" = ,
-    "single-select" = ,
-    "formula" = ,
-    "creator" = ,
-    "last-modifier" = character(),
-    "number" = double(),
-    "rate" = integer(),
-    "checkbox" = logical(),
-    "date" = as.POSIXct(character(), tz = "UTC"),
-    "ctime" = ,
-    "mtime" = as.POSIXct(character(), tz = "UTC"),
-    "multiple-select" = ,
-    "collaborator" = ,
-    "image" = ,
-    "file" = ,
-    "link" = ,
-    "link-formula" = ,
-    "geolocation" = ,
-    "button" = list(),
+.hb_prototype <- function(type) {
+  type <- type %||% "text"
+  if (type %in% .hb_list_types()) {
+    return(list())
+  }
+  switch(
+    .hb_r_type(type),
+    double = double(),
+    integer = integer(),
+    logical = logical(),
+    POSIXct = .POSIXct(double(), tz = "UTC"),
     character()
   )
 }
 
+#' Cached views of the column-type table
+#'
+#' `hb_column_types()` builds a tibble. Reading a base means one type
+#' lookup per cell - the real example file is 330 columns x 839 rows - so
+#' the derived vectors are computed once and reused.
+#'
 #' @keywords internal
 #' @noRd
-.hb_parse_date_value <- function(x) {
-  if (is.null(x) || (is.character(x) && !nzchar(x))) {
-    return(as.POSIXct(NA, tz = "UTC"))
+.hb_type_cache <- new.env(parent = emptyenv())
+
+#' @rdname dot-hb_type_cache
+#' @keywords internal
+#' @noRd
+.hb_type_lookup <- function() {
+  if (is.null(.hb_type_cache$r_type)) {
+    types <- hb_column_types()
+    .hb_type_cache$r_type <- stats::setNames(
+      sub("<.*", "", types$r), types$seatable
+    )
+    .hb_type_cache$is_list <- stats::setNames(types$is_list, types$seatable)
+    .hb_type_cache$read_only <- types$seatable[types$read_only]
+    .hb_type_cache$list_types <- types$seatable[types$is_list]
+  }
+  .hb_type_cache
+}
+
+#' The R type name harbouR reads a SeaTable type as
+#'
+#' Derived from [hb_column_types()], so the mapping cannot drift from the
+#' documentation.
+#'
+#' @param type A SeaTable column type.
+#' @return A single string.
+#' @keywords internal
+#' @noRd
+.hb_r_type <- function(type) {
+  # An unrecognised type - a future SeaTable release, or a typo - reads as
+  # text rather than erroring, so a new column type cannot break a read.
+  hit <- .hb_type_lookup()$r_type[type %||% "text"]
+  if (is.na(hit)) "character" else unname(hit)
+}
+
+#' @rdname dot-hb_prototype
+#' @keywords internal
+#' @noRd
+.hb_empty_vector_for_type <- function(type) {
+  .hb_prototype(type)
+}
+
+#' Parse a SeaTable date value
+#'
+#' SeaTable writes dates in several shapes depending on the column's own
+#' format, and the system columns `_ctime` / `_mtime` use full ISO-8601
+#' with a UTC offset - `2025-11-28T14:00:24.395+00:00`. The previous
+#' `orders` list covered none of the offset-bearing forms, so every
+#' creation and modification time read as `NA`.
+#'
+#' @param x A scalar date value: string, number, or `POSIXt`.
+#' @param tz Time zone to interpret naive strings in. Values that carry an
+#'   offset are converted from it.
+#' @return A length-1 `POSIXct`, possibly `NA`.
+#' @keywords internal
+#' @noRd
+.hb_parse_date_value <- function(x, tz = "UTC") {
+  if (is.null(x) || length(x) == 0L) {
+    return(.POSIXct(NA_real_, tz = tz))
   }
   if (inherits(x, "POSIXt")) {
     return(as.POSIXct(x))
   }
+  if (inherits(x, "Date")) {
+    return(as.POSIXct(format(x), tz = tz))
+  }
   if (is.numeric(x)) {
-    return(as.POSIXct(x, origin = "1970-01-01", tz = "UTC"))
+    return(.POSIXct(as.double(x), tz = tz))
   }
   s <- as.character(x)
-  parsed <- suppressWarnings(lubridate::parse_date_time(
-    s,
-    orders = c("Y-m-d H:M:S", "Y-m-d H:M", "Y-m-d", "Y/m/d"),
-    tz = "UTC"
-  ))
-  if (is.na(parsed)) {
-    return(as.POSIXct(NA, tz = "UTC"))
+  if (!nzchar(s) || is.na(s)) {
+    return(.POSIXct(NA_real_, tz = tz))
   }
-  parsed
+  # ymd_hms handles the T separator, fractional seconds and offsets; the
+  # fallbacks cover date-time without seconds and date-only columns.
+  parsed <- suppressWarnings(lubridate::ymd_hms(s, tz = tz, quiet = TRUE))
+  if (is.na(parsed)) {
+    parsed <- suppressWarnings(lubridate::ymd_hm(s, tz = tz, quiet = TRUE))
+  }
+  if (is.na(parsed)) {
+    day <- suppressWarnings(lubridate::ymd(s, tz = tz, quiet = TRUE))
+    parsed <- if (is.na(day)) .POSIXct(NA_real_, tz = tz) else as.POSIXct(day)
+  }
+  as.POSIXct(parsed)
 }
 
+#' Coerce one SeaTable cell to its R representation
+#'
+#' @param value The raw JSON value, or `NULL` when the cell is absent.
+#' @param type The SeaTable column type.
+#' @param tz Time zone for date parsing.
+#' @return A length-1 vector, or a list for list-typed columns. Empty and
+#'   populated cells of the same column always agree in type.
 #' @keywords internal
 #' @noRd
-.hb_coerce_cell <- function(value, type) {
-  if (is.null(value)) {
-    return(switch(type %||% "text",
-      "number" = NA_real_,
-      "rate" = NA_integer_,
-      "checkbox" = NA,
-      "date" = ,
-      "ctime" = ,
-      "mtime" = as.POSIXct(NA, tz = "UTC"),
-      "multiple-select" = ,
-      "collaborator" = ,
-      "image" = ,
-      "file" = ,
-      "link" = ,
-      "link-formula" = ,
-      "geolocation" = ,
-      "button" = list(),
+.hb_coerce_cell <- function(value, type, tz = "UTC") {
+  type <- type %||% "text"
+  # An absent cell yields the column's prototype, so the empty and
+  # populated branches cannot disagree about the resulting type.
+  if (is.null(value) || length(value) == 0L) {
+    # A list-column's *elements* are vectors, so an empty multiple-select
+    # cell is character(0) - matching what a populated one yields - while
+    # the column prototype used for a row-less table is list().
+    if (type %in% c("multiple-select", "collaborator", "image")) {
+      return(character())
+    }
+    if (type %in% .hb_list_types()) {
+      return(list())
+    }
+    return(switch(
+      .hb_r_type(type),
+      double = NA_real_,
+      integer = NA_integer_,
+      logical = NA,
+      POSIXct = .POSIXct(NA_real_, tz = tz),
       NA_character_
     ))
   }
-  switch(type %||% "text",
-    "text" = ,
-    "long-text" = ,
-    "email" = ,
-    "url" = ,
-    "auto-number" = ,
-    "single-select" = ,
-    "formula" = ,
-    "creator" = ,
-    "last-modifier" = as.character(value),
-    "number" = tryCatch(as.double(value),
-      warning = function(w) NA_real_,
-      error = function(e) NA_real_
+  if (type %in% c("date", "ctime", "mtime")) {
+    return(.hb_parse_date_value(value, tz = tz))
+  }
+  # long-text arrives either as a plain string or as an object carrying
+  # the rendered text alongside its images, links and checklist.
+  if (type == "long-text" && is.list(value)) {
+    return(as.character(value$text %||% NA_character_))
+  }
+  if (type %in% c("multiple-select", "collaborator", "image")) {
+    return(as.character(unlist(value, use.names = FALSE)))
+  }
+  if (type %in% .hb_list_types()) {
+    return(if (is.list(value)) unname(value) else list(value))
+  }
+  switch(
+    .hb_r_type(type),
+    double = tryCatch(as.double(value),
+      warning = function(cnd) NA_real_,
+      error = function(cnd) NA_real_
     ),
-    "rate" = tryCatch(as.integer(value),
-      warning = function(w) NA_integer_,
-      error = function(e) NA_integer_
+    integer = tryCatch(as.integer(value),
+      warning = function(cnd) NA_integer_,
+      error = function(cnd) NA_integer_
     ),
-    "checkbox" = isTRUE(as.logical(value)),
-    "date" = ,
-    "ctime" = ,
-    "mtime" = .hb_parse_date_value(value),
-    "multiple-select" = ,
-    "collaborator" = ,
-    "image" = as.character(unlist(value, use.names = FALSE)),
-    "file" = ,
-    "link" = ,
-    "link-formula" = ,
-    "geolocation" = ,
-    "button" = list(value),
+    logical = isTRUE(as.logical(value)),
     as.character(value)
   )
 }
@@ -246,41 +314,34 @@ hb_column_types <- function() {
 #'
 #' @keywords internal
 #' @noRd
-.hb_rows_to_tibble <- function(rows, columns) {
+.hb_rows_to_tibble <- function(rows, columns, by = c("name", "key"),
+                               tz = "UTC") {
+  by <- rlang::arg_match(by)
   if (length(columns) == 0L) {
-    return(tibble::tibble())
+    # Documented to always carry _id, so a column-less table is 0 x 1,
+    # not 0 x 0.
+    return(tibble::tibble(`_id` = character()))
   }
+  col_names <- .hb_chr_field(columns, "name")
+  col_types <- .hb_chr_field(columns, "type", default = "text")
+  # The API keys cells by display name; a .dtable file keys them by the
+  # column's 4-character key. One lookup vector serves both.
+  lookup <- if (by == "key") .hb_chr_field(columns, "key") else col_names
+
   out <- vector("list", length(columns))
-  names(out) <- .hb_chr_field(columns, "name")
+  names(out) <- col_names
   for (i in seq_along(columns)) {
-    col <- columns[[i]]
-    type <- col$type %||% "text"
-    name <- col$name
+    type <- col_types[[i]]
     if (length(rows) == 0L) {
-      out[[i]] <- .hb_empty_vector_for_type(type)
+      out[[i]] <- .hb_prototype(type)
       next
     }
-    raw <- lapply(rows, function(r) r[[name]])
-    coerced <- lapply(raw, .hb_coerce_cell, type = type)
-    if (.hb_is_list_type(type)) {
-      out[[i]] <- coerced
-    } else if (type == "number") {
-      out[[i]] <- .hb_first(coerced, NA_real_, as.double, double(1))
-    } else if (type == "rate") {
-      out[[i]] <- .hb_first(coerced, NA_integer_, as.integer, integer(1))
-    } else if (type == "checkbox") {
-      out[[i]] <- .hb_first(coerced, NA, isTRUE, logical(1))
-    } else if (type %in% c("date", "ctime", "mtime")) {
-      out[[i]] <- do.call(c, lapply(coerced, function(value) {
-        if (length(value) == 0L) {
-          as.POSIXct(NA, tz = "UTC")
-        } else {
-          as.POSIXct(value, tz = "UTC")
-        }
-      }))
-    } else {
-      out[[i]] <- .hb_first(coerced, NA_character_, as.character, character(1))
-    }
+    field <- lookup[[i]]
+    # A cell that was never filled in is absent from the row object
+    # entirely, not present as null, so [[ ]] returning NULL is normal.
+    raw <- lapply(rows, function(row) row[[field]])
+    coerced <- lapply(raw, .hb_coerce_cell, type = type, tz = tz)
+    out[[i]] <- .hb_collect_column(coerced, type, tz = tz)
   }
   if ("_id" %in% names(out)) {
     hb_abort(
@@ -302,7 +363,40 @@ hb_column_types <- function() {
   } else {
     character()
   }
-  tibble::as_tibble(out)
+  tibble::as_tibble(out, .name_repair = "minimal")
+}
+
+#' Assemble coerced cells into one column of the right type
+#'
+#' @param coerced A list of coerced cell values, one per row.
+#' @param type The SeaTable column type.
+#' @param tz Time zone for date columns.
+#' @return An atomic vector, or a list for list-typed columns.
+#' @keywords internal
+#' @noRd
+.hb_collect_column <- function(coerced, type, tz = "UTC") {
+  if (type %in% .hb_list_types()) {
+    return(coerced)
+  }
+  switch(
+    .hb_r_type(type),
+    double = .hb_first(coerced, NA_real_, as.double, double(1)),
+    integer = .hb_first(coerced, NA_integer_, as.integer, integer(1)),
+    logical = .hb_first(coerced, NA, isTRUE, logical(1)),
+    POSIXct = {
+      # One vectorised construction rather than a closure per cell: the
+      # real example base is 330 columns x 839 rows.
+      seconds <- vapply(
+        coerced,
+        function(value) {
+          if (length(value) == 0L) NA_real_ else as.double(value[[1L]])
+        },
+        double(1)
+      )
+      .POSIXct(seconds, tz = tz)
+    },
+    .hb_first(coerced, NA_character_, as.character, character(1))
+  )
 }
 
 #' @keywords internal

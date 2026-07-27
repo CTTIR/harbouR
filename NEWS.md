@@ -57,6 +57,32 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+* **Dates parse.** `_ctime` and `_mtime` come back as full ISO-8601 with a
+  UTC offset - `2025-11-28T14:00:24.395+00:00` - and the parser's format
+  list covered none of the offset-bearing forms, so every creation and
+  modification time read as `NA`. It now handles the `T` separator,
+  fractional seconds and offsets, and honours the offset instead of
+  discarding it.
+
+* **List-columns are type-stable.** A `multiple-select` column yielded a
+  `character` vector for a populated cell and a `list` for an empty one, so
+  `tidyr::unnest()`, `purrr::map_chr()` and `vctrs` all failed on a table
+  containing a single blank cell. Empty and populated cells now agree, for
+  all 28 types, and a contract test asserts it type by type.
+
+* Reading a table with no columns returns a 0-row tibble carrying `_id`,
+  as documented, rather than a 0x0 tibble.
+
+* An unrecognised column type reads as text rather than erroring, so a
+  future SeaTable release cannot break a read.
+
+* `long-text` cells that arrive as an object rather than a string yield
+  their text instead of a mangled coercion.
+
+* Reading is roughly 70x faster: the type lookup rebuilt the column-type
+  tibble once per cell. Reading the whole of a real 10-table base went from
+  27s to 0.4s.
+
 * **Breaking:** `hb_read_table(limit =)` is now `page_size =`, and there is
   a new `n_max =`. The old argument was documented as a page size but was
   also used as the stop condition, so `limit = 5000` returned 1000 rows and

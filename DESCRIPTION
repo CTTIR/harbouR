@@ -34,6 +34,7 @@ Imports:
     jsonlite,
     lubridate,
     rlang,
+    stats,
     tibble,
     tools
 Suggests:
