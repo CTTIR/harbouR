@@ -9,6 +9,13 @@ navbar:
   bg: dark
 
 reference:
+- title: Errors
+  desc: >
+    Every error harbouR raises carries a condition class, so callers can
+    react to what went wrong rather than matching on message text.
+  contents:
+  - harbouR-conditions
+
 - title: Client & authentication
   contents:
   - hb_client
