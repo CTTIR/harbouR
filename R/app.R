@@ -22,15 +22,20 @@
 #' @examplesIf interactive()
 #' hb_run_explorer()
 #' @export
-hb_run_explorer <- function(client = NULL, ..., host = "127.0.0.1", port = NULL) {
+hb_run_explorer <- function(client = NULL,
+                            ...,
+                            host = "127.0.0.1",
+                            port = NULL) {
   needed <- c("shiny", "bslib", "DT", "reactable", "ggplot2")
-  missing <- needed[!vapply(needed, requireNamespace, logical(1), quietly = TRUE)]
+  present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
+  missing <- needed[!present]
   if (length(missing) > 0L) {
-    hb_abort(c(
-      "The harbouR explorer needs additional packages.",
-      "x" = "Missing: {.pkg {missing}}.",
-      "i" = "Install with: {.code install.packages(c({paste0('\"', missing, '\"', collapse = ', ')}))}."
-    ),
+    hb_abort(
+      c(
+        "The harbouR explorer needs additional packages.",
+        "x" = "Missing: {.pkg {missing}}.",
+        "i" = "Install them with {.code install.packages()}."
+      ),
       class = "harbour_error_unsupported"
     )
   }

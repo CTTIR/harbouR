@@ -8,8 +8,8 @@
       * base : "harbouR demo base"
       * tables : 2
       
-      - Samples (7 cols, 0 rows)
-      - Patients (4 cols, 0 rows)
+      - Samples (7 cols, 1 views)
+      - Patients (4 cols, 1 views)
 
 # summary.harbour_metadata renders the column breakdown
 

@@ -54,19 +54,27 @@ hb_example_rows <- function(table = c("Samples", "Patients")) {
       Concentration = c(12.4, 8.1, 21.0),
       Status = c("draft", "ready", "shipped"),
       Tags = list(c("urgent", "blood"), character(), c("plasma")),
-      Collected = as.POSIXct(c("2026-04-01 09:00", "2026-04-03 12:30",
-                                "2026-04-05 16:15"), tz = "UTC"),
-      Collaborators = list(c("amy@example.org"),
-                           c("amy@example.org", "ben@example.org"),
-                           character()),
+      Collected = as.POSIXct(c(
+        "2026-04-01 09:00", "2026-04-03 12:30",
+        "2026-04-05 16:15"
+      ), tz = "UTC"),
+      Collaborators = list(
+        c("amy@example.org"),
+        c("amy@example.org", "ben@example.org"),
+        character()
+      ),
       Reports = list(
-        list(list(name = "S-001.pdf", size = 1234,
-                  type = "application/pdf",
-                  url = "https://example.org/files/S-001.pdf")),
+        list(list(
+          name = "S-001.pdf", size = 1234,
+          type = "application/pdf",
+          url = "https://example.org/files/S-001.pdf"
+        )),
         list(),
-        list(list(name = "S-003.pdf", size = 4567,
-                  type = "application/pdf",
-                  url = "https://example.org/files/S-003.pdf"))
+        list(list(
+          name = "S-003.pdf", size = 4567,
+          type = "application/pdf",
+          url = "https://example.org/files/S-003.pdf"
+        ))
       ),
       `_id` = c("r0001", "r0002", "r0003")
     ),
@@ -74,8 +82,10 @@ hb_example_rows <- function(table = c("Samples", "Patients")) {
       `Patient ID` = c("P-1", "P-2", "P-3", "P-4"),
       Age = c(34, 71, 52, 19),
       Consented = c(TRUE, TRUE, FALSE, TRUE),
-      `Last visit` = as.POSIXct(c("2026-03-12", "2026-04-08",
-                                   "2026-02-19", "2026-05-21"), tz = "UTC"),
+      `Last visit` = as.POSIXct(c(
+        "2026-03-12", "2026-04-08",
+        "2026-02-19", "2026-05-21"
+      ), tz = "UTC"),
       `_id` = c("p1", "p2", "p3", "p4")
     )
   )

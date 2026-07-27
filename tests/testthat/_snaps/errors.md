@@ -23,7 +23,7 @@
     Condition
       Error in `hb_client()`:
       ! No credentials supplied.
-      i Provide `api_token` or `username` and `password`, or set `SEATABLE_API_TOKEN`.
+      i Provide `api_token`, or `username` and `password`, or set `SEATABLE_API_TOKEN`.
 
 ---
 
@@ -32,7 +32,7 @@
         password = "p")
     Condition
       Error in `hb_client()`:
-      ! Supply either `api_token` or `username`/`password`, not both.
+      ! Supply either `api_token` or `username` and `password`, not both.
 
 # scalar validators name the argument and the bad value
 

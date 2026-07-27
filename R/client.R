@@ -50,7 +50,8 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
   if (!grepl("^https?://", server)) {
     hb_abort(
       c("{.arg server} must begin with {.val http://} or {.val https://}.",
-        "x" = "You supplied {.val {server}}."),
+        "x" = "You supplied {.val {server}}."
+      ),
       class = "harbour_error_bad_argument"
     )
   }
@@ -60,14 +61,17 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
   has_acct <- !is.null(username) || !is.null(password)
   if (has_api && has_acct) {
     hb_abort(
-      "Supply either {.arg api_token} or {.arg username}/{.arg password}, not both.",
+      c("Supply either {.arg api_token} or {.arg username} and
+         {.arg password}, not both."),
       class = "harbour_error_auth"
     )
   }
   if (!has_api && !has_acct) {
     hb_abort(
       c("No credentials supplied.",
-        "i" = "Provide {.arg api_token} or {.arg username} and {.arg password}, or set {.envvar SEATABLE_API_TOKEN}."),
+        "i" = "Provide {.arg api_token}, or {.arg username} and
+               {.arg password}, or set {.envvar SEATABLE_API_TOKEN}."
+      ),
       class = "harbour_error_auth"
     )
   }
@@ -115,17 +119,20 @@ new_harbour_client <- function(server, api_token, username, password,
 #' @noRd
 validate_harbour_client <- function(x, call = rlang::caller_env()) {
   if (!inherits(x, "harbour_client")) {
-    hb_abort("Object is not a {.cls harbour_client}.", call = call,
+    hb_abort("Object is not a {.cls harbour_client}.",
+      call = call,
       class = "harbour_error_bad_argument"
     )
   }
   if (!is.environment(x)) {
-    hb_abort("A {.cls harbour_client} must be environment-backed.", call = call,
+    hb_abort("A {.cls harbour_client} must be environment-backed.",
+      call = call,
       class = "harbour_error_bad_argument"
     )
   }
   if (is.null(x$server)) {
-    hb_abort("A {.cls harbour_client} must have a {.field server}.", call = call,
+    hb_abort("A {.cls harbour_client} must have a {.field server}.",
+      call = call,
       class = "harbour_error_bad_argument"
     )
   }
@@ -146,19 +153,26 @@ is_harbour_client <- function(x) inherits(x, "harbour_client")
 #' @export
 print.harbour_client <- function(x, ...) {
   rlang::check_dots_empty()
-  auth_mode <- if (!is.null(x$api_token)) "api_token" else "username/password"
-  token_masked <- .mask_token(x$api_token %||% x$.account_token)
-  base_name <- x$.base_name %||% "<not yet fetched>"
-  base_uuid <- x$base_uuid %||% "<unknown>"
-  expires <- format(x$.base_token_expires)
   cli::cli_h1("<harbour_client>")
-  cli::cli_bullets(c(
-    "*" = "server   : {.url {x$server}}",
-    "*" = "auth     : {auth_mode}",
-    "*" = "token    : {.val {token_masked}}",
-    "*" = "base     : {.val {base_name}}",
-    "*" = "base uuid: {.val {base_uuid}}",
-    "*" = "expires  : {.val {expires}}"
-  ))
+  lines <- format(x)
+  names(lines) <- rep("*", length(lines))
+  cli::cli_bullets(lines)
   invisible(x)
+}
+
+#' @param x A `harbour_client`.
+#' @param ... Unused.
+#' @rdname hb_client
+#' @export
+format.harbour_client <- function(x, ...) {
+  rlang::check_dots_empty()
+  auth_mode <- if (!is.null(x$api_token)) "api_token" else "username/password"
+  c(
+    sprintf("server   : %s", x$server),
+    sprintf("auth     : %s", auth_mode),
+    sprintf("token    : %s", .mask_token(x$api_token %||% x$.account_token)),
+    sprintf("base     : %s", x$.base_name %||% "<not yet fetched>"),
+    sprintf("base uuid: %s", x$base_uuid %||% "<unknown>"),
+    sprintf("expires  : %s", .hb_format_expiry(x$.base_token_expires))
+  )
 }

@@ -21,14 +21,17 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
   .check_client(client)
   .check_string(path)
   if (!file.exists(path)) {
-    hb_abort(c("File not found.",
-                     "x" = "{.path {path}}"),
+    hb_abort(
+      c("File not found.",
+        "x" = "{.path {path}}"
+      ),
       class = "harbour_error_not_found"
     )
   }
   .check_string(relative_path)
   link <- .hb_request(client, "/api/v2.1/dtable/app-upload-link/",
-                      service = "web", auth = "api", method = "GET")
+    service = "web", auth = "api", method = "GET"
+  )
   upload_url <- link$upload_link %||% link$url
   parent_dir <- link$parent_path %||% "/"
   if (is.null(upload_url)) {
@@ -69,9 +72,12 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
     "csv" = "text/csv",
     "tsv" = "text/tab-separated-values",
     "txt" = "text/plain",
-    "md"  = "text/markdown",
+    "md" = "text/markdown",
     "json" = "application/json",
-    "xlsx" = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "xlsx" = paste0(
+      "application/vnd.openxmlformats-officedocument",
+      ".spreadsheetml.sheet"
+    ),
     "application/octet-stream"
   )
 }
@@ -130,7 +136,8 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
     hb_abort(
       c("Destination already exists.",
         "x" = "{.path {dest}}",
-        "i" = "Pass {.code overwrite = TRUE} to replace it."),
+        "i" = "Pass {.code overwrite = TRUE} to replace it."
+      ),
       class = "harbour_error_bad_argument"
     )
   }
@@ -143,7 +150,8 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
   if (httr2::resp_status(resp) >= 400L) {
     hb_abort(
       c("Download failed.",
-        "x" = "HTTP {httr2::resp_status(resp)}"),
+        "x" = "HTTP {httr2::resp_status(resp)}"
+      ),
       class = "harbour_error_bad_argument"
     )
   }
@@ -165,7 +173,8 @@ hb_delete_asset <- function(client, url, ...) {
   .check_client(client)
   .check_string(url)
   .hb_request(client, "/api/v2.1/dtable/asset/",
-              service = "web", auth = "api", method = "DELETE",
-              body = list(url = url))
+    service = "web", auth = "api", method = "DELETE",
+    body = list(url = url)
+  )
   invisible(client)
 }

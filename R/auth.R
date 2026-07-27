@@ -20,12 +20,15 @@ hb_ping <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   rlang::try_fetch(
-    .hb_request(client, "/api2/ping/", service = "web", auth = "none",
-                method = "GET"),
+    .hb_request(client, "/api2/ping/",
+      service = "web", auth = "none",
+      method = "GET"
+    ),
     error = function(cnd) {
       hb_abort(
         c("Could not reach {.url {client$server}}.",
-          "i" = "Check the server URL and your network connection."),
+          "i" = "Check the server URL and your network connection."
+        ),
         class = "harbour_error_http",
         parent = cnd
       )
@@ -83,8 +86,10 @@ hb_check_credentials <- function(client, ...) {
 hb_server_info <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
-  body <- .hb_request(client, "/server-info/", service = "web", auth = "none",
-                      method = "GET")
+  body <- .hb_request(client, "/server-info/",
+    service = "web", auth = "none",
+    method = "GET"
+  )
   tibble::tibble(
     server = client$server,
     version = body$version %||% NA_character_,

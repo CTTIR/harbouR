@@ -22,9 +22,10 @@ hb_create_table <- function(client, table, ..., columns = list()) {
     )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
-              service = "dtable_server", auth = "base", method = "POST",
-              body = list(table_name = table, columns = columns))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "POST",
+    body = list(table_name = table, columns = columns)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -45,9 +46,10 @@ hb_rename_table <- function(client, table, new_name, ...) {
   .check_string(table)
   .check_string(new_name)
   .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = list(table_name = table, new_table_name = new_name))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = list(table_name = table, new_table_name = new_name)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -66,9 +68,10 @@ hb_delete_table <- function(client, table, ...) {
   .check_client(client)
   .check_string(table)
   .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
-              service = "dtable_server", auth = "base", method = "DELETE",
-              body = list(table_name = table))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "DELETE",
+    body = list(table_name = table)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -91,8 +94,9 @@ hb_duplicate_table <- function(client, table, ..., new_name = NULL) {
   body <- list(table_name = table)
   if (!is.null(new_name)) body$new_table_name <- new_name
   .hb_request(client, "/dtable-server/api/v1/dtables/tables/duplicate/",
-              service = "dtable_server", auth = "base", method = "POST",
-              body = body)
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "POST",
+    body = body
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }

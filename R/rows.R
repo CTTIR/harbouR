@@ -25,7 +25,9 @@ hb_read_table <- function(client, table, ..., view = NULL, limit = 1000L) {
   .check_client(client)
   .check_string(table)
   .check_string(view, allow_null = TRUE)
-  if (!is.numeric(limit) || length(limit) != 1L || is.na(limit) || limit <= 0L) {
+  bad_limit <- !is.numeric(limit) || length(limit) != 1L ||
+    is.na(limit) || limit <= 0L
+  if (bad_limit) {
     hb_abort("{.arg limit} must be a positive integer.",
       class = "harbour_error_bad_argument"
     )
@@ -40,8 +42,9 @@ hb_read_table <- function(client, table, ..., view = NULL, limit = 1000L) {
     q <- list(table_name = table, start = start, limit = as.integer(limit))
     if (!is.null(view)) q$view_name <- view
     body <- .hb_request(client, "/dtable-server/api/v1/dtables/rows/",
-                        service = "dtable_server", auth = "base",
-                        method = "GET", query = q)
+      service = "dtable_server", auth = "base",
+      method = "GET", query = q
+    )
     chunk <- body$rows %||% list()
     rows <- c(rows, chunk)
     if (length(chunk) < limit) break
@@ -67,9 +70,10 @@ hb_query <- function(client, sql, ...) {
   .check_client(client)
   .check_string(sql)
   body <- .hb_request(client, "/dtable-db/api/v1/query/",
-                      service = "dtable_db", auth = "base",
-                      method = "POST",
-                      body = list(sql = sql, convert_keys = TRUE))
+    service = "dtable_db", auth = "base",
+    method = "POST",
+    body = list(sql = sql, convert_keys = TRUE)
+  )
   rows <- body$results %||% body$rows %||% list()
   if (length(rows) == 0L) {
     return(tibble::tibble())
@@ -77,10 +81,16 @@ hb_query <- function(client, sql, ...) {
   cols <- unique(unlist(lapply(rows, names), use.names = FALSE))
   out <- lapply(cols, function(cn) {
     vals <- lapply(rows, function(r) r[[cn]])
-    if (any(vapply(vals, function(v) is.list(v) || length(v) > 1L, logical(1)))) {
+    ragged <- vapply(
+      vals,
+      function(value) is.list(value) || length(value) > 1L,
+      logical(1)
+    )
+    if (any(ragged)) {
       vals
     } else {
-      v <- unlist(lapply(vals, function(x) if (is.null(x)) NA else x), use.names = FALSE)
+      filled <- lapply(vals, function(value) value %||% NA)
+      v <- unlist(filled, use.names = FALSE)
       v
     }
   })
@@ -142,10 +152,12 @@ hb_append_rows <- function(client, table, data, ...) {
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   rows <- .hb_tibble_to_rows(data, cols)
-  body <- .hb_request(client, "/dtable-server/api/v1/dtables/batch-append-rows/",
-                      service = "dtable_server", auth = "base",
-                      method = "POST",
-                      body = list(table_name = table, rows = rows))
+  body <- .hb_request(
+    client, "/dtable-server/api/v1/dtables/batch-append-rows/",
+    service = "dtable_server", auth = "base",
+    method = "POST",
+    body = list(table_name = table, rows = rows)
+  )
   created <- body$rows %||% body$first_row %||% rows
   .hb_rows_to_tibble(created, cols)
 }
@@ -162,8 +174,10 @@ hb_append_rows <- function(client, table, data, ...) {
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
-#' hb_update_rows(client, "Samples",
-#'                tibble::tibble(`_id` = "abc", Name = "renamed"))
+#' hb_update_rows(
+#'   client, "Samples",
+#'   tibble::tibble(`_id` = "abc", Name = "renamed")
+#' )
 #' @export
 hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
   rlang::check_dots_empty()
@@ -178,7 +192,8 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
   if (!row_id_col %in% names(data)) {
     hb_abort(
       c("Column {.field {row_id_col}} not present in {.arg data}.",
-        "i" = "Set {.arg row_id_col} to whichever column holds the row IDs."),
+        "i" = "Set {.arg row_id_col} to whichever column holds the row IDs."
+      ),
       class = "harbour_error_bad_argument"
     )
   }
@@ -191,16 +206,22 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id") {
       if (cn == row_id_col) next
       v <- data[[cn]][[r]]
       if (is.list(v)) v <- unlist(v, use.names = FALSE)
-      if (inherits(v, c("Date", "POSIXt"))) v <- format(v, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+      if (inherits(v, c("Date", "POSIXt"))) {
+        v <- format(v, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+      }
       row[[cn]] <- v
     }
-    updates[[r]] <- list(row_id = as.character(data[[row_id_col]][[r]]), row = row)
+    updates[[r]] <- list(
+      row_id = as.character(data[[row_id_col]][[r]]),
+      row = row
+    )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/batch-update-rows/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = list(table_name = table, updates = updates))
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = list(table_name = table, updates = updates)
+  )
   invisible(tibble::tibble(
-    row_id = vapply(updates, function(u) u$row_id, character(1)),
+    row_id = vapply(updates, function(update) update$row_id, character(1)),
     updated = rep(TRUE, length(updates))
   ))
 }
@@ -227,9 +248,13 @@ hb_delete_rows <- function(client, table, row_ids, ...) {
     )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/batch-delete-rows/",
-              service = "dtable_server", auth = "base", method = "DELETE",
-              body = list(table_name = table, row_ids = as.list(row_ids)))
-  invisible(tibble::tibble(row_id = row_ids, deleted = rep(TRUE, length(row_ids))))
+    service = "dtable_server", auth = "base", method = "DELETE",
+    body = list(table_name = table, row_ids = as.list(row_ids))
+  )
+  invisible(tibble::tibble(
+    row_id = row_ids,
+    deleted = rep(TRUE, length(row_ids))
+  ))
 }
 
 #' Lock rows
@@ -252,8 +277,9 @@ hb_lock_rows <- function(client, table, row_ids, ...) {
     )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/lock-rows/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = list(table_name = table, row_ids = as.list(row_ids)))
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = list(table_name = table, row_ids = as.list(row_ids))
+  )
   invisible(client)
 }
 
@@ -276,7 +302,8 @@ hb_unlock_rows <- function(client, table, row_ids, ...) {
     )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/unlock-rows/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = list(table_name = table, row_ids = as.list(row_ids)))
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = list(table_name = table, row_ids = as.list(row_ids))
+  )
   invisible(client)
 }

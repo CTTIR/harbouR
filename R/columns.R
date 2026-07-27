@@ -18,14 +18,17 @@ hb_list_columns <- function(client, table, ...) {
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   if (length(cols) == 0L) {
-    return(tibble::tibble(name = character(), type = character(),
-                          key = character(), editable = logical()))
+    return(tibble::tibble(
+      name = character(), type = character(),
+      key = character(), editable = logical()
+    ))
   }
+  types <- .hb_chr_field(cols, "type")
   tibble::tibble(
-    name = vapply(cols, function(c) as.character(c$name %||% NA_character_), character(1)),
-    type = vapply(cols, function(c) as.character(c$type %||% NA_character_), character(1)),
-    key = vapply(cols, function(c) as.character(c$key %||% NA_character_), character(1)),
-    editable = !vapply(cols, function(c) isTRUE(c$type %in% c("formula", "auto-number", "creator", "last-modifier", "ctime", "mtime", "link-formula", "button")), logical(1))
+    name = .hb_chr_field(cols, "name"),
+    type = types,
+    key = .hb_chr_field(cols, "key"),
+    editable = !types %in% .hb_readonly_types()
   )
 }
 
@@ -52,9 +55,10 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
   body <- list(table_name = table, column_name = name, column_type = type)
   if (!is.null(column_data)) body$column_data <- column_data
   .hb_request(client, "/dtable-server/api/v1/dtables/columns/",
-              service = "dtable_server", auth = "base", method = "POST",
-              body = body)
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "POST",
+    body = body
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -66,9 +70,13 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 #' @family columns
 #' @examplesIf interactive()
 #' client <- hb_client()
-#' hb_add_columns(client, "Samples",
-#'   list(list(column_name = "a", column_type = "text"),
-#'        list(column_name = "b", column_type = "number")))
+#' hb_add_columns(
+#'   client, "Samples",
+#'   list(
+#'     list(column_name = "a", column_type = "text"),
+#'     list(column_name = "b", column_type = "number")
+#'   )
+#' )
 #' @export
 hb_add_columns <- function(client, table, columns, ...) {
   rlang::check_dots_empty()
@@ -80,9 +88,10 @@ hb_add_columns <- function(client, table, columns, ...) {
     )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/batch-append-columns/",
-              service = "dtable_server", auth = "base", method = "POST",
-              body = list(table_name = table, columns = columns))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "POST",
+    body = list(table_name = table, columns = columns)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -107,9 +116,10 @@ hb_update_column <- function(client, table, name, ..., new_name = NULL,
   if (!is.null(new_name)) body$new_column_name <- new_name
   if (!is.null(column_data)) body$column_data <- column_data
   .hb_request(client, "/dtable-server/api/v1/dtables/columns/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = body)
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = body
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -128,9 +138,10 @@ hb_delete_column <- function(client, table, name, ...) {
   .check_string(table)
   .check_string(name)
   .hb_request(client, "/dtable-server/api/v1/dtables/columns/",
-              service = "dtable_server", auth = "base", method = "DELETE",
-              body = list(table_name = table, column = name))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "DELETE",
+    body = list(table_name = table, column = name)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -151,10 +162,13 @@ hb_add_select_option <- function(client, table, name, option, ...) {
   .check_string(name)
   .check_string(option)
   .hb_request(client, "/dtable-server/api/v1/dtables/column-options/",
-              service = "dtable_server", auth = "base", method = "POST",
-              body = list(table_name = table, column = name,
-                          options = list(list(name = option))))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "POST",
+    body = list(
+      table_name = table, column = name,
+      options = list(list(name = option))
+    )
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -168,7 +182,12 @@ hb_add_select_option <- function(client, table, name, option, ...) {
 #' client <- hb_client()
 #' hb_update_select_option(client, "Samples", "Status", "Done", "Complete")
 #' @export
-hb_update_select_option <- function(client, table, name, option, new_option, ...) {
+hb_update_select_option <- function(client,
+                                    table,
+                                    name,
+                                    option,
+                                    new_option,
+                                    ...) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
@@ -176,10 +195,13 @@ hb_update_select_option <- function(client, table, name, option, new_option, ...
   .check_string(option)
   .check_string(new_option)
   .hb_request(client, "/dtable-server/api/v1/dtables/column-options/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = list(table_name = table, column = name,
-                          option = option, new_option = new_option))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = list(
+      table_name = table, column = name,
+      option = option, new_option = new_option
+    )
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -199,8 +221,9 @@ hb_delete_select_option <- function(client, table, name, option, ...) {
   .check_string(name)
   .check_string(option)
   .hb_request(client, "/dtable-server/api/v1/dtables/column-options/",
-              service = "dtable_server", auth = "base", method = "DELETE",
-              body = list(table_name = table, column = name, option = option))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "DELETE",
+    body = list(table_name = table, column = name, option = option)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }

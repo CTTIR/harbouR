@@ -42,6 +42,21 @@
   plaintext token used to stay reachable in process-global state for the
   rest of the session.
 
+* `hb_column_types()` is now genuinely the single source of truth for the
+  coercion layer. It gains `is_list` and `read_only` logical columns, which
+  the coercion functions derive their type sets from instead of repeating
+  hard-coded vectors, and it covers five types it previously omitted:
+  `percent`, `dollar`, `euro`, `duration` and `digital-sign`.
+
+* **Breaking:** `hb_list_tables()` and `as_tibble()` on a `harbour_metadata`
+  no longer return an `n_rows` column. The metadata endpoint carries no row
+  payloads, so the value was structurally always `0` and told every user
+  their tables were empty.
+
+* New `format()` methods for `harbour_client` and `harbour_metadata`, so
+  their representation can be captured as a character vector rather than
+  only printed.
+
 * **Breaking:** the 39 scaffolded endpoints that only ever raised "not yet
   implemented" have been removed - `hb_list_links()`, `hb_create_base()`,
   `hb_export_table()`, the `hb_admin_*()` and `hb_team_*()` families, and

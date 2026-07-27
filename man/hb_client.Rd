@@ -3,6 +3,7 @@
 \name{hb_client}
 \alias{hb_client}
 \alias{print.harbour_client}
+\alias{format.harbour_client}
 \title{Create a SeaTable client}
 \usage{
 hb_client(
@@ -16,6 +17,8 @@ hb_client(
 )
 
 \method{print}{harbour_client}(x, ...)
+
+\method{format}{harbour_client}(x, ...)
 }
 \arguments{
 \item{server}{SeaTable server URL, e.g. \code{"https://cloud.seatable.io"}.

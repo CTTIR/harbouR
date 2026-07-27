@@ -17,7 +17,7 @@ hb_list_views <- function(client, table, ...) {
   .check_string(table)
   if (is.null(client$.metadata)) hb_metadata(client)
   tbls <- client$.metadata$tables
-  idx <- match(table, vapply(tbls, function(t) t$name %||% NA_character_, character(1)))
+  idx <- match(table, .hb_chr_field(tbls, "name"))
   if (is.na(idx)) {
     hb_abort("Table {.val {table}} not found.",
       class = "harbour_error_not_found"
@@ -25,13 +25,19 @@ hb_list_views <- function(client, table, ...) {
   }
   views <- tbls[[idx]]$views %||% list()
   if (length(views) == 0L) {
-    return(tibble::tibble(name = character(), type = character(),
-                          is_default = logical()))
+    return(tibble::tibble(
+      name = character(), type = character(),
+      is_default = logical()
+    ))
   }
   tibble::tibble(
-    name = vapply(views, function(v) as.character(v$name %||% NA_character_), character(1)),
-    type = vapply(views, function(v) as.character(v$type %||% NA_character_), character(1)),
-    is_default = vapply(views, function(v) isTRUE(v$is_default), logical(1))
+    name = .hb_chr_field(views, "name"),
+    type = .hb_chr_field(views, "type"),
+    is_default = vapply(
+      views,
+      function(view) isTRUE(view$is_default),
+      logical(1)
+    )
   )
 }
 
@@ -52,8 +58,9 @@ hb_get_view <- function(client, table, view, ...) {
   .check_string(table)
   .check_string(view)
   body <- .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-                      service = "dtable_server", auth = "base", method = "GET",
-                      query = list(table_name = table, view_name = view))
+    service = "dtable_server", auth = "base", method = "GET",
+    query = list(table_name = table, view_name = view)
+  )
   tibble::tibble(
     name = body$name %||% view,
     type = body$type %||% NA_character_,
@@ -81,9 +88,10 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
   body <- list(table_name = table, name = view)
   body <- c(body, settings)
   .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-              service = "dtable_server", auth = "base", method = "POST",
-              body = body)
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "POST",
+    body = body
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -108,9 +116,10 @@ hb_update_view <- function(client, table, view, settings, ...) {
   }
   body <- c(list(table_name = table, view_name = view), settings)
   .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-              service = "dtable_server", auth = "base", method = "PUT",
-              body = body)
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "PUT",
+    body = body
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }
 
@@ -130,8 +139,9 @@ hb_delete_view <- function(client, table, view, ...) {
   .check_string(table)
   .check_string(view)
   .hb_request(client, "/dtable-server/api/v1/dtables/views/",
-              service = "dtable_server", auth = "base", method = "DELETE",
-              body = list(table_name = table, view_name = view))
-  client$.metadata <- NULL
+    service = "dtable_server", auth = "base", method = "DELETE",
+    body = list(table_name = table, view_name = view)
+  )
+  .hb_invalidate_metadata(client)
   invisible(client)
 }

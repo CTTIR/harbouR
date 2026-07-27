@@ -20,7 +20,8 @@ hb_metadata <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   body <- .hb_request(client, "/dtables/api/v1/dtables/metadata/",
-                      service = "dtable_server", auth = "base", method = "GET")
+    service = "dtable_server", auth = "base", method = "GET"
+  )
   meta_raw <- body$metadata %||% body
   out <- new_harbour_metadata(meta_raw, base_name = client$.base_name)
   client$.metadata <- out
@@ -55,7 +56,9 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 #'
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per table and columns
-#'   `name` (chr), `n_rows` (int), `n_columns` (int), `n_views` (int).
+#'   `name` (chr), `n_columns` (int) and `n_views` (int). The metadata
+#'   endpoint carries no row payloads, so there is no row count here;
+#'   use [hb_read_table()] if you need one.
 #'
 #' @family metadata
 #' @examplesIf interactive()
@@ -71,21 +74,7 @@ hb_list_tables <- function(client, ..., refresh = FALSE) {
   } else {
     hb_metadata(client)
   }
-  tables <- meta$tables
-  if (length(tables) == 0L) {
-    return(tibble::tibble(
-      name = character(),
-      n_rows = integer(),
-      n_columns = integer(),
-      n_views = integer()
-    ))
-  }
-  tibble::tibble(
-    name = vapply(tables, function(t) as.character(t$name %||% NA_character_), character(1)),
-    n_rows = vapply(tables, function(t) length(t$rows %||% list()), integer(1)),
-    n_columns = vapply(tables, function(t) length(t$columns %||% list()), integer(1)),
-    n_views = vapply(tables, function(t) length(t$views %||% list()), integer(1))
-  )
+  tibble::as_tibble(meta)
 }
 
 #' List collaborators of the active base
@@ -103,16 +92,25 @@ hb_list_collaborators <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   body <- .hb_request(client, "/api/v2.1/dtable/related-users/",
-                      service = "web", auth = "api", method = "GET")
+    service = "web", auth = "api", method = "GET"
+  )
   users <- body$user_list %||% body$collaborators %||% list()
   if (length(users) == 0L) {
-    return(tibble::tibble(email = character(), name = character(),
-                          contact_email = character()))
+    return(tibble::tibble(
+      email = character(), name = character(),
+      contact_email = character()
+    ))
   }
   tibble::tibble(
-    email = vapply(users, function(u) as.character(u$email %||% NA_character_), character(1)),
-    name = vapply(users, function(u) as.character(u$name %||% NA_character_), character(1)),
-    contact_email = vapply(users, function(u) as.character(u$contact_email %||% u$email %||% NA_character_), character(1))
+    email = .hb_chr_field(users, "email"),
+    name = .hb_chr_field(users, "name"),
+    contact_email = vapply(
+      users,
+      function(user) {
+        as.character(user$contact_email %||% user$email %||% NA_character_)
+      },
+      character(1)
+    )
   )
 }
 
@@ -131,12 +129,7 @@ print.harbour_metadata <- function(x, ...) {
     "*" = "tables : {length(tbls)}"
   ))
   if (length(tbls) > 0L) {
-    overview <- vapply(tbls, function(t) {
-      sprintf("%s (%d cols, %d rows)",
-              t$name %||% "<unnamed>",
-              length(t$columns %||% list()),
-              length(t$rows %||% list()))
-    }, character(1))
+    overview <- format(x)
     cli::cli_text("")
     shown <- overview[seq_len(min(10L, length(overview)))]
     for (line in shown) cli::cli_text("  - {line}")
@@ -145,6 +138,25 @@ print.harbour_metadata <- function(x, ...) {
     }
   }
   invisible(x)
+}
+
+#' @param x A `harbour_metadata` object.
+#' @param ... Unused.
+#' @return A character vector, one element per table.
+#' @rdname print.harbour_metadata
+#' @export
+format.harbour_metadata <- function(x, ...) {
+  rlang::check_dots_empty()
+  tbls <- x$tables
+  if (length(tbls) == 0L) {
+    return(character())
+  }
+  sprintf(
+    "%s (%d cols, %d views)",
+    .hb_chr_field(tbls, "name", default = "<unnamed>"),
+    .hb_count_field(tbls, "columns"),
+    .hb_count_field(tbls, "views")
+  )
 }
 
 #' Coerce harbour metadata to a tibble
@@ -161,16 +173,14 @@ as_tibble.harbour_metadata <- function(x, ...) {
   if (length(tbls) == 0L) {
     return(tibble::tibble(
       name = character(),
-      n_rows = integer(),
       n_columns = integer(),
       n_views = integer()
     ))
   }
   tibble::tibble(
-    name = vapply(tbls, function(t) as.character(t$name %||% NA_character_), character(1)),
-    n_rows = vapply(tbls, function(t) length(t$rows %||% list()), integer(1)),
-    n_columns = vapply(tbls, function(t) length(t$columns %||% list()), integer(1)),
-    n_views = vapply(tbls, function(t) length(t$views %||% list()), integer(1))
+    name = .hb_chr_field(tbls, "name"),
+    n_columns = .hb_count_field(tbls, "columns"),
+    n_views = .hb_count_field(tbls, "views")
   )
 }
 
@@ -189,19 +199,21 @@ summary.harbour_metadata <- function(object, ...) {
   tbls <- object$tables
   rows <- vector("list", length(tbls))
   for (i in seq_along(tbls)) {
-    t <- tbls[[i]]
-    cols <- t$columns %||% list()
+    tbl <- tbls[[i]]
+    cols <- tbl$columns %||% list()
     if (length(cols) == 0L) next
     rows[[i]] <- tibble::tibble(
-      table = rep(t$name %||% NA_character_, length(cols)),
-      column = vapply(cols, function(c) as.character(c$name %||% NA_character_), character(1)),
-      type = vapply(cols, function(c) as.character(c$type %||% NA_character_), character(1))
+      table = rep(tbl$name %||% NA_character_, length(cols)),
+      column = .hb_chr_field(cols, "name"),
+      type = .hb_chr_field(cols, "type")
     )
   }
   rows <- rows[!vapply(rows, is.null, logical(1))]
   if (length(rows) == 0L) {
-    return(tibble::tibble(table = character(), column = character(),
-                          type = character()))
+    return(tibble::tibble(
+      table = character(), column = character(),
+      type = character()
+    ))
   }
   do.call(rbind, rows)
 }

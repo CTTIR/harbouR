@@ -15,7 +15,9 @@ hb_list_tables(client, ..., refresh = FALSE)
 }
 \value{
 A tibble with one row per table and columns
-\code{name} (chr), \code{n_rows} (int), \code{n_columns} (int), \code{n_views} (int).
+\code{name} (chr), \code{n_columns} (int) and \code{n_views} (int). The metadata
+endpoint carries no row payloads, so there is no row count here;
+use \code{\link[=hb_read_table]{hb_read_table()}} if you need one.
 }
 \description{
 List the tables in a base

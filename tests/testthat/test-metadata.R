@@ -7,7 +7,7 @@ test_that("hb_example_metadata returns a harbour_metadata", {
 test_that("as_tibble.harbour_metadata yields the expected shape", {
   m <- hb_example_metadata()
   tbl <- tibble::as_tibble(m)
-  expect_named(tbl, c("name", "n_rows", "n_columns", "n_views"))
+  expect_named(tbl, c("name", "n_columns", "n_views"))
   expect_identical(tbl$name, c("Samples", "Patients"))
 })
 

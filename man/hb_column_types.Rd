@@ -2,20 +2,34 @@
 % Please edit documentation in R/coerce.R
 \name{hb_column_types}
 \alias{hb_column_types}
-\title{SeaTable column type mapping}
+\title{SeaTable column types and how harbouR maps them}
 \usage{
 hb_column_types()
 }
 \value{
-A tibble with columns \code{seatable} (chr), \code{r} (chr) and \code{notes} (chr).
+A tibble with one row per SeaTable column type and columns:
+\describe{
+\item{\code{seatable}}{chr. The type name as SeaTable reports it.}
+\item{\code{r}}{chr. The R type harbouR reads it as.}
+\item{\code{is_list}}{lgl. Whether the result is a list-column.}
+\item{\code{read_only}}{lgl. Whether the value is computed server-side
+and is dropped on write.}
+\item{\code{notes}}{chr. Anything worth knowing.}
+}
 }
 \description{
-Returns the mapping between SeaTable column types and the R types
-harbouR produces when reading rows. This is the single source of truth
-for the coercion layer; the column-types vignette is derived from it.
+The single source of truth for the coercion layer. Every column type
+SeaTable supports appears here exactly once, together with the R type
+harbouR produces when reading, whether that R type is a list-column,
+and whether the column is computed server-side and therefore cannot be
+written. The coercion functions and the column-types vignette are both
+derived from this table, so they cannot drift apart.
 }
 \examples{
 hb_column_types()
+
+# the types you cannot write to
+subset(hb_column_types(), read_only)
 }
 \seealso{
 Other metadata:

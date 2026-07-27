@@ -24,9 +24,13 @@ Add several columns at once
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()
-hb_add_columns(client, "Samples",
-  list(list(column_name = "a", column_type = "text"),
-       list(column_name = "b", column_type = "number")))
+hb_add_columns(
+  client, "Samples",
+  list(
+    list(column_name = "a", column_type = "text"),
+    list(column_name = "b", column_type = "number")
+  )
+)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

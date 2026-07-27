@@ -47,11 +47,3 @@ test_that(".mask_token masks safely across lengths", {
   expect_match(harbouR:::.mask_token("12345678901234567890"), "^1234\\.\\.\\.7890$")
 })
 
-test_that(".is_truthy follows rlang-style truthiness", {
-  expect_false(harbouR:::.is_truthy(NULL))
-  expect_false(harbouR:::.is_truthy(NA))
-  expect_false(harbouR:::.is_truthy(""))
-  expect_false(harbouR:::.is_truthy(character()))
-  expect_true(harbouR:::.is_truthy("x"))
-  expect_true(harbouR:::.is_truthy(1L))
-})

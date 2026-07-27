@@ -28,8 +28,10 @@ Update rows in a table
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()
-hb_update_rows(client, "Samples",
-               tibble::tibble(`_id` = "abc", Name = "renamed"))
+hb_update_rows(
+  client, "Samples",
+  tibble::tibble(`_id` = "abc", Name = "renamed")
+)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

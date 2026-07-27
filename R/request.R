@@ -14,10 +14,11 @@
 
 #' @keywords internal
 #' @noRd
-.hb_base_url <- function(client, service = c("web", "dtable_server", "dtable_db")) {
+.hb_base_url <- function(client,
+                         service = c("web", "dtable_server",
+                                     "dtable_db")) {
   service <- rlang::arg_match(service)
-  switch(
-    service,
+  switch(service,
     web = client$server,
     dtable_server = client$.dtable_server %||% client$server,
     dtable_db = client$.dtable_db %||% client$server
@@ -30,15 +31,15 @@
                             auth = c("base", "account", "api", "none"),
                             call = rlang::caller_env()) {
   auth <- rlang::arg_match(auth)
-  switch(
-    auth,
+  switch(auth,
     none = NULL,
     api = {
       tok <- client$api_token
       if (is.null(tok)) {
         hb_abort(
           c("This call requires an API token.",
-            "i" = "Create the client with {.arg api_token}."),
+            "i" = "Create the client with {.arg api_token}."
+          ),
           class = "harbour_error_auth",
           call = call
         )
@@ -63,7 +64,8 @@
   if (is.null(client$username) || is.null(client$password)) {
     hb_abort(
       c("This call requires an account token.",
-        "i" = "Create the client with {.arg username} and {.arg password}."),
+        "i" = "Create the client with {.arg username} and {.arg password}."
+      ),
       class = "harbour_error_auth",
       call = call
     )
@@ -97,7 +99,8 @@
   if (is.null(client$api_token)) {
     hb_abort(
       c("Base access from an account token is not supported.",
-        "i" = "Create the client with {.arg api_token}."),
+        "i" = "Create the client with {.arg api_token}."
+      ),
       class = "harbour_error_unsupported",
       call = call
     )
@@ -170,12 +173,11 @@
 .hb_translate_error <- function(e, call = rlang::caller_env()) {
   resp <- e$resp
   status <- if (!is.null(resp)) httr2::resp_status(resp) else NA_integer_
-  body <- tryCatch(httr2::resp_body_json(resp), error = function(.) NULL)
+  body <- tryCatch(httr2::resp_body_json(resp), error = function(cnd) NULL)
   msg <- body$error_msg %||% body$detail %||% body$msg %||% body$message %||%
     "SeaTable returned an error."
-  url <- tryCatch(resp$url, error = function(.) NULL) %||% NA_character_
-  hint <- switch(
-    as.character(status),
+  url <- tryCatch(resp$url, error = function(cnd) NULL) %||% NA_character_
+  hint <- switch(as.character(status),
     "401" = "Check that the API token is valid for this base.",
     "403" = "Check that the token has permission for this endpoint.",
     "404" = "Verify the path and base UUID.",
@@ -185,7 +187,8 @@
   hb_abort(
     c("SeaTable request failed (HTTP {status}).",
       "x" = "{msg}",
-      if (!is.null(hint)) c("i" = hint) else NULL),
+      if (!is.null(hint)) c("i" = hint) else NULL
+    ),
     class = .hb_http_class(status),
     status = status,
     url = url,
@@ -226,7 +229,8 @@
     error = function(cnd) {
       hb_abort(
         c("Could not parse the server's JSON response.",
-          "x" = "HTTP {httr2::resp_status(resp)}"),
+          "x" = "HTTP {httr2::resp_status(resp)}"
+        ),
         class = "harbour_error_http",
         status = httr2::resp_status(resp),
         call = call,

@@ -1,41 +1,104 @@
-#' SeaTable column type mapping
+#' SeaTable column types and how harbouR maps them
 #'
-#' Returns the mapping between SeaTable column types and the R types
-#' harbouR produces when reading rows. This is the single source of truth
-#' for the coercion layer; the column-types vignette is derived from it.
+#' The single source of truth for the coercion layer. Every column type
+#' SeaTable supports appears here exactly once, together with the R type
+#' harbouR produces when reading, whether that R type is a list-column,
+#' and whether the column is computed server-side and therefore cannot be
+#' written. The coercion functions and the column-types vignette are both
+#' derived from this table, so they cannot drift apart.
 #'
-#' @return A tibble with columns `seatable` (chr), `r` (chr) and `notes` (chr).
+#' @return A tibble with one row per SeaTable column type and columns:
+#'   \describe{
+#'     \item{`seatable`}{chr. The type name as SeaTable reports it.}
+#'     \item{`r`}{chr. The R type harbouR reads it as.}
+#'     \item{`is_list`}{lgl. Whether the result is a list-column.}
+#'     \item{`read_only`}{lgl. Whether the value is computed server-side
+#'       and is dropped on write.}
+#'     \item{`notes`}{chr. Anything worth knowing.}
+#'   }
 #' @family metadata
 #' @examples
 #' hb_column_types()
+#'
+#' # the types you cannot write to
+#' subset(hb_column_types(), read_only)
 #' @export
 hb_column_types <- function() {
   tibble::tribble(
-    ~seatable,           ~r,                 ~notes,
-    "text",              "character",        "free text",
-    "long-text",         "character",        "markdown blob",
-    "email",             "character",        "validated as email server-side",
-    "url",               "character",        "validated as URL server-side",
-    "auto-number",       "character",        "server-generated identifier",
-    "number",            "double",           "64-bit precision caveat applies",
-    "rate",              "integer",          "0..N stars",
-    "checkbox",          "logical",          "TRUE/FALSE",
-    "date",              "Date or POSIXct",  "POSIXct when a time component is present",
-    "single-select",     "character",        "validated against options on write",
-    "multiple-select",   "list<character>",  "always a list-column",
-    "collaborator",      "list<character>",  "list-column of email addresses",
-    "image",             "list<character>",  "list-column of URLs",
-    "file",              "list<list>",       "list-column of {name,size,type,url} lists",
-    "link",              "list",             "managed via link endpoints, not direct write",
-    "link-formula",      "list",             "read-only; mirrors a linked column",
-    "formula",           "character",        "read-only computed value",
-    "geolocation",       "list",             "list-column with lat/lng/address",
-    "button",            "list",             "read-only metadata",
-    "creator",           "character",        "read-only; user email",
-    "last-modifier",     "character",        "read-only; user email",
-    "ctime",             "POSIXct",          "read-only; row creation time",
-    "mtime",             "POSIXct",          "read-only; row modification time"
+    ~seatable, ~r, ~is_list, ~read_only, ~notes,
+    "text", "character", FALSE, FALSE,
+    "free text",
+    "long-text", "character", FALSE, FALSE,
+    "markdown blob",
+    "email", "character", FALSE, FALSE,
+    "validated as email server-side",
+    "url", "character", FALSE, FALSE,
+    "validated as URL server-side",
+    "number", "double", FALSE, FALSE,
+    "64-bit precision caveat applies",
+    "percent", "double", FALSE, FALSE,
+    "stored as a fraction, displayed as a percentage",
+    "dollar", "double", FALSE, FALSE,
+    "number with a currency format",
+    "euro", "double", FALSE, FALSE,
+    "number with a currency format",
+    "duration", "double", FALSE, FALSE,
+    "seconds",
+    "rate", "integer", FALSE, FALSE,
+    "0..N stars",
+    "checkbox", "logical", FALSE, FALSE,
+    "TRUE/FALSE",
+    "date", "POSIXct", FALSE, FALSE,
+    "UTC; date-only columns have a zero time component",
+    "single-select", "character", FALSE, FALSE,
+    "validated against the column's options on write",
+    "multiple-select", "list<character>", TRUE, FALSE,
+    "always a list-column",
+    "collaborator", "list<character>", TRUE, FALSE,
+    "list-column of email addresses",
+    "image", "list<character>", TRUE, FALSE,
+    "list-column of URLs",
+    "file", "list<list>", TRUE, FALSE,
+    "list-column of {name,size,type,url} lists",
+    "geolocation", "list", TRUE, FALSE,
+    "list-column with lat/lng/address",
+    "link", "list", TRUE, TRUE,
+    "managed via the link endpoints, not by writing the cell",
+    "link-formula", "list", TRUE, TRUE,
+    "mirrors a column in a linked table",
+    "formula", "character", FALSE, TRUE,
+    "computed server-side",
+    "auto-number", "character", FALSE, TRUE,
+    "server-generated identifier",
+    "button", "list", TRUE, TRUE,
+    "carries no data",
+    "digital-sign", "list", TRUE, TRUE,
+    "signature metadata",
+    "creator", "character", FALSE, TRUE,
+    "user email",
+    "last-modifier", "character", FALSE, TRUE,
+    "user email",
+    "ctime", "POSIXct", FALSE, TRUE,
+    "row creation time",
+    "mtime", "POSIXct", FALSE, TRUE,
+    "row modification time"
   )
+}
+
+#' Column types that are list-columns
+#' @keywords internal
+#' @noRd
+.hb_list_types <- function() {
+  types <- hb_column_types()
+  types$seatable[types$is_list]
+}
+
+#' Column types that cannot be written
+#' @keywords internal
+#' @noRd
+.hb_readonly_types <- function() {
+  types <- hb_column_types()
+  types$seatable[types$read_only]
 }
 
 #' @keywords internal
@@ -47,12 +110,13 @@ hb_column_types <- function() {
     )
   }
   tbls <- metadata$tables
-  names_ <- vapply(tbls, function(t) t$name %||% NA_character_, character(1))
+  names_ <- .hb_chr_field(tbls, "name")
   idx <- match(table, names_)
   if (is.na(idx)) {
     hb_abort(
       c("Table {.val {table}} not found.",
-        "i" = "Known tables: {.val {names_}}."),
+        "i" = "Known tables: {.val {names_}}."
+      ),
       call = rlang::caller_env(),
       class = "harbour_error_not_found"
     )
@@ -64,8 +128,7 @@ hb_column_types <- function() {
 #' @keywords internal
 #' @noRd
 .hb_empty_vector_for_type <- function(type) {
-  switch(
-    type %||% "text",
+  switch(type %||% "text",
     "text" = ,
     "long-text" = ,
     "email" = ,
@@ -99,7 +162,9 @@ hb_column_types <- function() {
   if (is.null(x) || (is.character(x) && !nzchar(x))) {
     return(as.POSIXct(NA, tz = "UTC"))
   }
-  if (inherits(x, "POSIXt")) return(as.POSIXct(x))
+  if (inherits(x, "POSIXt")) {
+    return(as.POSIXct(x))
+  }
   if (is.numeric(x)) {
     return(as.POSIXct(x, origin = "1970-01-01", tz = "UTC"))
   }
@@ -109,7 +174,9 @@ hb_column_types <- function() {
     orders = c("Y-m-d H:M:S", "Y-m-d H:M", "Y-m-d", "Y/m/d"),
     tz = "UTC"
   ))
-  if (is.na(parsed)) return(as.POSIXct(NA, tz = "UTC"))
+  if (is.na(parsed)) {
+    return(as.POSIXct(NA, tz = "UTC"))
+  }
   parsed
 }
 
@@ -146,11 +213,13 @@ hb_column_types <- function() {
     "creator" = ,
     "last-modifier" = as.character(value),
     "number" = tryCatch(as.double(value),
-                        warning = function(w) NA_real_,
-                        error = function(e) NA_real_),
+      warning = function(w) NA_real_,
+      error = function(e) NA_real_
+    ),
     "rate" = tryCatch(as.integer(value),
-                      warning = function(w) NA_integer_,
-                      error = function(e) NA_integer_),
+      warning = function(w) NA_integer_,
+      error = function(e) NA_integer_
+    ),
     "checkbox" = isTRUE(as.logical(value)),
     "date" = ,
     "ctime" = ,
@@ -170,8 +239,7 @@ hb_column_types <- function() {
 #' @keywords internal
 #' @noRd
 .hb_is_list_type <- function(type) {
-  type %in% c("multiple-select", "collaborator", "image", "file",
-              "link", "link-formula", "geolocation", "button")
+  type %in% .hb_list_types()
 }
 
 #' Convert SeaTable row payloads to a typed tibble
@@ -183,7 +251,7 @@ hb_column_types <- function() {
     return(tibble::tibble())
   }
   out <- vector("list", length(columns))
-  names(out) <- vapply(columns, function(c) as.character(c$name), character(1))
+  names(out) <- .hb_chr_field(columns, "name")
   for (i in seq_along(columns)) {
     col <- columns[[i]]
     type <- col$type %||% "text"
@@ -197,15 +265,21 @@ hb_column_types <- function() {
     if (.hb_is_list_type(type)) {
       out[[i]] <- coerced
     } else if (type == "number") {
-      out[[i]] <- vapply(coerced, function(v) if (length(v) == 0L) NA_real_ else as.double(v[[1L]]), double(1))
+      out[[i]] <- .hb_first(coerced, NA_real_, as.double, double(1))
     } else if (type == "rate") {
-      out[[i]] <- vapply(coerced, function(v) if (length(v) == 0L) NA_integer_ else as.integer(v[[1L]]), integer(1))
+      out[[i]] <- .hb_first(coerced, NA_integer_, as.integer, integer(1))
     } else if (type == "checkbox") {
-      out[[i]] <- vapply(coerced, function(v) if (length(v) == 0L) NA else isTRUE(v[[1L]]), logical(1))
+      out[[i]] <- .hb_first(coerced, NA, isTRUE, logical(1))
     } else if (type %in% c("date", "ctime", "mtime")) {
-      out[[i]] <- do.call(c, lapply(coerced, function(v) if (length(v) == 0L) as.POSIXct(NA, tz = "UTC") else as.POSIXct(v, tz = "UTC")))
+      out[[i]] <- do.call(c, lapply(coerced, function(value) {
+        if (length(value) == 0L) {
+          as.POSIXct(NA, tz = "UTC")
+        } else {
+          as.POSIXct(value, tz = "UTC")
+        }
+      }))
     } else {
-      out[[i]] <- vapply(coerced, function(v) if (length(v) == 0L) NA_character_ else as.character(v[[1L]]), character(1))
+      out[[i]] <- .hb_first(coerced, NA_character_, as.character, character(1))
     }
   }
   if ("_id" %in% names(out)) {
@@ -213,7 +287,8 @@ hb_column_types <- function() {
       c("A column in this table is named {.field _id}.",
         "x" = "harbouR uses {.field _id} for the SeaTable row identifier.",
         "i" = "Rename the column in SeaTable, or read it with
-               {.fn hb_query} and alias it."),
+               {.fn hb_query} and alias it."
+      ),
       class = "harbour_error_column_collision",
       call = rlang::caller_env()
     )
@@ -238,10 +313,9 @@ hb_column_types <- function() {
       class = "harbour_error_bad_argument"
     )
   }
-  col_names <- vapply(columns, function(c) as.character(c$name), character(1))
-  col_types <- vapply(columns, function(c) as.character(c$type %||% "text"), character(1))
-  read_only <- c("formula", "auto-number", "creator", "last-modifier",
-                 "ctime", "mtime", "link-formula", "button")
+  col_names <- .hb_chr_field(columns, "name")
+  col_types <- .hb_chr_field(columns, "type", default = "text")
+  read_only <- .hb_readonly_types()
 
   rows <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
@@ -252,7 +326,9 @@ hb_column_types <- function() {
       if (col_types[[i]] %in% read_only) next
       v <- data[[cn]][[r]]
       if (is.list(v)) v <- unlist(v, use.names = FALSE)
-      if (inherits(v, c("Date", "POSIXt"))) v <- format(v, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+      if (inherits(v, c("Date", "POSIXt"))) {
+        v <- format(v, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+      }
       row[[cn]] <- v
     }
     rows[[r]] <- row

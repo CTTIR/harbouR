@@ -2,9 +2,12 @@
 % Please edit documentation in R/metadata.R
 \name{print.harbour_metadata}
 \alias{print.harbour_metadata}
+\alias{format.harbour_metadata}
 \title{Print method for harbour metadata}
 \usage{
 \method{print}{harbour_metadata}(x, ...)
+
+\method{format}{harbour_metadata}(x, ...)
 }
 \arguments{
 \item{x}{A \code{harbour_metadata} object.}
@@ -13,6 +16,8 @@
 }
 \value{
 Invisibly returns \code{x}.
+
+A character vector, one element per table.
 }
 \description{
 Print method for harbour metadata

@@ -82,8 +82,7 @@ hb_abort <- function(message,
   if (is.na(status)) {
     return("harbour_error_http")
   }
-  switch(
-    as.character(status),
+  switch(as.character(status),
     "401" = "harbour_error_auth",
     "403" = "harbour_error_permission",
     "404" = "harbour_error_not_found",

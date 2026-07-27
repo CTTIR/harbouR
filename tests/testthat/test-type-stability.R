@@ -15,7 +15,7 @@ test_that("list_tables returns a 0-row tibble with the expected columns when no 
   cl$.metadata <- new_harbour_metadata(list(tables = list()),
                                        base_name = "empty")
   res <- hb_list_tables(cl)
-  expect_named(res, c("name", "n_rows", "n_columns", "n_views"))
+  expect_named(res, c("name", "n_columns", "n_views"))
   expect_identical(nrow(res), 0L)
   expect_true(is.character(res$name))
 })

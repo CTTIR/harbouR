@@ -1,7 +1,29 @@
 test_that("hb_column_types is non-empty and well-shaped", {
   ct <- hb_column_types()
-  expect_named(ct, c("seatable", "r", "notes"))
+  expect_named(ct, c("seatable", "r", "is_list", "read_only", "notes"))
   expect_gt(nrow(ct), 15L)
+  expect_false(anyDuplicated(ct$seatable) > 0L)
+  expect_type(ct$is_list, "logical")
+  expect_type(ct$read_only, "logical")
+})
+
+test_that("hb_column_types covers every type SeaTable documents", {
+  # Anything missing here is a column harbouR would silently read as text.
+  documented <- c(
+    "text", "long-text", "email", "url", "number", "percent", "dollar",
+    "euro", "duration", "rate", "checkbox", "date", "single-select",
+    "multiple-select", "collaborator", "image", "file", "geolocation",
+    "link", "link-formula", "formula", "auto-number", "button",
+    "digital-sign", "creator", "last-modifier", "ctime", "mtime"
+  )
+  expect_setequal(hb_column_types()$seatable, documented)
+})
+
+test_that("the coercion layer derives its type sets from the mapping", {
+  expect_setequal(harbouR:::.hb_list_types(),
+                  hb_column_types()$seatable[hb_column_types()$is_list])
+  expect_setequal(harbouR:::.hb_readonly_types(),
+                  hb_column_types()$seatable[hb_column_types()$read_only])
 })
 
 test_that(".hb_rows_to_tibble returns a 0-row typed tibble for empty input", {
