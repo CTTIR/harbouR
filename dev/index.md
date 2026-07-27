@@ -1,7 +1,7 @@
 # harbouR
 
 **harbouR** is an unofficial R client for the
-[SeaTable](https://seatable.io) REST API. It lets you authenticate,
+[SeaTable](https://seatable.com/) REST API. It lets you authenticate,
 read, write and manage SeaTable bases entirely from R, with results
 returned as tidy tibbles and a column-type-aware coercion layer that
 makes spreadsheets feel like data frames.
@@ -65,3 +65,13 @@ hb_example_rows("Samples")
 [`hb_run_explorer()`](https://cttir.github.io/harbouR/dev/reference/hb_run_explorer.md)
 launches a Shiny app for inspecting any base interactively, with a demo
 mode that needs no credentials.
+
+## Acknowledgements
+
+harbouR was shaped by the needs, field testing and data of Paul
+Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
+Forstmeier.
+
+SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
+unofficial client and is not affiliated with or endorsed by SeaTable
+GmbH.
