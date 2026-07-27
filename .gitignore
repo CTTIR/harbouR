@@ -21,3 +21,6 @@ _coverage/
 # collaborator list with real e-mail addresses.
 dev/
 *.dtable
+# ...except the hand-built test fixture, which the package ships and the
+# tests read through system.file(). It contains no real data.
+!inst/extdata/*.dtable

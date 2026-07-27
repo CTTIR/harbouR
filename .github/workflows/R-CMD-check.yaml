@@ -62,7 +62,10 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           error-on: '"warning"'
-          args: 'c("--no-manual", "--no-vignettes", "--no-build-vignettes")'
+          # --ignore-vignettes, not --no-vignettes: knitr is a Suggest, so
+          # the vignettes cannot be built here, and --no-vignettes still
+          # checks for the inst/doc they would have produced.
+          args: 'c("--no-manual", "--ignore-vignettes")'
           build_args: 'c("--no-manual", "--no-build-vignettes")'
 
   # CRAN's own incoming checks - URL validity, spelling, policy - which
