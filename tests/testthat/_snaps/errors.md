@@ -75,7 +75,7 @@
     Code
       .hb_translate_error(cond)
     Condition
-      Error in `.hb_translate_error()`:
+      Error:
       ! SeaTable request failed (HTTP 401).
       x SeaTable returned an error.
       i Check that the API token is valid for this base.
@@ -85,7 +85,7 @@
     Code
       .hb_translate_error(cond)
     Condition
-      Error in `.hb_translate_error()`:
+      Error:
       ! SeaTable request failed (HTTP 403).
       x SeaTable returned an error.
       i Check that the token has permission for this endpoint.
@@ -95,7 +95,7 @@
     Code
       .hb_translate_error(cond)
     Condition
-      Error in `.hb_translate_error()`:
+      Error:
       ! SeaTable request failed (HTTP 404).
       x SeaTable returned an error.
       i Verify the path and base UUID.
@@ -105,7 +105,7 @@
     Code
       .hb_translate_error(cond)
     Condition
-      Error in `.hb_translate_error()`:
+      Error:
       ! SeaTable request failed (HTTP 429).
       x SeaTable returned an error.
       i Rate-limited - slow down or batch your requests.
@@ -115,7 +115,7 @@
     Code
       .hb_translate_error(cond)
     Condition
-      Error in `.hb_translate_error()`:
+      Error:
       ! SeaTable request failed (HTTP 500).
       x SeaTable returned an error.
 

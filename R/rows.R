@@ -25,7 +25,9 @@ hb_read_table <- function(client, table, view = NULL, limit = 1000L,
   .check_string(table, call = call)
   .check_string(view, allow_null = TRUE, call = call)
   if (!is.numeric(limit) || length(limit) != 1L || is.na(limit) || limit <= 0L) {
-    cli::cli_abort("{.arg limit} must be a positive integer.", call = call)
+    hb_abort("{.arg limit} must be a positive integer.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
 
   if (is.null(client$.metadata)) hb_metadata(client, call = call)
@@ -126,7 +128,9 @@ hb_append_rows <- function(client, table, data, call = rlang::caller_env()) {
   .check_client(client, call = call)
   .check_string(table, call = call)
   if (!is.data.frame(data)) {
-    cli::cli_abort("{.arg data} must be a data frame or tibble.", call = call)
+    hb_abort("{.arg data} must be a data frame or tibble.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   if (is.null(client$.metadata)) hb_metadata(client, call = call)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
@@ -159,13 +163,16 @@ hb_update_rows <- function(client, table, data, row_id_col = "_id",
   .check_string(table, call = call)
   .check_string(row_id_col, call = call)
   if (!is.data.frame(data)) {
-    cli::cli_abort("{.arg data} must be a data frame or tibble.", call = call)
+    hb_abort("{.arg data} must be a data frame or tibble.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   if (!row_id_col %in% names(data)) {
-    cli::cli_abort(
+    hb_abort(
       c("Column {.field {row_id_col}} not present in {.arg data}.",
         "i" = "Set {.arg row_id_col} to whichever column holds the row IDs."),
-      call = call
+      call = call,
+      class = "harbour_error_bad_argument"
     )
   }
   if (is.null(client$.metadata)) hb_metadata(client, call = call)
@@ -206,7 +213,9 @@ hb_delete_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
   .check_client(client, call = call)
   .check_string(table, call = call)
   if (!is.character(row_ids) || length(row_ids) == 0L) {
-    cli::cli_abort("{.arg row_ids} must be a non-empty character vector.", call = call)
+    hb_abort("{.arg row_ids} must be a non-empty character vector.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/batch-delete-rows/",
               service = "dtable_server", auth = "base", method = "DELETE",
@@ -227,7 +236,9 @@ hb_lock_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
   .check_client(client, call = call)
   .check_string(table, call = call)
   if (!is.character(row_ids) || length(row_ids) == 0L) {
-    cli::cli_abort("{.arg row_ids} must be a non-empty character vector.", call = call)
+    hb_abort("{.arg row_ids} must be a non-empty character vector.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/lock-rows/",
               service = "dtable_server", auth = "base", method = "PUT",
@@ -247,7 +258,9 @@ hb_unlock_rows <- function(client, table, row_ids, call = rlang::caller_env()) {
   .check_client(client, call = call)
   .check_string(table, call = call)
   if (!is.character(row_ids) || length(row_ids) == 0L) {
-    cli::cli_abort("{.arg row_ids} must be a non-empty character vector.", call = call)
+    hb_abort("{.arg row_ids} must be a non-empty character vector.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/unlock-rows/",
               service = "dtable_server", auth = "base", method = "PUT",

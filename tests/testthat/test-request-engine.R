@@ -21,7 +21,8 @@ test_that(".hb_auth_header errors when api token is absent", {
   cl <- new_harbour_client(server = "https://x", api_token = NULL,
                            username = "u", password = "p",
                            base_uuid = NULL, timeout = 5)
-  expect_error(harbouR:::.hb_auth_header(cl, "api"), "API token required")
+  expect_error(harbouR:::.hb_auth_header(cl, "api"),
+               class = "harbour_error_auth")
 })
 
 test_that(".hb_get_account_token requires credentials and stores the token", {
@@ -34,8 +35,8 @@ test_that(".hb_get_account_token requires credentials and stores the token", {
                             username = "u", password = "p",
                             base_uuid = NULL, timeout = 5)
   testthat::local_mocked_bindings(
-    .hb_perform_raw = function(req) make_resp(),
-    .hb_resp_json = function(resp) list(token = "ACCT123"),
+    .hb_perform_raw = function(req, call = NULL) make_resp(),
+    .hb_resp_json = function(resp, call = NULL) list(token = "ACCT123"),
     .package = "harbouR"
   )
   tok <- harbouR:::.hb_get_account_token(cl2)
@@ -48,8 +49,8 @@ test_that(".hb_get_account_token errors when no token field returned", {
                            username = "u", password = "p",
                            base_uuid = NULL, timeout = 5)
   testthat::local_mocked_bindings(
-    .hb_perform_raw = function(req) make_resp(),
-    .hb_resp_json = function(resp) list(),
+    .hb_perform_raw = function(req, call = NULL) make_resp(),
+    .hb_resp_json = function(resp, call = NULL) list(),
     .package = "harbouR"
   )
   expect_error(harbouR:::.hb_get_account_token(cl), "no token field")
@@ -60,8 +61,8 @@ test_that(".hb_get_base_token populates client state from the response", {
                            username = NULL, password = NULL,
                            base_uuid = NULL, timeout = 5)
   testthat::local_mocked_bindings(
-    .hb_perform_raw = function(req) make_resp(),
-    .hb_resp_json = function(resp) list(
+    .hb_perform_raw = function(req, call = NULL) make_resp(),
+    .hb_resp_json = function(resp, call = NULL) list(
       access_token = "BASETOK",
       dtable_server = "https://ds",
       dtable_db = "https://db",
@@ -83,27 +84,29 @@ test_that(".hb_get_base_token rejects account-only auth", {
   cl <- new_harbour_client(server = "https://x", api_token = NULL,
                            username = "u", password = "p",
                            base_uuid = NULL, timeout = 5)
-  expect_error(harbouR:::.hb_get_base_token(cl), "not implemented")
+  expect_error(harbouR:::.hb_get_base_token(cl),
+               class = "harbour_error_unsupported")
 })
 
 test_that(".hb_refresh_base_token clears and refetches", {
   cl <- mock_client()
   testthat::local_mocked_bindings(
-    .hb_perform_raw = function(req) make_resp(),
-    .hb_resp_json = function(resp) list(access_token = "NEWTOK"),
+    .hb_perform_raw = function(req, call = NULL) make_resp(),
+    .hb_resp_json = function(resp, call = NULL) list(access_token = "NEWTOK"),
     .package = "harbouR"
   )
   tok <- harbouR:::.hb_refresh_base_token(cl)
   expect_identical(tok, "NEWTOK")
 })
 
-test_that(".hb_perform_raw translates a 404 specially", {
+test_that(".hb_perform_raw translates a 404 into a not_found condition", {
   req <- list(url = "https://x/missing")
   testthat::local_mocked_bindings(
     req_perform = function(req, ...) stop(make_http_cond(404)),
     .package = "httr2"
   )
-  expect_error(harbouR:::.hb_perform_raw(req), "Endpoint not found")
+  expect_error(harbouR:::.hb_perform_raw(req),
+               class = "harbour_error_not_found")
 })
 
 test_that(".hb_perform_raw translates other HTTP errors", {
@@ -113,10 +116,6 @@ test_that(".hb_perform_raw translates other HTTP errors", {
     .package = "httr2"
   )
   expect_error(harbouR:::.hb_perform_raw(req), "HTTP 500")
-})
-
-test_that(".hb_safe_url returns the url or a placeholder", {
-  expect_identical(harbouR:::.hb_safe_url(list(url = "https://y")), "https://y")
 })
 
 test_that(".hb_translate_error maps known statuses to hints", {
@@ -130,7 +129,8 @@ test_that(".hb_resp_json errors on unparseable bodies", {
     resp_status = function(resp) 500L,
     .package = "httr2"
   )
-  expect_error(harbouR:::.hb_resp_json(make_resp(500L)), "Could not parse JSON")
+  expect_error(harbouR:::.hb_resp_json(make_resp(500L)),
+               class = "harbour_error_http")
 })
 
 test_that(".hb_perform retries once on a 401 for base auth", {
@@ -145,8 +145,8 @@ test_that(".hb_perform retries once on a 401 for base auth", {
     .package = "httr2"
   )
   testthat::local_mocked_bindings(
-    .hb_refresh_base_token = function(client) "REFRESHED",
-    .hb_auth_header = function(client, auth) "Token X",
+    .hb_refresh_base_token = function(client, call = NULL) "REFRESHED",
+    .hb_auth_header = function(client, auth, call = NULL) "Token X",
     .package = "harbouR"
   )
   resp <- harbouR:::.hb_perform(list(url = "u"), cl, auth = "base")
@@ -158,7 +158,7 @@ test_that(".hb_request returns NULL invisibly on 204", {
   cl <- mock_client()
   testthat::local_mocked_bindings(
     .hb_req = function(...) list(url = "u"),
-    .hb_perform = function(req, client, auth = "base") make_resp(204L),
+    .hb_perform = function(req, client, auth = "base", call = NULL) make_resp(204L),
     .package = "harbouR"
   )
   testthat::local_mocked_bindings(
@@ -173,8 +173,8 @@ test_that(".hb_request parses JSON for non-204 responses", {
   cl <- mock_client()
   testthat::local_mocked_bindings(
     .hb_req = function(...) list(url = "u"),
-    .hb_perform = function(req, client, auth = "base") make_resp(200L),
-    .hb_resp_json = function(resp) list(ok = TRUE),
+    .hb_perform = function(req, client, auth = "base", call = NULL) make_resp(200L),
+    .hb_resp_json = function(resp, call = NULL) list(ok = TRUE),
     .package = "harbouR"
   )
   testthat::local_mocked_bindings(

@@ -19,8 +19,10 @@ hb_ping <- function(client, call = rlang::caller_env()) {
     error = function(e) e
   )
   if (inherits(res, "error")) {
-    cli::cli_abort(c("Could not reach {.url {client$server}}.",
-                     "x" = conditionMessage(res)), call = call)
+    hb_abort(c("Could not reach {.url {client$server}}.",
+                     "x" = conditionMessage(res)), call = call,
+      class = "harbour_error_http"
+    )
   }
   TRUE
 }

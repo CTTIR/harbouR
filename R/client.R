@@ -47,10 +47,11 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
 
   .check_string(server, call = call)
   if (!grepl("^https?://", server)) {
-    cli::cli_abort(
+    hb_abort(
       c("{.arg server} must begin with {.val http://} or {.val https://}.",
         "x" = "You supplied {.val {server}}."),
-      call = call
+      call = call,
+      class = "harbour_error_bad_argument"
     )
   }
   server <- sub("/+$", "", server)
@@ -58,16 +59,18 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
   has_api <- !is.null(api_token)
   has_acct <- !is.null(username) || !is.null(password)
   if (has_api && has_acct) {
-    cli::cli_abort(
+    hb_abort(
       "Supply either {.arg api_token} or {.arg username}/{.arg password}, not both.",
-      call = call
+      call = call,
+      class = "harbour_error_auth"
     )
   }
   if (!has_api && !has_acct) {
-    cli::cli_abort(
+    hb_abort(
       c("No credentials supplied.",
         "i" = "Provide {.arg api_token} or {.arg username} and {.arg password}, or set {.envvar SEATABLE_API_TOKEN}."),
-      call = call
+      call = call,
+      class = "harbour_error_auth"
     )
   }
   if (has_acct) {
@@ -114,13 +117,19 @@ new_harbour_client <- function(server, api_token, username, password,
 #' @noRd
 validate_harbour_client <- function(x, call = rlang::caller_env()) {
   if (!inherits(x, "harbour_client")) {
-    cli::cli_abort("Object is not a {.cls harbour_client}.", call = call)
+    hb_abort("Object is not a {.cls harbour_client}.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   if (!is.environment(x)) {
-    cli::cli_abort("A {.cls harbour_client} must be environment-backed.", call = call)
+    hb_abort("A {.cls harbour_client} must be environment-backed.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   if (is.null(x$server)) {
-    cli::cli_abort("A {.cls harbour_client} must have a {.field server}.", call = call)
+    hb_abort("A {.cls harbour_client} must have a {.field server}.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   invisible(x)
 }

@@ -26,16 +26,20 @@ hb_run_explorer <- function(client = NULL, ..., host = "127.0.0.1", port = NULL)
   needed <- c("shiny", "bslib", "DT", "reactable", "ggplot2")
   missing <- needed[!vapply(needed, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing) > 0L) {
-    cli::cli_abort(c(
+    hb_abort(c(
       "The harbouR explorer needs additional packages.",
       "x" = "Missing: {.pkg {missing}}.",
       "i" = "Install with: {.code install.packages(c({paste0('\"', missing, '\"', collapse = ', ')}))}."
-    ))
+    ),
+      class = "harbour_error_unsupported"
+    )
   }
   if (!is.null(client)) .check_client(client)
   app_dir <- system.file("shiny", "harbour_explorer", package = "harbouR")
   if (!nzchar(app_dir)) {
-    cli::cli_abort("Could not locate the bundled Shiny app directory.")
+    hb_abort("Could not locate the bundled Shiny app directory.",
+      class = "harbour_error_unsupported"
+    )
   }
   shiny::shinyOptions(harbouR_preset_client = client)
   shiny::runApp(app_dir, host = host, port = port, ...)

@@ -42,16 +42,19 @@ hb_column_types <- function() {
 #' @noRd
 .hb_columns_from_metadata <- function(metadata, table) {
   if (!inherits(metadata, "harbour_metadata")) {
-    cli::cli_abort("{.arg metadata} must be a {.cls harbour_metadata}.")
+    hb_abort("{.arg metadata} must be a {.cls harbour_metadata}.",
+      class = "harbour_error_bad_argument"
+    )
   }
   tbls <- metadata$tables
   names_ <- vapply(tbls, function(t) t$name %||% NA_character_, character(1))
   idx <- match(table, names_)
   if (is.na(idx)) {
-    cli::cli_abort(
+    hb_abort(
       c("Table {.val {table}} not found.",
         "i" = "Known tables: {.val {names_}}."),
-      call = rlang::caller_env()
+      call = rlang::caller_env(),
+      class = "harbour_error_not_found"
     )
   }
   cols <- tbls[[idx]]$columns %||% list()
@@ -218,7 +221,9 @@ hb_column_types <- function() {
 #' @noRd
 .hb_tibble_to_rows <- function(data, columns) {
   if (!is.data.frame(data)) {
-    cli::cli_abort("{.arg data} must be a data frame or tibble.")
+    hb_abort("{.arg data} must be a data frame or tibble.",
+      class = "harbour_error_bad_argument"
+    )
   }
   col_names <- vapply(columns, function(c) as.character(c$name), character(1))
   col_types <- vapply(columns, function(c) as.character(c$type %||% "text"), character(1))

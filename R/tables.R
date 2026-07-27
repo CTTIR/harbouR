@@ -16,7 +16,9 @@ hb_create_table <- function(client, table, columns = list(),
   .check_client(client, call = call)
   .check_string(table, call = call)
   if (!is.list(columns)) {
-    cli::cli_abort("{.arg columns} must be a list of column specs.", call = call)
+    hb_abort("{.arg columns} must be a list of column specs.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/tables/",
               service = "dtable_server", auth = "base", method = "POST",

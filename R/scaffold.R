@@ -19,10 +19,12 @@ NULL
 #' @keywords internal
 #' @noRd
 .hb_not_implemented <- function(fn, call = rlang::caller_env()) {
-  cli::cli_abort(c(
+  hb_abort(c(
     "{.fn {fn}} is scaffolded but not yet implemented in this release.",
     "i" = "It will land in a later minor release. See {.code NEWS.md}."
-  ), call = call)
+  ), call = call,
+    class = "harbour_error_unsupported"
+  )
 }
 
 # Links --------------------------------------------------------------------

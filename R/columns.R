@@ -69,7 +69,9 @@ hb_add_columns <- function(client, table, columns,
   .check_client(client, call = call)
   .check_string(table, call = call)
   if (!is.list(columns) || length(columns) == 0L) {
-    cli::cli_abort("{.arg columns} must be a non-empty list of column specs.", call = call)
+    hb_abort("{.arg columns} must be a non-empty list of column specs.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   .hb_request(client, "/dtable-server/api/v1/dtables/batch-append-columns/",
               service = "dtable_server", auth = "base", method = "POST",

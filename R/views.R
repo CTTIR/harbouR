@@ -17,7 +17,9 @@ hb_list_views <- function(client, table, call = rlang::caller_env()) {
   tbls <- client$.metadata$tables
   idx <- match(table, vapply(tbls, function(t) t$name %||% NA_character_, character(1)))
   if (is.na(idx)) {
-    cli::cli_abort("Table {.val {table}} not found.", call = call)
+    hb_abort("Table {.val {table}} not found.", call = call,
+      class = "harbour_error_not_found"
+    )
   }
   views <- tbls[[idx]]$views %||% list()
   if (length(views) == 0L) {
@@ -94,7 +96,9 @@ hb_update_view <- function(client, table, view, settings,
   .check_string(table, call = call)
   .check_string(view, call = call)
   if (!is.list(settings)) {
-    cli::cli_abort("{.arg settings} must be a list.", call = call)
+    hb_abort("{.arg settings} must be a list.", call = call,
+      class = "harbour_error_bad_argument"
+    )
   }
   body <- c(list(table_name = table, view_name = view), settings)
   .hb_request(client, "/dtable-server/api/v1/dtables/views/",

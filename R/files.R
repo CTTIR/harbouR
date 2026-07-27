@@ -20,8 +20,10 @@ hb_upload_file <- function(client, path, relative_path = "files",
   .check_client(client, call = call)
   .check_string(path, call = call)
   if (!file.exists(path)) {
-    cli::cli_abort(c("File not found.",
-                     "x" = "{.path {path}}"), call = call)
+    hb_abort(c("File not found.",
+                     "x" = "{.path {path}}"), call = call,
+      class = "harbour_error_not_found"
+    )
   }
   .check_string(relative_path, call = call)
   link <- .hb_request(client, "/api/v2.1/dtable/app-upload-link/",
@@ -29,7 +31,9 @@ hb_upload_file <- function(client, path, relative_path = "files",
   upload_url <- link$upload_link %||% link$url
   parent_dir <- link$parent_path %||% "/"
   if (is.null(upload_url)) {
-    cli::cli_abort("SeaTable did not return an upload URL.", call = call)
+    hb_abort("SeaTable did not return an upload URL.", call = call,
+      class = "harbour_error_http"
+    )
   }
   req <- httr2::request(upload_url) |>
     httr2::req_user_agent(.hb_user_agent()) |>
@@ -120,11 +124,12 @@ hb_download_file <- function(client, url, dest, overwrite = FALSE,
   .check_string(dest, call = call)
   .check_flag(overwrite, call = call)
   if (file.exists(dest) && !overwrite) {
-    cli::cli_abort(
+    hb_abort(
       c("Destination already exists.",
         "x" = "{.path {dest}}",
         "i" = "Pass {.code overwrite = TRUE} to replace it."),
-      call = call
+      call = call,
+      class = "harbour_error_bad_argument"
     )
   }
   parent <- dirname(dest)
@@ -134,10 +139,11 @@ hb_download_file <- function(client, url, dest, overwrite = FALSE,
     httr2::req_timeout(client$timeout %||% 60)
   resp <- httr2::req_perform(req, path = dest)
   if (httr2::resp_status(resp) >= 400L) {
-    cli::cli_abort(
+    hb_abort(
       c("Download failed.",
         "x" = "HTTP {httr2::resp_status(resp)}"),
-      call = call
+      call = call,
+      class = "harbour_error_bad_argument"
     )
   }
   invisible(dest)

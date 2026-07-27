@@ -20,7 +20,9 @@
 hb_example_metadata <- function() {
   path <- system.file("extdata", "example_metadata.json", package = "harbouR")
   if (!nzchar(path)) {
-    cli::cli_abort("Could not locate the bundled example metadata.")
+    hb_abort("Could not locate the bundled example metadata.",
+      class = "harbour_error_unsupported"
+    )
   }
   body <- jsonlite::fromJSON(path, simplifyVector = FALSE)
   new_harbour_metadata(
