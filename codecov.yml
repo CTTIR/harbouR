@@ -11,8 +11,8 @@ coverage:
         target: auto
         threshold: 1%
         informational: true
+# The Shiny app lives in R/ now, so it is covered like anything
+# else rather than being excluded from the number.
 ignore:
   - "tests"
   - "vignettes"
-  - "inst/shiny"
-  - "R/app.R"

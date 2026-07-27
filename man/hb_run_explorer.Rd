@@ -4,37 +4,43 @@
 \alias{hb_run_explorer}
 \title{Launch the harbouR explorer}
 \usage{
-hb_run_explorer(client = NULL, ..., host = "127.0.0.1", port = NULL)
+hb_run_explorer(x = NULL, ..., host = "127.0.0.1", port = NULL)
 }
 \arguments{
-\item{client}{Optional \code{harbour_client}. If \code{NULL}, the app opens its
-connect screen.}
+\item{x}{Optional \code{harbour_client} or \code{harbour_dtable} to open with.}
 
-\item{...}{Forwarded to \code{\link[shiny:runApp]{shiny::runApp()}}.}
+\item{...}{Passed to \code{\link[shiny:runApp]{shiny::runApp()}}.}
 
 \item{host}{Host to bind. Default \code{"127.0.0.1"}.}
 
-\item{port}{Port. Default \code{NULL} (let Shiny choose).}
+\item{port}{Port. Default \code{NULL}, letting Shiny choose.}
 }
 \value{
 Invisible \code{NULL}; launches a Shiny application.
 }
 \description{
-Starts the bundled Shiny explorer app for inspecting a SeaTable base
-interactively. Pass a connected \code{harbour_client} to skip the connect
-screen, or run with no arguments to open the connect screen — which
-also offers a fully offline demo mode powered by \code{\link[=hb_example_metadata]{hb_example_metadata()}}
-and \code{\link[=hb_example_rows]{hb_example_rows()}}.
+A Shiny app for working with a SeaTable base without writing code:
+open a local \code{.dtable} export or connect to a server, browse the
+tables, read the schema, run SQL, and download the result as
+\code{.dtable}, Excel or CSV.
 }
 \details{
-The Shiny app and its UI dependencies (\code{shiny}, \code{bslib}, \code{DT},
-\code{reactable}, \code{ggplot2}) are in \code{Suggests}, not \code{Imports} — the core
-client works headless. Missing dependencies produce a single informative
-error rather than a stack trace.
+Pass a connected \code{\link[=hb_client]{hb_client()}} or a base read with \code{\link[=hb_read_dtable]{hb_read_dtable()}}
+to start there. With no argument the app opens on its source panel,
+which offers a bundled example base that needs no credentials and no
+network.
+
+The UI packages (\code{shiny}, \code{bslib}, \code{reactable}) are in \code{Suggests}, so
+the client itself stays headless. A missing one produces a single
+informative error rather than a stack trace.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# the bundled example base, no credentials needed
 hb_run_explorer()
+
+# or start from a file
+hb_run_explorer(hb_read_dtable("my-base.dtable"))
 \dontshow{\}) # examplesIf}
 }
 \concept{shiny}

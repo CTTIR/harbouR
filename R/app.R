@@ -1,61 +1,58 @@
 #' Launch the harbouR explorer
 #'
-#' Starts the bundled Shiny explorer app for inspecting a SeaTable base
-#' interactively. Pass a connected `harbour_client` to skip the connect
-#' screen, or run with no arguments to open the connect screen — which
-#' also offers a fully offline demo mode powered by [hb_example_metadata()]
-#' and [hb_example_rows()].
+#' A Shiny app for working with a SeaTable base without writing code:
+#' open a local `.dtable` export or connect to a server, browse the
+#' tables, read the schema, run SQL, and download the result as
+#' `.dtable`, Excel or CSV.
 #'
-#' The Shiny app and its UI dependencies (`shiny`, `bslib`, `DT`,
-#' `reactable`, `ggplot2`) are in `Suggests`, not `Imports` — the core
-#' client works headless. Missing dependencies produce a single informative
-#' error rather than a stack trace.
+#' Pass a connected [hb_client()] or a base read with [hb_read_dtable()]
+#' to start there. With no argument the app opens on its source panel,
+#' which offers a bundled example base that needs no credentials and no
+#' network.
 #'
-#' @param client Optional `harbour_client`. If `NULL`, the app opens its
-#'   connect screen.
-#' @param ... Forwarded to [shiny::runApp()].
+#' The UI packages (`shiny`, `bslib`, `reactable`) are in `Suggests`, so
+#' the client itself stays headless. A missing one produces a single
+#' informative error rather than a stack trace.
+#'
+#' @param x Optional `harbour_client` or `harbour_dtable` to open with.
+#' @param ... Passed to [shiny::runApp()].
 #' @param host Host to bind. Default `"127.0.0.1"`.
-#' @param port Port. Default `NULL` (let Shiny choose).
+#' @param port Port. Default `NULL`, letting Shiny choose.
 #'
 #' @return Invisible `NULL`; launches a Shiny application.
 #' @family shiny
 #' @examplesIf interactive()
+#' # the bundled example base, no credentials needed
 #' hb_run_explorer()
+#'
+#' # or start from a file
+#' hb_run_explorer(hb_read_dtable("my-base.dtable"))
 #' @export
-hb_run_explorer <- function(client = NULL,
-                            ...,
-                            host = "127.0.0.1",
-                            port = NULL) {
-  needed <- c("shiny", "bslib", "DT", "reactable", "ggplot2")
-  present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
-  missing <- needed[!present]
-  if (length(missing) > 0L) {
-    hb_abort(
-      c(
-        "The harbouR explorer needs additional packages.",
-        "x" = "Missing: {.pkg {missing}}.",
-        "i" = "Install them with {.code install.packages()}."
-      ),
-      class = "harbour_error_unsupported"
-    )
-  }
+hb_run_explorer <- function(x = NULL, ..., host = "127.0.0.1", port = NULL) {
   rlang::check_dots_used()
-  if (!is.null(client)) .check_client(client)
-  app_dir <- system.file("shiny", "harbour_explorer", package = "harbouR")
-  if (!nzchar(app_dir)) {
-    hb_abort("Could not locate the bundled Shiny app directory.",
+  needed <- c("shiny", "bslib", "reactable")
+  present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
+  if (!all(present)) {
+    absent <- needed[!present]
+    hb_abort(
+      c("The harbouR explorer needs additional packages.",
+        "x" = "Missing: {.pkg {absent}}.",
+        "i" = "Install them with {.code install.packages()}."),
       class = "harbour_error_unsupported"
     )
   }
-  # shinyOptions() is process-global. Without this, a client carrying a
-  # plaintext token stays reachable for the rest of the R session after the
-  # app closes.
-  previous <- shiny::getShinyOption("harbouR_preset_client", default = NULL)
-  on.exit(
-    shiny::shinyOptions(harbouR_preset_client = previous),
-    add = TRUE
+  if (!is.null(x) && !is_harbour_client(x) && !is_harbour_dtable(x)) {
+    hb_abort(
+      c("{.arg x} must be a {.cls harbour_client} or a
+         {.cls harbour_dtable}.",
+        "x" = "You supplied an object of class {.cls {class(x)}}."),
+      class = "harbour_error_bad_argument"
+    )
+  }
+  app <- shiny::shinyApp(
+    ui = .hb_app_ui(),
+    server = .hb_app_server(preset = x)
   )
-  shiny::shinyOptions(harbouR_preset_client = client)
-  shiny::runApp(app_dir, host = host, port = port, ...)
+  shiny::runApp(app, host = host, port = port, ...)
   invisible(NULL)
 }

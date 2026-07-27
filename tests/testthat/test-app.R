@@ -1,38 +1,161 @@
-test_that("hb_run_explorer errors cleanly when UI deps are missing", {
-  needed <- c("shiny", "bslib", "DT", "reactable", "ggplot2")
-  skip_if(all(vapply(needed, requireNamespace, logical(1), quietly = TRUE)))
-  expect_error(hb_run_explorer(), "needs additional packages")
+# The app lives in R/, so R CMD check, covr and lintr all see it, and its
+# server logic can be driven headlessly with shiny::testServer(). The old
+# app was in inst/, where the only possible assertion was that its source
+# parsed - which is how an unqualified %||% shipped in it.
+
+skip_if_no_ui <- function() {
+  needed <- c("shiny", "bslib", "reactable")
+  present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
+  testthat::skip_if_not(all(present), "UI packages not installed")
+}
+
+test_that("hb_run_explorer rejects a source it cannot open", {
+  skip_if_no_ui()
+  expect_error(hb_run_explorer(42), class = "harbour_error_bad_argument")
 })
 
-test_that("app.R and module files source without error", {
-  skip_if_not_installed("shiny")
-  skip_if_not_installed("bslib")
-  skip_if_not_installed("DT")
-  skip_if_not_installed("reactable")
-  skip_if_not_installed("ggplot2")
-  app_dir <- system.file("shiny", "harbour_explorer", package = "harbouR")
-  expect_true(nzchar(app_dir))
-  # Parse-only check; running the app needs an event loop.
-  for (f in c("app.R",
-              "modules/mod_connect.R",
-              "modules/mod_base_overview.R",
-              "modules/mod_table_browser.R",
-              "modules/mod_query.R",
-              "modules/mod_cell_detail.R")) {
-    expect_silent(parse(file = file.path(app_dir, f)))
-  }
-})
-
-test_that("hb_run_explorer restores the previous preset client on exit", {
-  skip_if_not_installed("shiny")
-  needed <- c("shiny", "bslib", "DT", "reactable", "ggplot2")
-  skip_if_not(all(vapply(needed, requireNamespace, logical(1), quietly = TRUE)))
-  shiny::shinyOptions(harbouR_preset_client = NULL)
+test_that("hb_run_explorer names the packages it is missing", {
+  skip_if_no_ui()
   testthat::local_mocked_bindings(
-    runApp = function(...) NULL,
-    .package = "shiny"
+    requireNamespace = function(package, ...) !identical(package, "reactable"),
+    .package = "base"
   )
-  hb_run_explorer(mock_client())
-  # A client carrying a plaintext token must not outlive the app.
-  expect_null(shiny::getShinyOption("harbouR_preset_client"))
+  expect_error(hb_run_explorer(), class = "harbour_error_unsupported")
+})
+
+test_that("the UI builds and declares a page language", {
+  skip_if_no_ui()
+  ui <- harbouR:::.hb_app_ui()
+  expect_s3_class(ui, "shiny.tag.list")
+  html <- as.character(htmltools::renderTags(ui)$html)
+  expect_match(html, 'lang="en"', fixed = TRUE)
+  expect_match(html, "harbou", fixed = TRUE)
+})
+
+test_that("the API token input is never seeded from the environment", {
+  skip_if_no_ui()
+  withr::local_envvar(c(SEATABLE_API_TOKEN = "SUPERSECRETTOKEN"))
+  html <- as.character(htmltools::renderTags(harbouR:::.hb_app_ui())$html)
+  # passwordInput(value = ) writes the value straight into the page HTML.
+  expect_false(grepl("SUPERSECRETTOKEN", html, fixed = TRUE))
+})
+
+test_that("the app opens a .dtable and lists its tables", {
+  skip_if_no_ui()
+  path <- system.file("extdata", "example.dtable", package = "harbouR")
+  base <- hb_read_dtable(path)
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    expect_identical(session$getReturned(), NULL)
+    expect_identical(output$table_count, "2")
+    expect_identical(session$env$state$table, "Samples")
+    expect_identical(session$env$state$kind, "file")
+  })
+})
+
+test_that("picking a table switches the data panel to it", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    session$setInputs(pick_table = "Reference")
+    expect_identical(session$env$state$table, "Reference")
+  })
+})
+
+test_that("the example base loads with no credentials", {
+  skip_if_no_ui()
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    expect_null(session$env$state$source)
+    session$setInputs(use_demo = 1)
+    expect_true(is_harbour_dtable(session$env$state$source))
+    expect_identical(session$env$state$kind, "demo")
+    expect_identical(session$env$state$table, "Samples")
+  })
+})
+
+test_that("a failed connection is reported, not thrown", {
+  skip_if_no_ui()
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    # No token: hb_client() aborts. The app must survive it.
+    session$setInputs(server = "https://example.org", token = "",
+                      connect = 1)
+    expect_null(session$env$state$source)
+  })
+})
+
+test_that("query results are refused without a server", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    panel <- as.character(htmltools::renderTags(output$query_panel$html)$html)
+    expect_match(panel, "not a database")
+  })
+})
+
+test_that("every column type has a colour, and it is stable", {
+  families <- harbouR:::.hb_type_families()
+  expect_identical(nrow(families), nrow(hb_column_types()))
+  expect_false(any(is.na(families$colour)))
+  # An unknown type must still render rather than producing NA in the CSS.
+  expect_identical(
+    harbouR:::.hb_type_colour("brand-new-type"),
+    unname(harbouR:::.hb_palette()[["mist"]])
+  )
+})
+
+test_that("the schema band renders one segment per column", {
+  band <- harbouR:::.hb_sounding(c("text", "number", "date"))
+  expect_identical(lengths(regmatches(band, gregexpr("<i ", band))), 3L)
+  expect_match(band, 'aria-hidden="true"', fixed = TRUE)
+  expect_identical(harbouR:::.hb_sounding(character()), "")
+})
+
+test_that("display frames flatten list-columns so a cell can show them", {
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  shown <- harbouR:::.hb_display_frame(hb_read_table(base, "Samples"))
+  expect_false(any(vapply(shown, is.list, logical(1))))
+  expect_identical(shown$Tags[[1L]], "urgent, blood")
+})
+
+test_that("cli markup is stripped before a message reaches the browser", {
+  cnd <- rlang::catch_cnd(
+    hb_abort("Something {.arg broke}.", class = "harbour_error_bad_argument")
+  )
+  plain <- harbouR:::.hb_plain_message(cnd)
+  expect_false(grepl("\033", plain, fixed = TRUE))
+  expect_match(plain, "broke")
+})
+
+test_that("download names are derived from the base and are filesystem-safe", {
+  state <- list(source = hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  ))
+  state$source$base_name <- "Data - Wiebke/2026"
+  expect_identical(
+    harbouR:::.hb_download_name(state, "dtable"),
+    "Data_-_Wiebke_2026.dtable"
+  )
+})
+
+test_that("a live base can be turned into a dtable for download", {
+  cl <- mock_client()
+  # with_mocked_request() returns its recorder, so capture the value.
+  converted <- NULL
+  with_mocked_request(
+    converted <- harbouR:::.hb_as_dtable(cl),
+    response = list(rows = list())
+  )
+  expect_true(is_harbour_dtable(converted))
+  expect_setequal(names(converted), c("Samples", "Patients"))
+})
+
+test_that(".hb_safe_types never stops a table from listing", {
+  # The schema band is decoration; a schema it cannot read must not take
+  # the table list down with it.
+  expect_identical(harbouR:::.hb_safe_types(list(), "nope"), character())
 })

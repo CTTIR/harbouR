@@ -57,6 +57,32 @@
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+## The explorer
+
+* **The Shiny app has been rebuilt, and it lives in `R/`.** It was under
+  `inst/`, where `R CMD check`, `covr` and `lintr` could not see it - which
+  is how it came to use an operator that does not exist on three of the
+  four R versions the package claims to support. Its logic is now driven
+  headlessly by `shiny::testServer()` in the test suite, and `codecov.yml`
+  no longer hides it from the coverage number.
+
+* `hb_run_explorer()` opens a local `.dtable`, connects to a server, or
+  loads a bundled example base that needs no credentials and no network.
+  Its first argument takes either a `harbour_client` or a
+  `harbour_dtable`.
+
+* Everything is reachable without code: browse tables, read the schema,
+  run SQL, and download the base as `.dtable`, Excel or zipped CSV - or
+  the open table as a single CSV.
+
+* The palette is the package logo's, which is viridis. Column types are
+  grouped into families, each keeping one colour throughout, and every
+  table in the sidebar carries a band showing its columns by family - so
+  the shape of a sixty-column table is legible before you open it.
+
+* The API token field is never pre-filled from the environment. A value
+  passed to a password input is serialised into the page's HTML.
+
 ## Local `.dtable` files
 
 * **harbouR reads and writes SeaTable `.dtable` exports.**

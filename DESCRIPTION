@@ -43,6 +43,7 @@ Suggests:
     dplyr,
     DT,
     ggplot2,
+    htmltools,
     knitr,
     reactable,
     readxl,
