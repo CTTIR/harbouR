@@ -138,12 +138,3 @@
       x '<tmp>/report.pdf'
       i Pass `overwrite = TRUE` to replace it.
 
-# scaffolded endpoints say so plainly
-
-    Code
-      hb_list_links()
-    Condition
-      Error in `hb_list_links()`:
-      ! `hb_list_links()` is scaffolded but not yet implemented in this release.
-      i It will land in a later minor release. See `NEWS.md`.
-

@@ -58,6 +58,3 @@ test_that("hb_download_file() refuses to clobber without overwrite", {
   )
 })
 
-test_that("scaffolded endpoints say so plainly", {
-  expect_snapshot(error = TRUE, hb_list_links())
-})

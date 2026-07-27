@@ -83,6 +83,25 @@ hb_example_rows("Samples")
 `hb_run_explorer()` launches a Shiny app for inspecting any base
 interactively, with a demo mode that needs no credentials.
 
+## Roadmap
+
+harbouR covers the parts of the SeaTable API you need to get data in and
+out: authentication, metadata, rows, tables, columns, views and files.
+Not yet wrapped, in rough order of intent:
+
+- **Link columns** - reading and writing row-to-row relationships.
+- **Local `.dtable` files** - reading and writing SeaTable exports with
+  no server at all.
+- Comments, snapshots, big-data (archive) storage, share links and
+  webhooks.
+- Server-side import/export, and the admin, team and scheduler
+  endpoints.
+
+Earlier releases exported these as stubs that raised “not yet
+implemented”. They no longer exist: a function you can call is a promise
+that it works. Track progress or request one at
+<https://github.com/CTTIR/harbouR/issues>.
+
 ## Acknowledgements
 
 harbouR was shaped by the needs, field testing and data of Paul

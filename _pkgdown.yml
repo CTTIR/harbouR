@@ -81,9 +81,6 @@ reference:
   contents:
   - hb_run_explorer
 
-- title: Scaffolded (later releases)
-  contents:
-  - has_concept("scaffolded")
 
 articles:
 - title: Articles

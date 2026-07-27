@@ -16,6 +16,19 @@
   absence turned `R CMD check` red on any machine without it. HTTP is
   replaced at the package's own request seam instead.
 
+* Errors now carry condition classes under a shared `harbour_error`, so
+  they can be caught by kind rather than by message text. See
+  `?"harbouR-conditions"`. HTTP errors carry `status`, `url` and `body`.
+
+* A `403` response is no longer retried as though the base token had
+  expired. Only `401` triggers a refresh.
+
+* **Breaking:** the 39 scaffolded endpoints that only ever raised "not yet
+  implemented" have been removed - `hb_list_links()`, `hb_create_base()`,
+  `hb_export_table()`, the `hb_admin_*()` and `hb_team_*()` families, and
+  the rest. They were half the exported surface and none of them worked.
+  The remaining areas are listed under Roadmap in the README.
+
 # harbouR 0.1.0
 
 Initial release.
@@ -40,6 +53,3 @@ Initial release.
   * Offline example data: `hb_example_metadata()`, `hb_example_rows()`.
   * Shiny explorer launcher: `hb_run_explorer()`.
 
-* Tiers 2 and 3 (links, big data, comments, notifications, snapshots, bases,
-  import/export, sharing, integrations, admin, team, scheduler) are
-  scaffolded with documented stubs and will land in later minor releases.
