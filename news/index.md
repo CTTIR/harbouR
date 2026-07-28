@@ -104,6 +104,15 @@ that was tagged but never published.
   not openly licensed. Both statements are gone. The one verbatim
   quotation in the package is now attributed to its source.
 
+- The wording is deliberately narrow. harbouR *relies on* the interface
+  exclusion rather than asserting that it settles the question, because
+  it does not settle everything: the CJEU reserved the possibility that
+  a data file format could attract ordinary copyright as a work
+  (C-406/10, para. 45), and § 69g(1) UrhG leaves unfair competition,
+  trade secrets, trademarks and contract untouched. Both limits are
+  stated in `NOTICE.md`, along with the fact that none of this is legal
+  advice.
+
 ### Scope
 
 - harbouR is stated, throughout, as being for two things: **SeaTable

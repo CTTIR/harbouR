@@ -200,13 +200,14 @@ exists.
 For accuracy: SeaTable Server is not open source — `dtable-server`, the
 component holding the tables, is proprietary. The official clients and
 SDKs are Apache-2.0. The API specification and reference are published
-publicly but carry no open licence, and harbouR needs none: it
-reproduces no documentation prose, and endpoint paths, verbs and field
-names are excluded from copyright protection as the ideas underlying an
-interface (Art. 1(2), Directive 2009/24/EC; CJEU C-406/10). SeaTable’s
-own dtable-server EULA says the same in its own terms — applications
-using the API are “third-party software”, and “\[t\]he provisions of the
-EULA do not apply to any such third-party software”.
+publicly but carry no open licence, and harbouR relies on none: it
+reproduces no documentation prose, and it relies on the exclusion of the
+ideas and principles underlying a program’s interfaces from copyright
+protection (Art. 1(2), Directive 2009/24/EC; § 69a(2) UrhG; CJEU
+C-406/10). SeaTable’s own dtable-server EULA points the same way —
+applications using the API are “third-party software”, and “\[t\]he
+provisions of the EULA do not apply to any such third-party software”.
+This is reasoning, not legal advice; see `NOTICE.md` for its limits.
 
 SeaTable is developed by Seafile Ltd. (Beijing); SeaTable GmbH (Mainz)
 is the German company behind it. Thanks are owed to both.
