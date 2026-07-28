@@ -126,21 +126,36 @@ the n8n integration nodes (MIT).
 
 The OpenAPI specification and the reference documentation are published
 publicly and readable without registration, but they carry no open
-licence, and harbouR does not need one. harbouR reproduces no
-documentation prose. What it uses — endpoint paths, HTTP verbs and JSON
-field names — are the ideas and principles underlying an interface,
-which Article 1(2) of Directive 2009/24/EC excludes from copyright
-protection, as the CJEU confirmed in *SAS Institute v World Programming*
-(C-406/10).
+licence — and harbouR does not rely on one. It reproduces no
+documentation prose. What it uses are endpoint paths, HTTP verbs and
+JSON field names, and it relies on Article 1(2) of Directive
+2009/24/EC, under which "ideas and principles which underlie any
+element of a computer program, including those which underlie its
+interfaces, are not protected by copyright". In *SAS Institute v World
+Programming* (C-406/10) the CJEU held that neither the functionality of
+a program, nor its programming language, nor the format of its data
+files constitutes a form of expression protected as a computer program.
+Germany transposes the same exclusion in § 69a(2) UrhG.
 
-SeaTable's own licence terms point the same way. The dtable-server EULA
-defines applications that talk to the Server through its API as
-"third-party software" and then says of them: "The provisions of the
-EULA do not apply to any such third-party software."
+Two limits on that, stated because they are real. The Court reserved
+the possibility (C-406/10, para. 45) that a data file format might
+attract ordinary copyright as a work if it is its author's own
+intellectual creation. And § 69g(1) UrhG preserves other regimes
+entirely — unfair competition, trade secrets, trademarks and contract
+are untouched by the copyright exclusion.
+
+SeaTable's own terms point the same way. The dtable-server EULA defines
+applications that talk to the Server through its API as "third-party
+software" and says of them: "The provisions of the EULA do not apply to
+any such third-party software."
 ([source](https://admin.seatable.com/introduction/dtable-server-license/))
-harbouR is exactly that. Its restrictions, including the one on reverse
-engineering, are directed at the Server's source code and do not reach a
-client built on the published API.
+harbouR is such an application, and the EULA's restrictions — including
+the one on reverse engineering, which is directed at the Server's
+source code — are not written to reach it.
+
+None of the above is legal advice, and none of it was written by a
+lawyer. It is the reasoning harbouR's authors relied on, with the
+sources named so that anyone can check it or take their own advice.
 
 SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of the
 Seafile project; SeaTable GmbH
