@@ -152,6 +152,29 @@ harbouR is by Raban Heller, Paul Elsinghorst, Wiebke Derz, Matthias
 Ring, Gerhard Achatz and Vinzent Forstmeier. It grew out of their needs,
 field testing and data.
 
-SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
-unofficial client and is not affiliated with or endorsed by SeaTable
-GmbH.
+## Trademarks and affiliation
+
+harbouR is an independent, third-party client. It is **not** affiliated
+with, endorsed by, sponsored by, or officially connected to SeaTable
+GmbH. Please raise anything about harbouR
+[here](https://github.com/CTTIR/harbouR/issues), not with SeaTable GmbH.
+
+SeaTable is a trademark of SeaTable GmbH, 117er Ehrenhof 5, 55118 Mainz,
+Germany (Amtsgericht Mainz, HRB 49723). harbouR uses the name only to
+identify the service it talks to, claims no right in the mark, and ships
+none of SeaTable GmbH’s logos or brand assets — the harbouR logo is an
+original work.
+
+harbouR contains no SeaTable server code. It communicates with a
+SeaTable server through the public REST API that SeaTable GmbH
+[documents](https://api.seatable.com/) for third-party applications.
+Your use of SeaTable itself is governed by your agreement with SeaTable
+GmbH, not by this package’s licence, and harbouR is provided without
+warranty (see [LICENSE](https://cttir.github.io/harbouR/LICENSE.md)).
+
+harbouR exists because SeaTable GmbH built the platform and chose to
+document its API openly. If SeaTable is useful to you, support them at
+<https://seatable.com/>.
+
+The full notice is in
+[NOTICE.md](https://cttir.github.io/harbouR/NOTICE.md).
