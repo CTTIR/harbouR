@@ -69,6 +69,28 @@ The notes below record what changed during development, against an
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+## Legal position
+
+* `NOTICE.md`, the README, the vignette and `?harbouR` now cite the basis
+  on which harbouR uses SeaTable's interface, rather than implying it
+  rests on a licence grant. Endpoint paths, HTTP verbs and JSON field
+  names are the ideas and principles underlying an interface, excluded
+  from copyright protection by Article 1(2) of Directive 2009/24/EC and
+  by the CJEU in *SAS Institute v World Programming* (C-406/10) - which
+  was referred, on these facts, the question whether a program may be
+  written to read and write another's data file format.
+
+* They also cite the clause in SeaTable's own dtable-server EULA that
+  defines applications communicating over the API as "third-party
+  software" and states that the EULA's provisions "do not apply to any
+  such third-party software".
+
+* Two factual corrections: the per-component licences previously
+  attributed to SeaTable Server could not be verified from the
+  repositories, and the API specification is published publicly but is
+  not openly licensed. Both statements are gone. The one verbatim
+  quotation in the package is now attributed to its source.
+
 ## Scope
 
 * harbouR is stated, throughout, as being for two things: **SeaTable
@@ -98,9 +120,14 @@ The notes below record what changed during development, against an
   additions. That last one is not abstract: it is how harbouR learned it
   had been aimed at endpoints removed in SeaTable 5.3.
 
-  Every claim was checked against a primary source before it was
-  printed, including the one that is least flattering to quote: SeaTable
-  Server is not fully open source, and the section says so.
+  The section is careful about what it does and does not claim: SeaTable
+  Server is not open source, and it says so. A later adversarial review
+  found two assertions in the first version of this text that were not
+  in fact supported by their sources - the per-component licences of
+  SeaTable Server, and the claim that the API specification is "openly
+  licensed" - and both have been corrected. harbouR needs no licence to
+  the specification: endpoint paths, verbs and field names are excluded
+  from copyright protection as the ideas underlying an interface.
 
 ## Authorship and citation
 

@@ -10,6 +10,7 @@ bslib
 changelog
 Charité
 chr
+CJEU
 CMD
 Codecov
 collaborator
@@ -26,6 +27,8 @@ Ehrenhof
 env
 erroring
 etc
+EULA
+EULA's
 ggplot
 GitHub
 GmbH
@@ -41,6 +44,7 @@ lgl
 lifecycle
 lubridate
 Mainz
+md
 metadata
 multiselect
 nominative
@@ -49,18 +53,19 @@ OpenAPI
 ORCID
 pkgdown
 POSIXct
+Programming
 purrr
 Ralf
 reactable
 refetch
 roxygen
-scaffolded
 Scaffolded
+scaffolded
 sdk
 SDKs
 Seafile
-seatable
 SeaTable
+seatable
 SeaTable's
 Shiny
 SQL
