@@ -34,15 +34,11 @@ Useful links:
 Authors:
 \itemize{
   \item Raban Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
-}
-
-Other contributors:
-\itemize{
-  \item Paul Elsinghorst [contributor]
-  \item Wiebke Derz [contributor]
-  \item Matthias Ring [contributor]
-  \item Gerhard Achatz [contributor]
-  \item Vinzent Forstmeier [contributor]
+  \item Paul Elsinghorst
+  \item Wiebke Derz
+  \item Matthias Ring
+  \item Gerhard Achatz
+  \item Vinzent Forstmeier
 }
 
 }

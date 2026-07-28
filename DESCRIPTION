@@ -1,16 +1,17 @@
 Package: harbouR
 Title: R Client for 'SeaTable' Collaborative Databases
 Version: 0.1.0
+Date: 2026-07-28
 Authors@R: c(
     person("Raban", "Heller",
            email = "raban.heller@uni-ulm.de",
            role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8006-9742")),
-    person("Paul", "Elsinghorst", role = "ctb"),
-    person("Wiebke", "Derz", role = "ctb"),
-    person("Matthias", "Ring", role = "ctb"),
-    person("Gerhard", "Achatz", role = "ctb"),
-    person("Vinzent", "Forstmeier", role = "ctb"))
+    person("Paul", "Elsinghorst", role = "aut"),
+    person("Wiebke", "Derz", role = "aut"),
+    person("Matthias", "Ring", role = "aut"),
+    person("Gerhard", "Achatz", role = "aut"),
+    person("Vinzent", "Forstmeier", role = "aut"))
 Description: An unofficial R client for the 'SeaTable' REST API. Provides
     authentication with transparent base-token refresh, tidy 'tibble'
     returns for tables, rows, columns and views, helpers for managing

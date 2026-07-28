@@ -378,3 +378,29 @@ test_that("exporting a live base to .dtable produces a readable file", {
   hb_write_dtable(base, out)
   expect_no_error(hb_read_table(hb_read_dtable(out), "Samples"))
 })
+
+test_that("the citation lists every author from DESCRIPTION", {
+  # inst/CITATION derives everything from the installed metadata, so a new
+  # author must not require remembering to edit it too. The rendered
+  # `Author` field only exists in an installed package - under load_all()
+  # it is still the raw Authors@R text - so this asserts against the real
+  # thing or not at all.
+  skip_if(!nzchar(system.file("CITATION", package = "harbouR")),
+          "package not installed with CITATION")
+  people <- utils::as.person(utils::packageDescription("harbouR")$Author)
+  expected <- Filter(function(p) "aut" %in% p$role, people)
+  skip_if(length(expected) == 0L, "DESCRIPTION Author is not rendered")
+
+  cite <- utils::citation("harbouR")
+  expect_setequal(
+    format(cite[[1L]]$author, include = c("given", "family")),
+    format(expected, include = c("given", "family"))
+  )
+  # every declared author reaches the BibTeX entry
+  bib <- paste(utils::toBibtex(cite), collapse = " ")
+  for (person in expected) {
+    expect_match(bib, person$family[[1L]], fixed = TRUE)
+  }
+  expect_true(grepl(utils::packageVersion("harbouR"), bib, fixed = TRUE))
+  expect_true(grepl("github.com/CTTIR/harbouR", bib, fixed = TRUE))
+})

@@ -135,11 +135,36 @@ implemented”. They no longer exist: a function you can call is a promise
 that it works. Track progress or request one at
 <https://github.com/CTTIR/harbouR/issues>.
 
-## Acknowledgements
+## Citation
 
-harbouR was shaped by the needs, field testing and data of Paul
-Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
-Forstmeier.
+If harbouR contributes to work you publish, please cite it. The entry is
+generated from the package metadata, so it always matches the version
+you have installed:
+
+``` r
+citation("harbouR")
+#> To cite harbouR in publications, please use:
+#> 
+#>   Heller R, Elsinghorst P, Derz W, Ring M, Achatz G, Forstmeier V
+#>   (2026). _harbouR: R Client for SeaTable Collaborative Databases_. R
+#>   package version 0.1.0, <https://github.com/CTTIR/harbouR>.
+#> 
+#> A BibTeX entry for LaTeX users is
+#> 
+#>   @Manual{,
+#>     title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
+#>     author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
+#>     year = {2026},
+#>     note = {R package version 0.1.0},
+#>     url = {https://github.com/CTTIR/harbouR},
+#>   }
+```
+
+## Authors
+
+harbouR is by Raban Heller, Paul Elsinghorst, Wiebke Derz, Matthias
+Ring, Gerhard Achatz and Vinzent Forstmeier. It grew out of their needs,
+field testing and data.
 
 SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
 unofficial client and is not affiliated with or endorsed by SeaTable

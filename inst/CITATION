@@ -1,0 +1,44 @@
+## Everything here comes from DESCRIPTION, so the citation cannot drift
+## out of step with the package's authors, version or year.
+##
+## R supplies `meta` (the parsed DESCRIPTION) when it reads this file.
+## Do not call packageDescription() instead: CRAN reads CITATION with the
+## package uninstalled, where that returns NA and `$` then fails.
+##
+## The rendered `Author` field is parsed with utils::as.person() rather
+## than by eval()ing `Authors@R`: same result, no code execution.
+
+if (!exists("meta") || is.null(meta)) {
+  meta <- utils::packageDescription("harbouR")
+}
+
+## `[[` not `$`: meta$Author partially matches Authors@R, which would
+## feed as.person() the raw code instead of the rendered names.
+version <- if (is.list(meta)) meta[["Version"]] else NULL
+if (is.null(version)) version <- utils::packageVersion("harbouR")
+
+year <- if (is.list(meta)) meta[["Date"]] else NULL
+year <- if (!is.null(year) && nzchar(year)) {
+  sub("-.*", "", year)
+} else {
+  format(Sys.Date(), "%Y")
+}
+
+rendered <- if (is.list(meta)) meta[["Author"]] else NULL
+people <- if (!is.null(rendered) && nzchar(rendered)) {
+  utils::as.person(rendered)
+} else {
+  utils::person("Raban", "Heller", role = c("aut", "cre"))
+}
+authors <- Filter(function(p) "aut" %in% p$role, people)
+if (length(authors) == 0L) authors <- people
+
+bibentry(
+  bibtype = "Manual",
+  title = "{harbouR}: R Client for {SeaTable} Collaborative Databases",
+  author = authors,
+  year = year,
+  note = paste("R package version", version),
+  url = "https://github.com/CTTIR/harbouR",
+  header = "To cite harbouR in publications, please use:"
+)
