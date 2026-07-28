@@ -197,11 +197,16 @@ removed in 5.3. harbouR was aimed at exactly those endpoints; without
 that entry this package would still be talking to an API that no longer
 exists.
 
-For accuracy: SeaTable Server is not fully open source — `dtable-server`
-is proprietary, though `dtable-web` and `dtable-events` are Apache-2.0
-and `seaf-server` is AGPLv3. What is openly licensed is the API
-specification, the clients and SDKs, the integrations and the
-documentation, which is the part harbouR depends on.
+For accuracy: SeaTable Server is not open source — `dtable-server`, the
+component holding the tables, is proprietary. The official clients and
+SDKs are Apache-2.0. The API specification and reference are published
+publicly but carry no open licence, and harbouR needs none: it
+reproduces no documentation prose, and endpoint paths, verbs and field
+names are excluded from copyright protection as the ideas underlying an
+interface (Art. 1(2), Directive 2009/24/EC; CJEU C-406/10). SeaTable’s
+own dtable-server EULA says the same in its own terms — applications
+using the API are “third-party software”, and “\[t\]he provisions of the
+EULA do not apply to any such third-party software”.
 
 SeaTable is developed by Seafile Ltd. (Beijing); SeaTable GmbH (Mainz)
 is the German company behind it. Thanks are owed to both.

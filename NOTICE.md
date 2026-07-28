@@ -111,24 +111,41 @@ there for help.
 **They let you run it yourself.** SeaTable Server can be self-hosted,
 and the Developer Edition needs no licence key. It is described as being
 for “developers and small teams using SeaTable as a database backend via
-APIs and scripts”, which is precisely the use case harbouR serves, and
-on your own server you decide which API limits apply, or whether any
-apply at all. harbouR is written for that deployment, and for the
-exported `.dtable` files it produces.
+APIs and scripts” ([SeaTable admin
+manual](https://admin.seatable.com/introduction/editions/)), which is
+precisely the use case harbouR serves, and on your own server you decide
+which API limits apply, or whether any apply at all. harbouR is written
+for that deployment, and for the exported `.dtable` files it produces.
 
 A note on accuracy, because an acknowledgement should not overstate:
-SeaTable Server is **not** fully open source. `dtable-web` and
-`dtable-events` are Apache-2.0 and `seaf-server` is AGPLv3, but
-`dtable-server` — the component that holds the tables — is proprietary.
-What is openly licensed is the API specification, the official clients
-and SDKs, the integrations and the documentation. That is the part
-harbouR depends on, and it is more than most vendors publish.
+SeaTable Server is **not** open source. Its own admin manual lists
+per-component licences, and the component that holds the tables,
+`dtable-server`, is proprietary. What is published under a recognised
+open licence are the official client libraries and SDKs (Apache-2.0) and
+the n8n integration nodes (MIT).
+
+The OpenAPI specification and the reference documentation are published
+publicly and readable without registration, but they carry no open
+licence, and harbouR does not need one. harbouR reproduces no
+documentation prose. What it uses — endpoint paths, HTTP verbs and JSON
+field names — are the ideas and principles underlying an interface,
+which Article 1(2) of Directive 2009/24/EC excludes from copyright
+protection, as the CJEU confirmed in *SAS Institute v World Programming*
+(C-406/10).
+
+SeaTable’s own licence terms point the same way. The dtable-server EULA
+defines applications that talk to the Server through its API as
+“third-party software” and then says of them: “The provisions of the
+EULA do not apply to any such third-party software.”
+([source](https://admin.seatable.com/introduction/dtable-server-license/))
+harbouR is exactly that. Its restrictions, including the one on reverse
+engineering, are directed at the Server’s source code and do not reach a
+client built on the published API.
 
 SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of
-the Seafile project and holds half of the joint venture; SeaTable GmbH
-(Mainz), founded in July 2020 by Dr. Ralf Dyllick-Brenzinger and
-Christoph Dyllick-Brenzinger, is the German company behind it. Thanks
-are owed to both.
+the Seafile project; SeaTable GmbH (Mainz), founded in July 2020 by
+Dr. Ralf Dyllick-Brenzinger and Christoph Dyllick-Brenzinger, is the
+German company behind it. Thanks are owed to both.
 
 If SeaTable is useful to you, support the people who build it:
 <https://seatable.com/>.
