@@ -1,3 +1,4 @@
+Amtsgericht
 API
 APIs
 backend
@@ -16,13 +17,16 @@ CSVs
 dplyr
 dtable
 dtable's
+Ehrenhof
 env
 erroring
 etc
 ggplot
 GitHub
+GmbH
 headlessly
 Heller
+HRB
 httr
 httr2
 int
@@ -31,8 +35,10 @@ JSON
 lgl
 lifecycle
 lubridate
+Mainz
 metadata
 multiselect
+nominative
 ORCID
 pkgdown
 POSIXct
@@ -40,9 +46,10 @@ purrr
 reactable
 refetch
 roxygen
-Scaffolded
 scaffolded
+Scaffolded
 SeaTable
+seatable
 SeaTable's
 Shiny
 SQL
@@ -62,5 +69,6 @@ var
 viridis
 WCAG
 webhooks
+wordmark
 workflow
 workflows

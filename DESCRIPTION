@@ -17,9 +17,10 @@ Description: An unofficial R client for the 'SeaTable' REST API. Provides
     returns for tables, rows, columns and views, helpers for managing
     bases and files, and an optional 'shiny' explorer for interactive
     inspection. The 'SeaTable' REST API is documented at
-    <https://api.seatable.com/>. 'SeaTable' is a trademark of SeaTable
-    GmbH; this package is not affiliated with or endorsed by SeaTable
-    GmbH.
+    <https://api.seatable.com/>. This is an independent, third-party
+    client: it is not affiliated with, endorsed by, or otherwise
+    connected to SeaTable GmbH, and 'SeaTable' is their trademark, used
+    here only to identify the service the package communicates with.
 License: MIT + file LICENSE
 URL: https://github.com/CTTIR/harbouR, https://cttir.github.io/harbouR/
 BugReports: https://github.com/CTTIR/harbouR/issues
