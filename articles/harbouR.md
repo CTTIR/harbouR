@@ -174,6 +174,33 @@ through the public REST API documented at <https://api.seatable.com/>.
 Your use of SeaTable itself is governed by your agreement with SeaTable
 GmbH, not by this package’s licence.
 
-harbouR exists because SeaTable GmbH built the platform and documented
-its API openly. The full notice is at
+The full notice is at
 <https://github.com/CTTIR/harbouR/blob/main/NOTICE.md>.
+
+## Acknowledgements
+
+harbouR is a client, and it rests on work SeaTable GmbH and Seafile Ltd.
+did first — in particular on their decisions about how open that work
+would be.
+
+They publish the OpenAPI 3.0 specification for the REST API as a public
+repository, kept on one branch per server version, so the contract a
+release promised remains available afterwards. The full reference reads
+without an account or payment. The admin and developer manuals are
+public repositories that accept pull requests. The official Python and
+PHP clients are Apache-2.0.
+
+They also write down what they break. The public API changelog recorded
+that `/dtable-server` and `/dtable-db` were deprecated in 5.2 and
+removed in 5.3. harbouR was aimed at exactly those endpoints; without
+that entry this package would still be talking to an API that no longer
+exists.
+
+For accuracy: SeaTable Server is not fully open source — `dtable-server`
+is proprietary, though `dtable-web` and `dtable-events` are Apache-2.0
+and `seaf-server` is AGPLv3. What is openly licensed is the API
+specification, the clients and SDKs, the integrations and the
+documentation, which is the part harbouR depends on.
+
+SeaTable is developed by Seafile Ltd. (Beijing); SeaTable GmbH (Mainz)
+handles sales, support and SeaTable Cloud. Thanks are owed to both.

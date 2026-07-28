@@ -80,6 +80,24 @@ that was tagged but never published.
   which is what the gateway expects; the web API keeps `Token`. **This
   requires SeaTable 5.3 (June 2025) or newer.**
 
+### Acknowledgement
+
+- New Acknowledgements section in the README, the introductory vignette
+  and
+  [`?harbouR`](https://cttir.github.io/harbouR/reference/harbouR-package.md),
+  naming what SeaTable GmbH and Seafile Ltd. built that made an
+  independent client possible: a publicly published OpenAPI
+  specification kept per server version, a reference readable without an
+  account, manuals in repositories that accept pull requests, Apache-2.0
+  client libraries, a free tier and a self-hostable Developer Edition -
+  and a changelog that records removals as plainly as additions. That
+  last one is not abstract: it is how harbouR learned it had been aimed
+  at endpoints removed in SeaTable 5.3.
+
+  Every claim was checked against a primary source before it was
+  printed, including the one that is least flattering to quote: SeaTable
+  Server is not fully open source, and the section says so.
+
 ### Authorship and citation
 
 - Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and

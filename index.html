@@ -202,8 +202,26 @@
 <p>harbouR is an independent, third-party client. It is <strong>not</strong> affiliated with, endorsed by, sponsored by, or officially connected to SeaTable GmbH. Please raise anything about harbouR <a href="https://github.com/CTTIR/harbouR/issues" class="external-link">here</a>, not with SeaTable GmbH.</p>
 <p>SeaTable is a trademark of SeaTable GmbH, 117er Ehrenhof 5, 55118 Mainz, Germany (Amtsgericht Mainz, HRB 49723). harbouR uses the name only to identify the service it talks to, claims no right in the mark, and ships none of SeaTable GmbH’s logos or brand assets — the harbouR logo is an original work.</p>
 <p>harbouR contains no SeaTable server code. It communicates with a SeaTable server through the public REST API that SeaTable GmbH <a href="https://api.seatable.com/" class="external-link">documents</a> for third-party applications. Your use of SeaTable itself is governed by your agreement with SeaTable GmbH, not by this package’s licence, and harbouR is provided without warranty (see <a href="LICENSE.html">LICENSE</a>).</p>
-<p>harbouR exists because SeaTable GmbH built the platform and chose to document its API openly. If SeaTable is useful to you, support them at <a href="https://seatable.com/" class="external-link uri">https://seatable.com/</a>.</p>
 <p>The full notice is in <a href="NOTICE.html">NOTICE.md</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
+</h2>
+<p>harbouR is a client. Everything it does rests on work SeaTable GmbH and Seafile Ltd. did first, and on a series of decisions they made about how open that work would be.</p>
+<ul>
+<li>
+<strong>They publish the API contract, not just prose about it.</strong> The OpenAPI 3.0 specification is a public repository (<a href="https://github.com/seatable/openapi" class="external-link">seatable/openapi</a>) covering 387 operations, kept on one branch per server version from v4.0 to v6.2 — so the contract a release promised stays available after that release is gone. Their CI rejects a specification whose operations lack a summary, description, tag or security scheme.</li>
+<li>
+<strong>The documentation is open to everyone.</strong> The full reference at <a href="https://api.seatable.com/" class="external-link uri">https://api.seatable.com/</a> reads without an account, registration or payment, and the admin and developer manuals are public repositories that invite pull requests.</li>
+<li>
+<strong>They write down what they break.</strong> The public API changelog records removals as plainly as additions: <code>/dtable-server</code> and <code>/dtable-db</code> were deprecated in 5.2 and removed in 5.3, with dates. harbouR was aimed at exactly those endpoints. Without that changelog this package would still be talking to an API that no longer exists — not a hypothetical benefit.</li>
+<li>
+<strong>They support people building on top.</strong> The official Python and PHP clients are Apache-2.0, as are <code>dtable-sdk</code> and the HTML-page SDK; the n8n nodes are MIT. The community forum has a Developer Talk category for API questions.</li>
+<li>
+<strong>You can build without paying first.</strong> SeaTable Cloud has a permanently free tier that includes API access, and the self-hosted Developer Edition needs no licence key — it is described as being for “developers and small teams using SeaTable as a database backend via APIs and scripts”, which is precisely what harbouR is for.</li>
+</ul>
+<p>To be accurate rather than flattering: SeaTable Server is <strong>not</strong> fully open source. <code>dtable-web</code> and <code>dtable-events</code> are Apache-2.0 and <code>seaf-server</code> is AGPLv3, but <code>dtable-server</code> — the component holding the tables — is proprietary. What <em>is</em> openly licensed is the API specification, the official clients and SDKs, the integrations and the documentation. That is the part harbouR depends on, and it is more than most vendors publish.</p>
+<p>SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of the Seafile project; SeaTable GmbH (Mainz), founded in July 2020 by Dr. Ralf Dyllick-Brenzinger and Christoph Dyllick-Brenzinger, handles sales, support and SeaTable Cloud. Thanks are owed to both. If SeaTable is useful to you, support them at <a href="https://seatable.com/" class="external-link uri">https://seatable.com/</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
