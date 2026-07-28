@@ -31,8 +31,8 @@ format(x, ...)
 
 - server:
 
-  SeaTable server URL, e.g. `"https://cloud.seatable.io"`. Defaults to
-  the `SEATABLE_SERVER` env var.
+  URL of the SeaTable server, e.g. `"https://seatable.example.org"`.
+  Defaults to the `SEATABLE_SERVER` environment variable.
 
 - api_token:
 
@@ -95,7 +95,7 @@ Other client:
 ``` r
 if (FALSE) { # interactive()
 client <- hb_client(
-  server = "https://cloud.seatable.io",
+  server = Sys.getenv("SEATABLE_SERVER"),
   api_token = Sys.getenv("SEATABLE_API_TOKEN")
 )
 print(client)

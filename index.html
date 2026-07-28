@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>R Client for SeaTable Collaborative Databases • harbouR</title>
+<title>Work with Self-Hosted SeaTable Servers and Data Files • harbouR</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -18,9 +18,9 @@
 <link href="deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="R Client for SeaTable Collaborative Databases">
-<meta name="description" content="An unofficial R client for the SeaTable REST API. Provides authentication with transparent base-token refresh, tidy tibble returns for tables, rows, columns and views, helpers for managing bases and files, and an optional shiny explorer for interactive inspection. The SeaTable REST API is documented at &lt;https://api.seatable.com/&gt;. This is an independent, third-party client: it is not affiliated with, endorsed by, or otherwise connected to SeaTable GmbH, and SeaTable is their trademark, used here only to identify the service the package communicates with.">
-<meta property="og:description" content="An unofficial R client for the SeaTable REST API. Provides authentication with transparent base-token refresh, tidy tibble returns for tables, rows, columns and views, helpers for managing bases and files, and an optional shiny explorer for interactive inspection. The SeaTable REST API is documented at &lt;https://api.seatable.com/&gt;. This is an independent, third-party client: it is not affiliated with, endorsed by, or otherwise connected to SeaTable GmbH, and SeaTable is their trademark, used here only to identify the service the package communicates with.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Work with Self-Hosted SeaTable Servers and Data Files">
+<meta name="description" content="An unofficial R client for self-hosted SeaTable servers and for reading and writing SeaTable data files directly. Reads a local .dtable export with no server at all, and talks to a self-hosted server over its REST API, returning tables, rows, columns and views as tidy tibble objects through a column-type-aware coercion layer. Includes helpers for managing bases and files, converters to and from spreadsheet formats, and an optional shiny explorer for interactive inspection. The SeaTable REST API is documented at &lt;https://api.seatable.com/&gt;. This is an independent, third-party client: it is not affiliated with, endorsed by, or otherwise connected to SeaTable GmbH, and SeaTable is their trademark, used here only to identify the software the package works with.">
+<meta property="og:description" content="An unofficial R client for self-hosted SeaTable servers and for reading and writing SeaTable data files directly. Reads a local .dtable export with no server at all, and talks to a self-hosted server over its REST API, returning tables, rows, columns and views as tidy tibble objects through a column-type-aware coercion layer. Includes helpers for managing bases and files, converters to and from spreadsheet formats, and an optional shiny explorer for interactive inspection. The SeaTable REST API is documented at &lt;https://api.seatable.com/&gt;. This is an independent, third-party client: it is not affiliated with, endorsed by, or otherwise connected to SeaTable GmbH, and SeaTable is their trademark, used here only to identify the software the package works with.">
 <meta property="og:image" content="https://cttir.github.io/harbouR/logo.svg">
 <meta name="theme-color" content="#1565c0">
 </head>
@@ -77,7 +77,8 @@
 </div>
 <!-- badges: start -->
 
-<p><strong>harbouR</strong> is an unofficial R client for the <a href="https://seatable.com/" class="external-link">SeaTable</a> REST API. It lets you authenticate, read, write and manage SeaTable bases entirely from R, with results returned as tidy tibbles and a column-type-aware coercion layer that makes spreadsheets feel like data frames.</p>
+<p><strong>harbouR</strong> is an unofficial R client for working with <a href="https://seatable.com/" class="external-link">SeaTable</a> data from R — either from a <strong>local <code>.dtable</code> file</strong>, with no server involved at all, or from a <strong>self-hosted SeaTable server</strong> over its REST API. Results come back as tidy tibbles through a column-type-aware coercion layer that makes a base feel like a set of data frames.</p>
+<p>harbouR is written for people who run their own SeaTable Server, or who simply have an exported <code>.dtable</code> file and want to analyse it. The two paths share one vocabulary: <code><a href="reference/hb_list_tables.html">hb_list_tables()</a></code>, <code><a href="reference/hb_read_table.html">hb_read_table()</a></code> and friends work the same whether the base is a file on disk or a server you administer.</p>
 <blockquote>
 <p>SeaTable is a trademark of SeaTable GmbH; this package is not affiliated with or endorsed by SeaTable GmbH.</p>
 </blockquote>
@@ -197,6 +198,18 @@
 <p>harbouR is by Raban Heller, Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent Forstmeier. It grew out of their needs, field testing and data.</p>
 </div>
 <div class="section level2">
+<h2 id="what-harbour-is-for">What harbouR is for<a class="anchor" aria-label="anchor" href="#what-harbour-is-for"></a>
+</h2>
+<p>harbouR is written for two things:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>SeaTable data files</strong> — reading and writing a <code>.dtable</code> export directly, with no server involved at all.</li>
+<li>
+<strong>A SeaTable Server you run yourself</strong> — over its REST API, with credentials your own installation issues.</li>
+</ol>
+<p>That is the intended scope, and it is what the documentation, examples and tests describe. <code><a href="reference/hb_client.html">hb_client()</a></code> takes a server URL as an argument and makes no judgement about which host you give it; this is a statement of what the package is built and documented for, not a technical restriction.</p>
+</div>
+<div class="section level2">
 <h2 id="trademarks-and-affiliation">Trademarks and affiliation<a class="anchor" aria-label="anchor" href="#trademarks-and-affiliation"></a>
 </h2>
 <p>harbouR is an independent, third-party client. It is <strong>not</strong> affiliated with, endorsed by, sponsored by, or officially connected to SeaTable GmbH. Please raise anything about harbouR <a href="https://github.com/CTTIR/harbouR/issues" class="external-link">here</a>, not with SeaTable GmbH.</p>
@@ -218,10 +231,10 @@
 <li>
 <strong>They support people building on top.</strong> The official Python and PHP clients are Apache-2.0, as are <code>dtable-sdk</code> and the HTML-page SDK; the n8n nodes are MIT. The community forum has a Developer Talk category for API questions.</li>
 <li>
-<strong>You can build without paying first.</strong> SeaTable Cloud has a permanently free tier that includes API access, and the self-hosted Developer Edition needs no licence key — it is described as being for “developers and small teams using SeaTable as a database backend via APIs and scripts”, which is precisely what harbouR is for.</li>
+<strong>You can run it yourself.</strong> SeaTable Server can be self-hosted, and the Developer Edition needs no licence key — it is described as being for “developers and small teams using SeaTable as a database backend via APIs and scripts”, which is precisely what harbouR is for. On your own server you decide which API limits apply, or whether any apply at all.</li>
 </ul>
 <p>To be accurate rather than flattering: SeaTable Server is <strong>not</strong> fully open source. <code>dtable-web</code> and <code>dtable-events</code> are Apache-2.0 and <code>seaf-server</code> is AGPLv3, but <code>dtable-server</code> — the component holding the tables — is proprietary. What <em>is</em> openly licensed is the API specification, the official clients and SDKs, the integrations and the documentation. That is the part harbouR depends on, and it is more than most vendors publish.</p>
-<p>SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of the Seafile project; SeaTable GmbH (Mainz), founded in July 2020 by Dr. Ralf Dyllick-Brenzinger and Christoph Dyllick-Brenzinger, handles sales, support and SeaTable Cloud. Thanks are owed to both. If SeaTable is useful to you, support them at <a href="https://seatable.com/" class="external-link uri">https://seatable.com/</a>.</p>
+<p>SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of the Seafile project; SeaTable GmbH (Mainz), founded in July 2020 by Dr. Ralf Dyllick-Brenzinger and Christoph Dyllick-Brenzinger, is the German company behind it. Thanks are owed to both. If SeaTable is useful to you, support them at <a href="https://seatable.com/" class="external-link uri">https://seatable.com/</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

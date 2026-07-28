@@ -3,7 +3,8 @@
 You have a SeaTable base of patient samples and you want to pull it into
 R for analysis, push your results back, and attach the resulting PDF
 reports - all without leaving R. `harbouR` is an unofficial R client
-that lets you do exactly that.
+that lets you do exactly that, against a **self-hosted SeaTable server**
+or against an exported **`.dtable` file** with no server at all.
 
 > SeaTable is a trademark of SeaTable GmbH; harbouR is not affiliated
 > with or endorsed by SeaTable GmbH.
@@ -203,4 +204,4 @@ specification, the clients and SDKs, the integrations and the
 documentation, which is the part harbouR depends on.
 
 SeaTable is developed by Seafile Ltd. (Beijing); SeaTable GmbH (Mainz)
-handles sales, support and SeaTable Cloud. Thanks are owed to both.
+is the German company behind it. Thanks are owed to both.
