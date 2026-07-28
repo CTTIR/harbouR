@@ -124,11 +124,38 @@ hb_attach_file(client, "Samples", "r0001", "Reports", "report.pdf")
 - The `explorer-app` vignette walks through
   [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md).
 
-## Acknowledgements
+## Citation
 
-harbouR was shaped by the needs, field testing and data of Paul
-Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
-Forstmeier.
+If harbouR contributes to work you publish, please cite it:
+
+``` r
+
+citation("harbouR")
+#> To cite harbouR in publications, please use:
+#> 
+#>   Heller R, Elsinghorst P, Derz W, Ring M, Achatz G, Forstmeier V
+#>   (2026). _harbouR: R Client for SeaTable Collaborative Databases_. R
+#>   package version 0.1.0, <https://github.com/CTTIR/harbouR>.
+#> 
+#> A BibTeX entry for LaTeX users is
+#> 
+#>   @Manual{,
+#>     title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
+#>     author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
+#>     year = {2026},
+#>     note = {R package version 0.1.0},
+#>     url = {https://github.com/CTTIR/harbouR},
+#>   }
+```
+
+The text and the BibTeX entry are both generated from the package
+metadata, so they always match the version you have installed.
+
+## Authors
+
+harbouR is by Raban Heller, Paul Elsinghorst, Wiebke Derz, Matthias
+Ring, Gerhard Achatz and Vinzent Forstmeier. It grew out of their needs,
+field testing and data.
 
 SeaTable is a trademark of SeaTable GmbH. harbouR is an independent,
 unofficial client and is not affiliated with or endorsed by SeaTable

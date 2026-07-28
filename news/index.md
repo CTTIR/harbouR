@@ -80,6 +80,18 @@ that was tagged but never published.
   which is what the gateway expects; the web API keeps `Token`. **This
   requires SeaTable 5.3 (June 2025) or newer.**
 
+### Authorship and citation
+
+- Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and
+  Vinzent Forstmeier are credited as **authors** (`aut`), not
+  contributors.
+
+- New `inst/CITATION`, so `citation("harbouR")` produces a proper
+  reference and BibTeX entry naming every author. It reads the package’s
+  own metadata, so the authors, version and year cannot drift out of
+  step with `DESCRIPTION`. README and the introductory vignette both
+  carry a Citation section.
+
 ### Fixes from the post-rewrite audit
 
 - **Security:** the explorer’s Schema tab rendered a column’s type

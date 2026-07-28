@@ -34,14 +34,12 @@ Authors:
 - Raban Heller <raban.heller@uni-ulm.de>
   ([ORCID](https://orcid.org/0000-0001-8006-9742)) \[copyright holder\]
 
-Other contributors:
+- Paul Elsinghorst
 
-- Paul Elsinghorst \[contributor\]
+- Wiebke Derz
 
-- Wiebke Derz \[contributor\]
+- Matthias Ring
 
-- Matthias Ring \[contributor\]
+- Gerhard Achatz
 
-- Gerhard Achatz \[contributor\]
-
-- Vinzent Forstmeier \[contributor\]
+- Vinzent Forstmeier
