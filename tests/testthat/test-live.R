@@ -7,7 +7,7 @@
 # They are skipped unless HARBOUR_TEST_SERVER and HARBOUR_TEST_TOKEN name
 # a base you are willing to have written to and cleaned up:
 #
-#   Sys.setenv(HARBOUR_TEST_SERVER = "https://cloud.seatable.io")
+#   Sys.setenv(HARBOUR_TEST_SERVER = "https://seatable.example.org")
 #   Sys.setenv(HARBOUR_TEST_TOKEN  = "<an API token for a throwaway base>")
 #
 # They never run on CRAN.

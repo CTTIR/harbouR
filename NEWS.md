@@ -69,6 +69,24 @@ The notes below record what changed during development, against an
   which is what the gateway expects; the web API keeps `Token`.
   **This requires SeaTable 5.3 (June 2025) or newer.**
 
+## Scope
+
+* harbouR is stated, throughout, as being for two things: **SeaTable
+  `.dtable` data files**, read and written directly with no server; and
+  **a SeaTable Server you run yourself**, over its REST API. The Title
+  and Description say so, and there is a "What harbouR is for" section in
+  the README and in `?harbouR`.
+
+* The explorer's server field no longer pre-fills a vendor-hosted
+  address; it starts empty with a neutral placeholder. The documented
+  examples for `hb_client()` and for the live tests use a self-hosted
+  URL.
+
+* Nothing here restricts where you point the package. `hb_client()`
+  takes a server URL as an argument and makes no judgement about the
+  host; the scope statement describes what harbouR is built and
+  documented for, not what it will refuse to do.
+
 ## Acknowledgement
 
 * New Acknowledgements section in the README, the introductory vignette
@@ -76,8 +94,7 @@ The notes below record what changed during development, against an
   made an independent client possible: a publicly published OpenAPI
   specification kept per server version, a reference readable without an
   account, manuals in repositories that accept pull requests,
-  Apache-2.0 client libraries, a free tier and a self-hostable Developer
-  Edition - and a changelog that records removals as plainly as
+  Apache-2.0 client libraries, a Developer Edition you can host yourself - and a changelog that records removals as plainly as
   additions. That last one is not abstract: it is how harbouR learned it
   had been aimed at endpoints removed in SeaTable 5.3.
 

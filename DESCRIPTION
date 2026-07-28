@@ -1,5 +1,5 @@
 Package: harbouR
-Title: R Client for 'SeaTable' Collaborative Databases
+Title: Work with Self-Hosted 'SeaTable' Servers and Data Files
 Version: 0.1.0
 Date: 2026-07-28
 Authors@R: c(
@@ -12,15 +12,19 @@ Authors@R: c(
     person("Matthias", "Ring", role = "aut"),
     person("Gerhard", "Achatz", role = "aut"),
     person("Vinzent", "Forstmeier", role = "aut"))
-Description: An unofficial R client for the 'SeaTable' REST API. Provides
-    authentication with transparent base-token refresh, tidy 'tibble'
-    returns for tables, rows, columns and views, helpers for managing
-    bases and files, and an optional 'shiny' explorer for interactive
-    inspection. The 'SeaTable' REST API is documented at
-    <https://api.seatable.com/>. This is an independent, third-party
-    client: it is not affiliated with, endorsed by, or otherwise
-    connected to SeaTable GmbH, and 'SeaTable' is their trademark, used
-    here only to identify the service the package communicates with.
+Description: An unofficial R client for self-hosted 'SeaTable' servers
+    and for reading and writing 'SeaTable' data files directly. Reads a
+    local '.dtable' export with no server at all, and talks to a
+    self-hosted server over its REST API, returning tables, rows,
+    columns and views as tidy 'tibble' objects through a
+    column-type-aware coercion layer. Includes helpers for managing
+    bases and files, converters to and from spreadsheet formats, and an
+    optional 'shiny' explorer for interactive inspection. The 'SeaTable'
+    REST API is documented at <https://api.seatable.com/>. This is an
+    independent, third-party client: it is not affiliated with, endorsed
+    by, or otherwise connected to SeaTable GmbH, and 'SeaTable' is their
+    trademark, used here only to identify the software the package
+    works with.
 License: MIT + file LICENSE
 URL: https://github.com/CTTIR/harbouR, https://cttir.github.io/harbouR/
 BugReports: https://github.com/CTTIR/harbouR/issues

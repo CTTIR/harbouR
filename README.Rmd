@@ -31,11 +31,18 @@ knitr::opts_chunk$set(
 [![CRAN downloads total](https://cranlogs.r-pkg.org/badges/grand-total/harbouR)](https://cran.r-project.org/package=harbouR)
 -->
 
-**harbouR** is an unofficial R client for the
-[SeaTable](https://seatable.com/) REST API. It lets you authenticate,
-read, write and manage SeaTable bases entirely from R, with results
-returned as tidy tibbles and a column-type-aware coercion layer that
-makes spreadsheets feel like data frames.
+**harbouR** is an unofficial R client for working with
+[SeaTable](https://seatable.com/) data from R — either from a **local
+`.dtable` file**, with no server involved at all, or from a
+**self-hosted SeaTable server** over its REST API. Results come back as
+tidy tibbles through a column-type-aware coercion layer that makes a
+base feel like a set of data frames.
+
+harbouR is written for people who run their own SeaTable Server, or who
+simply have an exported `.dtable` file and want to analyse it. The two
+paths share one vocabulary: `hb_list_tables()`, `hb_read_table()` and
+friends work the same whether the base is a file on disk or a server you
+administer.
 
 > SeaTable is a trademark of SeaTable GmbH; this package is not
 > affiliated with or endorsed by SeaTable GmbH.
@@ -136,6 +143,21 @@ harbouR is by Raban Heller, Paul Elsinghorst, Wiebke Derz, Matthias Ring,
 Gerhard Achatz and Vinzent Forstmeier. It grew out of their needs, field
 testing and data.
 
+## What harbouR is for
+
+harbouR is written for two things:
+
+1. **SeaTable data files** — reading and writing a `.dtable` export
+   directly, with no server involved at all.
+2. **A SeaTable Server you run yourself** — over its REST API, with
+   credentials your own installation issues.
+
+That is the intended scope, and it is what the documentation, examples
+and tests describe. `hb_client()` takes a server URL as an argument and
+makes no judgement about which host you give it; this is a statement of
+what the package is built and documented for, not a technical
+restriction.
+
 ## Trademarks and affiliation
 
 harbouR is an independent, third-party client. It is **not** affiliated
@@ -185,11 +207,12 @@ open that work would be.
   clients are Apache-2.0, as are `dtable-sdk` and the HTML-page SDK; the
   n8n nodes are MIT. The community forum has a Developer Talk category
   for API questions.
-* **You can build without paying first.** SeaTable Cloud has a
-  permanently free tier that includes API access, and the self-hosted
-  Developer Edition needs no licence key — it is described as being for
-  "developers and small teams using SeaTable as a database backend via
-  APIs and scripts", which is precisely what harbouR is for.
+* **You can run it yourself.** SeaTable Server can be self-hosted, and
+  the Developer Edition needs no licence key — it is described as being
+  for "developers and small teams using SeaTable as a database backend
+  via APIs and scripts", which is precisely what harbouR is for. On your
+  own server you decide which API limits apply, or whether any apply at
+  all.
 
 To be accurate rather than flattering: SeaTable Server is **not** fully
 open source. `dtable-web` and `dtable-events` are Apache-2.0 and
@@ -201,6 +224,6 @@ most vendors publish.
 
 SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of
 the Seafile project; SeaTable GmbH (Mainz), founded in July 2020 by
-Dr. Ralf Dyllick-Brenzinger and Christoph Dyllick-Brenzinger, handles
-sales, support and SeaTable Cloud. Thanks are owed to both. If SeaTable
-is useful to you, support them at <https://seatable.com/>.
+Dr. Ralf Dyllick-Brenzinger and Christoph Dyllick-Brenzinger, is the
+German company behind it. Thanks are owed to both. If SeaTable is useful
+to you, support them at <https://seatable.com/>.

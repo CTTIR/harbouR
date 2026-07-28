@@ -33,7 +33,27 @@ harbouR does not distribute, bundle, or reproduce any logo, wordmark,
 icon, colour scheme or other brand asset belonging to SeaTable GmbH. The
 harbouR logo is an original work by the package's authors.
 
-## Relationship to the SeaTable service
+## What harbouR is for
+
+harbouR is written for two things:
+
+1. **SeaTable data files.** Reading and writing a `.dtable` export
+   directly, with no server involved. This needs nothing but the file.
+2. **A SeaTable Server you run yourself.** Talking to a self-hosted
+   instance over its REST API, using credentials your own installation
+   issues.
+
+That is the intended scope, and it is what the documentation, the
+examples and the tests describe. harbouR is a tool for people who
+administer their own SeaTable deployment, or who simply have an exported
+file and want to analyse it in R.
+
+harbouR takes a server URL as an argument and makes no judgement about
+which host you point it at; nothing here should be read as a technical
+restriction, only as a statement of what the package is built and
+documented for.
+
+## Relationship to the software
 
 harbouR is a client library. It contains no SeaTable server code and
 redistributes no SeaTable software. It communicates with a SeaTable server
@@ -41,10 +61,12 @@ exclusively through the public REST API that SeaTable GmbH documents at
 <https://api.seatable.com/> and provides for third-party applications.
 
 Using harbouR does not grant you any right to use SeaTable. Your use of
-the SeaTable service, whether hosted by SeaTable GmbH or self-hosted, is
-governed entirely by your own agreement with SeaTable GmbH and by their
-terms, and is a matter between you and them. harbouR neither modifies nor
-supplements those terms.
+SeaTable, however you obtain and run it, is governed entirely by your own
+agreement with SeaTable GmbH or Seafile Ltd. and by their licence terms,
+and is a matter between you and them. harbouR neither modifies nor
+supplements those terms. In particular, it is your responsibility to
+ensure that your SeaTable Server edition and licence permit the use you
+put it to.
 
 harbouR is licensed under the MIT licence and is provided **without
 warranty of any kind**; see `LICENSE`. That disclaimer covers harbouR
@@ -86,12 +108,13 @@ SDK; the n8n integration nodes are MIT. The community forum has a
 Developer Talk category for API questions, and the API reference points
 there for help.
 
-**They make it possible to build without paying first.** SeaTable Cloud
-has a permanently free tier that includes API access, and SeaTable Server
-can be self-hosted — the Developer Edition needs no licence key and is
-described as being for "developers and small teams using SeaTable as a
-database backend via APIs and scripts", which is precisely the use case
-harbouR serves.
+**They let you run it yourself.** SeaTable Server can be self-hosted, and
+the Developer Edition needs no licence key. It is described as being for
+"developers and small teams using SeaTable as a database backend via APIs
+and scripts", which is precisely the use case harbouR serves, and on your
+own server you decide which API limits apply, or whether any apply at all.
+harbouR is written for that deployment, and for the exported `.dtable`
+files it produces.
 
 A note on accuracy, because an acknowledgement should not overstate:
 SeaTable Server is **not** fully open source. `dtable-web` and
@@ -104,7 +127,7 @@ harbouR depends on, and it is more than most vendors publish.
 SeaTable is developed by Seafile Ltd. (Beijing), which grew it out of the
 Seafile project and holds half of the joint venture; SeaTable GmbH
 (Mainz), founded in July 2020 by Dr. Ralf Dyllick-Brenzinger and
-Christoph Dyllick-Brenzinger, handles sales, support and SeaTable Cloud.
+Christoph Dyllick-Brenzinger, is the German company behind it.
 Thanks are owed to both.
 
 If SeaTable is useful to you, support the people who build it:

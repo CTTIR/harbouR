@@ -149,7 +149,7 @@ test_that("hb_attach_file validates row/column args", {
 test_that(".hb_asset_path strips the workspace and base prefix", {
   expect_identical(
     harbouR:::.hb_asset_path(
-      "https://cloud.seatable.io/workspace/42/asset/uu-id/files/a.pdf"
+      "https://seatable.example.org/workspace/42/asset/uu-id/files/a.pdf"
     ),
     "/files/a.pdf"
   )

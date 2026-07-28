@@ -1,13 +1,26 @@
 #' harbouR: R Client for SeaTable Collaborative Databases
 #'
-#' An unofficial R client for the SeaTable REST API. Connect to a SeaTable
-#' server, read and write rows as tidy tibbles, manage tables/columns/views,
-#' upload and attach files, and explore bases interactively with the bundled
-#' Shiny app.
+#' An unofficial R client for working with SeaTable data from R: read and
+#' write a local \code{.dtable} export with no server at all, or connect
+#' to a self-hosted SeaTable server over its REST API. Rows come back as
+#' tidy tibbles; you can manage tables, columns and views, upload and
+#' attach files, export to spreadsheet formats, and explore a base
+#' interactively with the bundled Shiny app.
 #'
 #' harbouR was shaped by the needs, field testing and data of Paul
 #' Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent
 #' Forstmeier.
+#'
+#' @section What harbouR is for:
+#'
+#' harbouR is written for two things: reading and writing SeaTable
+#' \code{.dtable} data files directly, with no server involved; and
+#' talking to a SeaTable Server you run yourself, over its REST API.
+#' That is the intended scope, and what the documentation, examples and
+#' tests describe. \code{\link{hb_client}()} takes a server URL as an
+#' argument and makes no judgement about which host you give it - this
+#' is a statement of what the package is built for, not a technical
+#' restriction.
 #'
 #' @section Trademarks and affiliation:
 #'
@@ -54,7 +67,7 @@
 #' licensed, and that is the part harbouR depends on.
 #'
 #' SeaTable is developed by Seafile Ltd. (Beijing); SeaTable GmbH (Mainz)
-#' handles sales, support and SeaTable Cloud. Thanks are owed to both.
+#' is the German company behind it. Thanks are owed to both.
 #'
 #' @keywords internal
 #' @importFrom rlang %||%

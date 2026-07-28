@@ -13,8 +13,9 @@
 #' Defaults for `server` and `api_token` are read from the environment
 #' variables `SEATABLE_SERVER` and `SEATABLE_API_TOKEN`.
 #'
-#' @param server SeaTable server URL, e.g. `"https://cloud.seatable.io"`.
-#'   Defaults to the `SEATABLE_SERVER` env var.
+#' @param server URL of the SeaTable server, e.g.
+#'   `"https://seatable.example.org"`. Defaults to the `SEATABLE_SERVER`
+#'   environment variable.
 #' @param api_token Long-lived per-base API token. Defaults to the
 #'   `SEATABLE_API_TOKEN` env var. Mutually exclusive with
 #'   `username`/`password`.
@@ -34,7 +35,7 @@
 #' @family client
 #' @examplesIf interactive()
 #' client <- hb_client(
-#'   server = "https://cloud.seatable.io",
+#'   server = Sys.getenv("SEATABLE_SERVER"),
 #'   api_token = Sys.getenv("SEATABLE_API_TOKEN")
 #' )
 #' print(client)

@@ -23,8 +23,9 @@ hb_client(
 \method{format}{harbour_client}(x, ...)
 }
 \arguments{
-\item{server}{SeaTable server URL, e.g. \code{"https://cloud.seatable.io"}.
-Defaults to the \code{SEATABLE_SERVER} env var.}
+\item{server}{URL of the SeaTable server, e.g.
+\code{"https://seatable.example.org"}. Defaults to the \code{SEATABLE_SERVER}
+environment variable.}
 
 \item{api_token}{Long-lived per-base API token. Defaults to the
 \code{SEATABLE_API_TOKEN} env var. Mutually exclusive with
@@ -68,7 +69,7 @@ variables \code{SEATABLE_SERVER} and \code{SEATABLE_API_TOKEN}.
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client(
-  server = "https://cloud.seatable.io",
+  server = Sys.getenv("SEATABLE_SERVER"),
   api_token = Sys.getenv("SEATABLE_API_TOKEN")
 )
 print(client)

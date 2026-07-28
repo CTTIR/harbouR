@@ -94,7 +94,8 @@
         class = "pt-1",
         shiny::textInput(
           "server", "Server",
-          value = Sys.getenv("SEATABLE_SERVER", "https://cloud.seatable.io"),
+          value = Sys.getenv("SEATABLE_SERVER", ""),
+          placeholder = "https://seatable.example.org",
           width = "100%"
         ),
         # Never seeded from the environment: a value passed to
