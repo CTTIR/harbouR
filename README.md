@@ -39,7 +39,7 @@ administer.
 > SeaTable is a trademark of SeaTable GmbH; this package is not
 > affiliated with or endorsed by SeaTable GmbH.
 
-## Installation
+## Installation 
 
 ``` r
 # install.packages("pak")
