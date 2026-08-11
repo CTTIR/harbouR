@@ -1,5 +1,7 @@
 # harbouR
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889936.svg)](https://doi.org/10.5281/zenodo.21889936)
+
 **harbouR** is an unofficial R client for working with
 [SeaTable](https://seatable.com/) data from R — either from a **local
 `.dtable` file**, with no server involved at all, or from a

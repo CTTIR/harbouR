@@ -22,9 +22,12 @@ Source:
 [`inst/CITATION`](https://github.com/CTTIR/harbouR/blob/main/inst/CITATION)
 
 Heller R (2026). *harbouR: R Client for SeaTable Collaborative
-Databases*. R package version 0.1.0, <https://github.com/CTTIR/harbouR>.
+Databases*.
+[doi:10.5281/zenodo.21889936](https://doi.org/10.5281/zenodo.21889936).
+R package version 0.1.0, <https://github.com/CTTIR/harbouR>.
 
     @Manual{,
+      doi = {10.5281/zenodo.21889936},
       title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
       author = {Raban Heller},
       year = {2026},
