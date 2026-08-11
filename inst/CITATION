@@ -35,6 +35,7 @@ if (length(authors) == 0L) authors <- people
 
 bibentry(
   bibtype = "Manual",
+  doi     = "10.5281/zenodo.21889936",
   title = "{harbouR}: R Client for {SeaTable} Collaborative Databases",
   author = authors,
   year = year,

@@ -1,0 +1,50 @@
+{
+  "upload_type": "software",
+  "title": "harbouR: R client for self-hosted SeaTable servers and data files",
+  "version": "0.1.0",
+  "publication_date": "2026-08-11",
+  "description": "<p>harbouR is an independent R client for SeaTable, covering both self-hosted servers and SeaTable data files read directly from disk. It can open a local export with no server involved, or communicate with a self-hosted instance over its REST interface, returning tables, rows, columns and views as tidy data frames through a column-type-aware coercion layer. Helpers are provided for managing bases and files and for converting to and from common spreadsheet formats, alongside an optional interactive explorer for inspecting data. It is intended for research groups that keep structured data in SeaTable and want to analyse it reproducibly in R. The package is unofficial and is not affiliated with the SeaTable project.</p>",
+  "creators": [
+    {
+      "name": "Heller, Raban",
+      "orcid": "0000-0001-8006-9742"
+    },
+    {
+      "name": "Elsinghorst, Paul"
+    },
+    {
+      "name": "Derz, Wiebke"
+    },
+    {
+      "name": "Ring, Matthias"
+    },
+    {
+      "name": "Achatz, Gerhard"
+    },
+    {
+      "name": "Forstmeier, Vinzent"
+    }
+  ],
+  "contributors": [],
+  "license": "mit",
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "seatable",
+    "rest-api",
+    "database-client",
+    "data-import",
+    "tidy-data",
+    "r-package",
+    "rstats"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/CTTIR/harbouR",
+      "relation": "isSupplementTo",
+      "scheme": "url",
+      "resource_type": "software"
+    }
+  ],
+  "notes": "Prepared draft. Not yet published."
+}
