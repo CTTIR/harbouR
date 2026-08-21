@@ -19,7 +19,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/CTTIR/harbouR/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/CTTIR/harbouR/blob/manuscript-anchor-2026-08-21/inst/CITATION)
 
 Heller R (2026). *harbouR: R Client for SeaTable Collaborative
 Databases*.
