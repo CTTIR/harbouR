@@ -6,23 +6,19 @@
 
 ## Test environments
 
-* local: x86_64-pc-linux-gnu (Ubuntu 24.04), R 4.6.1
-* GitHub Actions: ubuntu (release, devel, oldrel-1), macOS, windows
-* GitHub Actions: ubuntu release with `_R_CHECK_FORCE_SUGGESTS_=false`
-* GitHub Actions: ubuntu release with CRAN incoming checks enabled
+* Local: Ubuntu 26.04 LTS, x86_64-pc-linux-gnu, R 4.6.1 (2026-06-24).
+* R CMD check --as-cran, including remote incoming checks, completed on
+  2026-10-07. Examples, tests, all three vignettes and the PDF manual passed.
+* The public API snapshot checks and the full local test suite passed.
 
 ## Notes
 
-* All examples, tests and vignettes run offline. HTTP is replaced at the
-  package's own request seam, and the bundled `inst/extdata/example.dtable`
-  supplies a complete example base. Nothing in the check contacts a network
-  service.
-
-* `tests/testthat/test-live.R` is the only file that would talk to a
-  SeaTable server. It calls `skip_on_cran()` and additionally skips unless
-  `HARBOUR_TEST_SERVER` and `HARBOUR_TEST_TOKEN` are set, so it never runs
-  during a CRAN check.
-
+* Examples, tests and vignettes use the bundled synthetic example base or
+  mocked HTTP responses. They do not require a running SeaTable service.
+* Live integration tests are skipped on CRAN and additionally require
+  HARBOUR_TEST_SERVER and HARBOUR_TEST_TOKEN to be explicitly configured.
 * SeaTable is a trademark of SeaTable GmbH. This package is an independent,
-  unofficial client and is not affiliated with or endorsed by SeaTable
-  GmbH; the DESCRIPTION says so.
+  unofficial client and is not affiliated with or endorsed by SeaTable GmbH.
+* Repository-only citation metadata and local development records are
+  excluded from the source archive. The package citation uses the public
+  repository URL; an unpublished archival identifier is not included.

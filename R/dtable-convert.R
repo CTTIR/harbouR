@@ -46,7 +46,8 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
 #' Export a base to CSV files
 #'
 #' Writes one `.csv` per table into `dir`. Subject to the same losses as
-#' [hb_write_xlsx()]; see its documentation.
+#' [hb_write_xlsx()]; see its documentation. Table names that produce the
+#' same filename (ignoring case) are rejected before any files are written.
 #'
 #' @param x A `harbour_dtable`, or a `harbour_client` to read from first.
 #' @param dir Destination directory. Created if it does not exist.
@@ -69,11 +70,18 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
   rlang::check_dots_empty()
   .check_string(dir)
   sheets <- .hb_flatten_tables(x, tables)
+  filenames <- paste0(.hb_safe_filename(names(sheets)), ".csv")
+  if (anyDuplicated(tolower(filenames))) {
+    hb_abort(
+      c("Table names produce duplicate CSV filenames.",
+        "i" = "Export the tables separately to different directories."),
+      class = "harbour_error_bad_argument"
+    )
+  }
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
   paths <- character(length(sheets))
   for (i in seq_along(sheets)) {
-    name <- .hb_safe_filename(names(sheets)[[i]])
-    file <- file.path(dir, paste0(name, ".csv"))
+    file <- file.path(dir, filenames[[i]])
     utils::write.csv(
       sheets[[i]], file,
       row.names = FALSE, fileEncoding = "UTF-8"

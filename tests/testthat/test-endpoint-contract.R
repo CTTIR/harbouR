@@ -56,7 +56,7 @@ ENDPOINTS <- list(
     fn = "hb_query",
     body = c("sql", "convert_keys"), method = "POST",
     path = paste0(GATEWAY, "sql/"), service = "gateway", auth = "base",
-    call = function(cl) hb_query(cl, "SELECT * FROM Samples")
+    call = function(cl) hb_query(cl, "SELECT * FROM Samples LIMIT 10")
   ),
   list(
     fn = "hb_append_rows",

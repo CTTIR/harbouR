@@ -4,7 +4,10 @@ test_that("hb_client trims trailing slashes from the server URL", {
 })
 
 test_that("hb_client accepts username/password auth", {
-  cl <- hb_client(server = "https://x", username = "u", password = "p")
+  expect_warning(
+    cl <- hb_client(server = "https://x", username = "u", password = "p"),
+    "workspace_id"
+  )
   expect_s3_class(cl, "harbour_client")
   expect_identical(cl$username, "u")
   expect_null(cl$api_token)
@@ -52,7 +55,10 @@ test_that("print.harbour_client reports auth mode and masks tokens", {
   expect_match(out, "api_token")
   expect_false(grepl("supersecret-token-1234567890", out, fixed = TRUE))
 
-  cl2 <- hb_client(server = "https://x", username = "u", password = "p")
+  expect_warning(
+    cl2 <- hb_client(server = "https://x", username = "u", password = "p"),
+    "workspace_id"
+  )
   out2 <- paste(cli::cli_fmt(print(cl2)), collapse = "\n")
   expect_match(out2, "username/password")
 })

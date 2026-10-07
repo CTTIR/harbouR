@@ -41,13 +41,13 @@ test_that("hb_read_table forwards the view name", {
 test_that("hb_query returns a tibble and handles empty results", {
   cl <- mock_client()
   rec <- with_mocked_request(
-    out <- hb_query(cl, "select * from Samples"),
+    out <- hb_query(cl, "select * from Samples limit 10"),
     response = list(results = list())
   )
   expect_s3_class(out, "tbl_df")
   expect_identical(nrow(out), 0L)
   expect_identical(rec$calls[[1]]$method, "POST")
-  expect_identical(rec$calls[[1]]$body$sql, "select * from Samples")
+  expect_identical(rec$calls[[1]]$body$sql, "select * from Samples limit 10")
 })
 
 test_that("hb_query assembles scalar and list columns", {
@@ -57,7 +57,7 @@ test_that("hb_query assembles scalar and list columns", {
     list(a = 2, b = list("z"))
   )
   with_mocked_request(
-    out <- hb_query(cl, "q"),
+    out <- hb_query(cl, "select a, b from Samples limit 10"),
     response = list(results = rows)
   )
   expect_identical(out$a, c(1, 2))

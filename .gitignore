@@ -24,3 +24,28 @@ dev/
 # ...except the hand-built test fixture, which the package ships and the
 # tests read through system.file(). It contains no real data.
 !inst/extdata/*.dtable
+
+# Local administration and work records
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.agents/
+.claude/
+.codex/
+.cursor/
+.aider/
+admin/
+audit/
+handover/
+orchestration/
+.project/
+.planning/
+HANDOVER*.md
+RESUME*.md
+CURRENT_STATE*.md
+TODO*.md
+PLAN*.md
+TASKS*.md
+.env
+.env.*
+*.tar.gz

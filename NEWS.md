@@ -2,6 +2,12 @@
 
 First release.
 
+* Final minor refinements: constrain bundled asset paths to their extraction
+  directory and reject colliding CSV filenames before writing files.
+* Exclude local administration and repository citation metadata from source
+  builds, and use the repository citation URL until the archival record is
+  publicly available.
+
 harbouR is an unofficial R client for the SeaTable REST API. It
 connects to a SeaTable server, reads and writes rows as tidy
 tibbles, manages tables, columns and views, uploads and attaches

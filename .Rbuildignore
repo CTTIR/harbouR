@@ -16,3 +16,12 @@
 ^\.vscode$
 ^doc$
 ^Meta$
+^CITATION\.cff$
+^\.zenodo\.json$
+^.*\.tar\.gz$
+^.*\.Rcheck$
+^(.*/)?(AGENTS|CLAUDE|GEMINI)\.md$
+^(.*/)?\.(agents|claude|codex|cursor|aider)(/|$)
+^(.*/)?(admin|audit|handover|orchestration|\.project|\.planning)(/|$)
+^(.*/)?(HANDOVER|RESUME|CURRENT_STATE|TODO|PLAN|TASKS)([-_].*)?\.md$
+^(.*/)?\.env(\..*)?$

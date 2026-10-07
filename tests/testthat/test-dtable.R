@@ -82,14 +82,16 @@ test_that("n_max bounds a local read", {
 })
 
 test_that("reading and writing is a fixed point", {
-  base <- hb_read_dtable(fixture())
+  base <- hb_read_dtable(fixture(), assets = "extract",
+                         assets_dir = withr::local_tempdir())
   out <- withr::local_tempfile(fileext = ".dtable")
   expect_identical(hb_write_dtable(base, out), base)
   expect_identical(hb_read_dtable(out)$content, base$content)
 })
 
 test_that("the round trip preserves fields harbouR does not model", {
-  base <- hb_read_dtable(fixture())
+  base <- hb_read_dtable(fixture(), assets = "extract",
+                         assets_dir = withr::local_tempdir())
   out <- withr::local_tempfile(fileext = ".dtable")
   hb_write_dtable(base, out)
   again <- hb_read_dtable(out)
@@ -208,7 +210,8 @@ test_that("a non-dtable file is refused with a useful message", {
 })
 
 test_that("a newer format version warns but still reads", {
-  base <- hb_read_dtable(fixture())
+  base <- hb_read_dtable(fixture(), assets = "extract",
+                         assets_dir = withr::local_tempdir())
   base$content$format_version <- 99L
   out <- withr::local_tempfile(fileext = ".dtable")
   hb_write_dtable(base, out)
@@ -436,4 +439,49 @@ test_that("hb_read_dtable validates assets_dir", {
   src <- system.file("extdata", "example.dtable", package = "harbouR")
   expect_error(hb_read_dtable(src, assets = "extract", assets_dir = 42),
                class = "harbour_error_bad_argument")
+})
+
+test_that("asset paths stay inside the extracted bundle", {
+  root <- withr::local_tempdir()
+  assets <- file.path(root, "bundle")
+  dir.create(file.path(assets, "asset"), recursive = TRUE)
+  outside <- file.path(root, "outside.txt")
+  writeLines("outside", outside)
+  inside <- file.path(assets, "asset", "inside.txt")
+  writeLines("inside", inside)
+  base <- hb_dtable(Samples = data.frame(x = 1))
+  base$assets_dir <- assets
+  expect_identical(hb_asset_path(base,
+    "file://dtable-bundle/asset/inside.txt"), inside)
+  for (url in c("file://dtable-bundle/../outside.txt",
+                "file://dtable-bundle/asset/../../outside.txt",
+                "asset/..\\..\\outside.txt", "asset/", "outside.txt")) {
+    expect_identical(hb_asset_path(base, url), NA_character_)
+  }
+})
+
+test_that("asset paths do not follow symlinks outside the bundle", {
+  skip_on_os("windows")
+  root <- withr::local_tempdir()
+  assets <- file.path(root, "bundle")
+  dir.create(file.path(assets, "asset"), recursive = TRUE)
+  outside <- file.path(root, "outside.txt")
+  writeLines("outside", outside)
+  expect_true(file.symlink(outside, file.path(assets, "asset", "link.txt")))
+  base <- hb_dtable(Samples = data.frame(x = 1))
+  base$assets_dir <- assets
+  expect_identical(hb_asset_path(base, "asset/link.txt"), NA_character_)
+})
+
+test_that("CSV filename collisions fail before writing any files", {
+  root <- withr::local_tempdir()
+  for (table_names in list(c("a/b", "a?b"), c("Samples", "samples"))) {
+    frames <- stats::setNames(list(data.frame(x = 1), data.frame(x = 2)),
+                              table_names)
+    base <- do.call(hb_dtable, frames)
+    dest <- file.path(root, "csv")
+    expect_error(hb_write_csv(base, dest), "duplicate CSV filenames",
+                 class = "harbour_error_bad_argument")
+    expect_false(dir.exists(dest))
+  }
 })

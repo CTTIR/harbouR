@@ -352,9 +352,19 @@ hb_asset_path <- function(x, url, ...) {
     return(NA_character_)
   }
   relative <- sub("^file://dtable-bundle/", "", url)
+  if (grepl("\\\\", relative) ||
+      any(strsplit(relative, "/", fixed = TRUE)[[1L]] == "..")) {
+    return(NA_character_)
+  }
   relative <- sub("^/+", "", relative)
+  if (!startsWith(relative, "asset/")) return(NA_character_)
   candidate <- file.path(x$assets_dir, relative)
-  if (!file.exists(candidate)) {
+  if (!file.exists(candidate) || dir.exists(candidate)) {
+    return(NA_character_)
+  }
+  root <- normalizePath(x$assets_dir, winslash = "/", mustWork = TRUE)
+  resolved <- normalizePath(candidate, winslash = "/", mustWork = TRUE)
+  if (!startsWith(resolved, paste0(sub("/+$", "", root), "/"))) {
     return(NA_character_)
   }
   candidate
