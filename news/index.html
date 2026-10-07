@@ -45,7 +45,9 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="harbour-010">harbouR 0.1.0<a class="anchor" aria-label="anchor" href="#harbour-010"></a></h2>
 <p>First release.</p>
-<p>harbouR is an unofficial R client for the SeaTable REST API. It connects to a SeaTable server, reads and writes rows as tidy tibbles, manages tables, columns and views, uploads and attaches files, reads and writes local <code>.dtable</code> exports with no server at all, and ships a Shiny explorer for doing all of that without writing code.</p>
+<ul><li>Final minor refinements: constrain bundled asset paths to their extraction directory and reject colliding CSV filenames before writing files.</li>
+<li>Exclude local administration and repository citation metadata from source builds, and use the repository citation URL until the archival record is publicly available.</li>
+</ul><p>harbouR is an unofficial R client for the SeaTable REST API. It connects to a SeaTable server, reads and writes rows as tidy tibbles, manages tables, columns and views, uploads and attaches files, reads and writes local <code>.dtable</code> exports with no server at all, and ships a Shiny explorer for doing all of that without writing code.</p>
 <p>The notes below record what changed during development, against an 0.1.0 that was tagged but never published.</p>
 <ul><li><p>The maintainer address is now <code>raban.heller@uni-ulm.de</code>, and <code>URL</code> / <code>BugReports</code> point at <a href="https://github.com/CTTIR/harbouR" class="external-link uri">https://github.com/CTTIR/harbouR</a>, which is where the package actually lives. Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz and Vinzent Forstmeier are credited as contributors.</p></li>
 <li><p><code><a href="../reference/hb_example_metadata.html">hb_example_metadata()</a></code> now reads the demo base from <code>inst/extdata/example_metadata.json</code> rather than duplicating it in R source, so there is a single definition to maintain.</p></li>

@@ -2,7 +2,8 @@
 
 Writes one `.csv` per table into `dir`. Subject to the same losses as
 [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md);
-see its documentation.
+see its documentation. Table names that produce the same filename
+(ignoring case) are rejected before any files are written.
 
 ## Usage
 
