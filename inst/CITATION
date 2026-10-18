@@ -5,8 +5,12 @@
 ## Do not call packageDescription() instead: CRAN reads CITATION with the
 ## package uninstalled, where that returns NA and `$` then fails.
 ##
-## The rendered `Author` field is parsed with utils::as.person() rather
-## than by eval()ing `Authors@R`: same result, no code execution.
+## The people come from the rendered `Author` field, parsed with
+## utils::as.person(). Only R CMD build and INSTALL add that field, so a
+## reader handed the source DESCRIPTION - pkgdown builds the site that
+## way - finds `Authors@R` alone. That field is R code, so it is evaluated
+## with nothing but c() and person() in reach: anything else in it fails,
+## and the citation falls back to the maintainer alone.
 
 if (!exists("meta") || is.null(meta)) {
   meta <- utils::packageDescription("harbouR")
@@ -24,12 +28,24 @@ year <- if (!is.null(year) && nzchar(year)) {
   format(Sys.Date(), "%Y")
 }
 
+maintainer <- utils::person("Raban", "Heller", role = c("aut", "cre"))
 rendered <- if (is.list(meta)) meta[["Author"]] else NULL
+authors_r <- if (is.list(meta)) meta[["Authors@R"]] else NULL
 people <- if (!is.null(rendered) && nzchar(rendered)) {
   utils::as.person(rendered)
+} else if (!is.null(authors_r) && nzchar(authors_r)) {
+  tryCatch(
+    eval(
+      str2lang(authors_r),
+      envir = list(c = base::c, person = utils::person),
+      enclos = emptyenv()
+    ),
+    error = function(e) maintainer
+  )
 } else {
-  utils::person("Raban", "Heller", role = c("aut", "cre"))
+  maintainer
 }
+if (!inherits(people, "person")) people <- maintainer
 authors <- Filter(function(p) "aut" %in% p$role, people)
 if (length(authors) == 0L) authors <- people
 

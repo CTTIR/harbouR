@@ -11,10 +11,9 @@ A \code{harbour_metadata} object describing a tiny base with two
 tables: \code{Samples} and \code{Patients}.
 }
 \description{
-A small, hand-crafted SeaTable base used to power offline examples,
-tests, the column-types vignette and the Shiny demo mode. The shape of
-the returned object matches what the SeaTable metadata endpoint would
-yield.
+A small, hand-crafted SeaTable base used to power offline examples and
+tests. The shape of the returned object matches what the SeaTable
+metadata endpoint would yield.
 }
 \details{
 The base is defined once, in \code{inst/extdata/example_metadata.json}, and

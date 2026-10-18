@@ -86,6 +86,36 @@
       summary.harbour_dtable
       summary.harbour_metadata
 
+# registered S3 method signatures are unchanged
+
+    Code
+      cat(sigs, sep = "\n")
+    Output
+      as_tibble.harbour_dtable(x, ...)
+      as_tibble.harbour_metadata(x, ...)
+      format.harbour_client(x, ...)
+      format.harbour_dtable(x, ...)
+      format.harbour_metadata(x, ...)
+      hb_list_columns.default(x, table, ...)
+      hb_list_columns.harbour_client(x, table, ..., refresh = FALSE)
+      hb_list_columns.harbour_dtable(x, table, ...)
+      hb_list_tables.default(x, ...)
+      hb_list_tables.harbour_client(x, ..., refresh = FALSE)
+      hb_list_tables.harbour_dtable(x, ...)
+      hb_list_views.default(x, table, ...)
+      hb_list_views.harbour_client(x, table, ..., refresh = FALSE)
+      hb_list_views.harbour_dtable(x, table, ...)
+      hb_read_table.default(x, table, ...)
+      hb_read_table.harbour_client(x, table, ..., view = NULL, page_size = 1000L, n_max = Inf)
+      hb_read_table.harbour_dtable(x, table, ..., view = NULL, n_max = Inf, option_labels = TRUE)
+      length.harbour_dtable(x)
+      names.harbour_dtable(x)
+      print.harbour_client(x, ...)
+      print.harbour_dtable(x, ...)
+      print.harbour_metadata(x, ...)
+      summary.harbour_dtable(object, ...)
+      summary.harbour_metadata(object, ...)
+
 # declared dependencies are unchanged
 
     Code

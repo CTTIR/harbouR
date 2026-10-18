@@ -2,7 +2,12 @@
 # API lock — do not edit to make a build pass.
 #
 # This package is FROZEN: it underpins manuscripts written or in press, so its
-# observable behaviour must not change. This file pins the public surface.
+# observable behaviour must not change. This file pins the public surface: the
+# signature of every export, the registered S3 methods, the signature of each
+# of those methods, and the declared dependencies. The method signatures
+# matter as much as the exports': the arguments a user passes to
+# hb_read_table() or the hb_list_*() verbs - view, n_max, refresh - are
+# formals of the methods, not of the exported generics.
 #
 # If a snapshot here fails, the correct response is almost always to revert the
 # source change, NOT to accept the snapshot. Accepting a snapshot in this file
@@ -72,6 +77,29 @@ test_that("registered S3 methods are unchanged", {
     character(0)
   }
   expect_snapshot(cat(methods, sep = "\n"))
+})
+
+test_that("registered S3 method signatures are unchanged", {
+  ns <- asNamespace(pkg)
+  s3 <- getNamespaceInfo(ns, "S3methods")
+  sigs <- character(0)
+  if (length(s3)) {
+    # Column 3 names the function that implements the method. It is
+    # usually generic.class, but S3method(generic, class, fun) may name any
+    # function, so the formals are looked up from it and the line is
+    # labelled generic.class.
+    labels <- paste0(s3[, 1], ".", s3[, 2])
+    sigs <- vapply(
+      seq_along(labels),
+      function(i) {
+        sig <- .signature_of(s3[i, 3], ns)
+        paste0(labels[[i]], substring(sig, nchar(s3[i, 3]) + 1L))
+      },
+      character(1)
+    )
+    sigs <- sigs[order(labels, method = "radix")]
+  }
+  expect_snapshot(cat(sigs, sep = "\n"))
 })
 
 test_that("declared dependencies are unchanged", {

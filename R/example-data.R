@@ -1,9 +1,8 @@
 #' Offline example metadata
 #'
-#' A small, hand-crafted SeaTable base used to power offline examples,
-#' tests, the column-types vignette and the Shiny demo mode. The shape of
-#' the returned object matches what the SeaTable metadata endpoint would
-#' yield.
+#' A small, hand-crafted SeaTable base used to power offline examples and
+#' tests. The shape of the returned object matches what the SeaTable
+#' metadata endpoint would yield.
 #'
 #' The base is defined once, in `inst/extdata/example_metadata.json`, and
 #' parsed on each call. Keeping it in a data file rather than in R source
@@ -34,10 +33,15 @@ hb_example_metadata <- function() {
 #' Offline example rows
 #'
 #' Returns a tibble of example rows for one of the tables provided by
-#' [hb_example_metadata()]. The rows exercise every column type harbouR
-#' supports, including list-columns and dates, so tests and the
-#' column-types vignette can demonstrate the coercion layer without a
-#' SeaTable server.
+#' [hb_example_metadata()], so tests and the column-types vignette can
+#' demonstrate the coercion layer without a SeaTable server.
+#'
+#' Between them the two tables cover the common column types - text,
+#' number, single-select, multiple-select, date, collaborator, file and
+#' checkbox - so the rows include list-columns and date-times. For the
+#' fuller set, read the bundled `.dtable` file with [hb_read_dtable()]: it
+#' carries a column of nearly every type, at
+#' `system.file("extdata", "example.dtable", package = "harbouR")`.
 #'
 #' @param table One of `"Samples"` or `"Patients"`.
 #'

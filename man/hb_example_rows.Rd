@@ -14,10 +14,16 @@ A tibble.
 }
 \description{
 Returns a tibble of example rows for one of the tables provided by
-\code{\link[=hb_example_metadata]{hb_example_metadata()}}. The rows exercise every column type harbouR
-supports, including list-columns and dates, so tests and the
-column-types vignette can demonstrate the coercion layer without a
-SeaTable server.
+\code{\link[=hb_example_metadata]{hb_example_metadata()}}, so tests and the column-types vignette can
+demonstrate the coercion layer without a SeaTable server.
+}
+\details{
+Between them the two tables cover the common column types - text,
+number, single-select, multiple-select, date, collaborator, file and
+checkbox - so the rows include list-columns and date-times. For the
+fuller set, read the bundled \code{.dtable} file with \code{\link[=hb_read_dtable]{hb_read_dtable()}}: it
+carries a column of nearly every type, at
+\code{system.file("extdata", "example.dtable", package = "harbouR")}.
 }
 \examples{
 hb_example_rows("Samples")
