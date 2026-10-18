@@ -20,14 +20,18 @@
 #' @param assets Whether to extract the bundled `asset/` tree.
 #'   `"none"`, the default, reads only `content.json`. `"extract"` unpacks
 #'   the assets so [hb_asset_path()] can resolve attachment URLs to local
-#'   files.
+#'   files. An archive whose asset entries could land outside
+#'   `assets_dir` - a name that is absolute or has a `..` component,
+#'   between slashes or backslashes, or an entry that is a symbolic link -
+#'   is refused before anything is extracted.
 #' @param assets_dir Where to extract assets to. Defaults to a session
 #'   temporary directory.
 #'
 #' @return A `harbour_dtable`: a list with components `content` (the
-#'   parsed tree), `path`, `assets` (a tibble of bundled files),
-#'   `assets_dir` and `base_name`. Note that `names()` on a
-#'   `harbour_dtable` gives its *table* names, not these components -
+#'   parsed tree), `path`, `assets` (the archive's own listing of its
+#'   `asset/` tree, as [zip::zip_list()] gives it: one row per entry,
+#'   folders included), `assets_dir` and `base_name`. Note that `names()`
+#'   on a `harbour_dtable` gives its *table* names, not these components -
 #'   reach them with `$` or `unclass()`.
 #'
 #' @family dtable
@@ -64,12 +68,17 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
   content <- .hb_dtable_from_json(.hb_dtable_read_entry(path, .hb_dtable_entry))
   .hb_warn_format_version(content$format_version)
 
-  asset_rows <- listing[startsWith(listing$filename, .hb_dtable_asset_dir), ]
+  # The separator is part of the match: "assets.txt" and "asset_old/..."
+  # are not in the asset tree.
+  prefix <- paste0(.hb_dtable_asset_dir, "/")
+  asset_rows <- listing[startsWith(listing$filename, prefix), ]
   dir <- NULL
   if (identical(assets, "extract") && nrow(asset_rows) > 0L) {
+    .hb_check_asset_entries(asset_rows)
     dir <- assets_dir %||% tempfile("harbour-assets-")
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
     zip::unzip(path, files = asset_rows$filename, exdir = dir)
+    .hb_check_extracted(dir, asset_rows$filename)
   }
   new_harbour_dtable(
     content = content,
@@ -83,7 +92,18 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #'
 #' Produces a ZIP archive SeaTable can import. Round-tripping is lossless:
 #' reading a file and writing it back yields a `content.json` that parses
-#' to an identical structure, verified against a real 750 KB export.
+#' to an identical structure, verified against a real 750 KB export. The
+#' attachments go back in too when the file was read with
+#' `assets = "extract"`.
+#'
+#' The archive is built in a temporary file beside `path` and moved into
+#' place only once it is complete, so a failed write cannot destroy the
+#' file it replaces - even when that is the file the base was read from.
+#' Where no new file can be made beside `path`, or there is nothing at
+#' `path` to lose - an empty file such as `/dev/null`, or a link to a file
+#' not made yet - the archive is written straight into it. A symbolic link
+#' in the extracted asset tree is left out, with a warning, rather than
+#' followed to wherever it points.
 #'
 #' @param x A `harbour_dtable`.
 #' @param path Destination path.
@@ -99,12 +119,13 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #' @seealso [hb_read_dtable()]
 #' @examples
 #' path <- system.file("extdata", "example.dtable", package = "harbouR")
-#' base <- hb_read_dtable(path)
+#' # extract the assets, so the attachments are written back too
+#' base <- hb_read_dtable(path, assets = "extract")
 #'
 #' out <- tempfile(fileext = ".dtable")
 #' hb_write_dtable(base, out)
 #'
-#' # the round trip preserves the base exactly
+#' # content.json round-trips exactly
 #' identical(hb_read_dtable(out)$content, base$content)
 #' @export
 hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
@@ -121,14 +142,29 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
       class = "harbour_error_bad_argument"
     )
   }
+  # The archive is moved into place rather than written into the file, so
+  # a file that may not be written would no longer stop it: refuse one
+  # here, as opening it for writing did.
+  unwritable <- dir.exists(path) ||
+    (file.exists(path) && !.hb_can_write(.hb_absolute_path(path)))
+  if (unwritable) {
+    hb_abort(
+      c("Destination cannot be written.", "x" = "{.path {path}}"),
+      class = "harbour_error_bad_argument"
+    )
+  }
   .hb_warn_dropped_assets(x, assets)
   problems <- hb_validate_dtable(x)
   if (nrow(problems) > 0L) {
     fatal <- problems[problems$severity == "error", ]
     if (nrow(fatal) > 0L) {
+      # The problems quote table names and ids from the file, and cli runs
+      # whatever is in braces in a message, so they go in as data.
       issues <- paste0(fatal$location, ": ", fatal$problem)
+      bullets <- sprintf("{issues[[%d]]}", seq_along(issues))
       hb_abort(
-        c("This base cannot be written.", stats::setNames(issues, "x")),
+        c("This base cannot be written.",
+          stats::setNames(bullets, rep("x", length(bullets)))),
         class = "harbour_error_bad_argument"
       )
     }
@@ -146,7 +182,7 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
   if (assets && !is.null(x$assets_dir) && dir.exists(x$assets_dir)) {
     from <- file.path(x$assets_dir, .hb_dtable_asset_dir)
     if (dir.exists(from)) {
-      file.copy(from, staging, recursive = TRUE)
+      .hb_stage_assets(from, file.path(staging, .hb_dtable_asset_dir))
       entries <- c(entries, .hb_dtable_asset_dir)
     }
   }
@@ -154,12 +190,63 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
   if (!dir.exists(parent)) dir.create(parent, recursive = TRUE)
   # zip::zip() runs with `root` as its working directory, so a relative
   # destination would be written inside the staging directory and lost.
+  target <- .hb_absolute_path(path)
+  # Writing onto a link has always replaced the file it points at.
+  if (file.exists(target)) target <- normalizePath(target)
+  # Build the archive beside its destination and move it into place only
+  # once it is complete, so a failure part-way never destroys the file it
+  # replaces - which may be the very file the base was read from. A
+  # destination with nothing in it to lose is written into, as before: an
+  # empty one, which may be no file at all - /dev/null, or a pipe - and a
+  # link whose file does not exist yet, which writing through it creates.
+  in_place <- if (file.exists(target)) {
+    isTRUE(file.size(target) == 0)
+  } else {
+    link <- Sys.readlink(target)
+    !is.na(link) && nzchar(link)
+  }
+  partial <- target
+  if (!in_place) {
+    partial <- tempfile(".harbour-dtable-", tmpdir = dirname(target))
+    on.exit(unlink(partial), add = TRUE)
+    # Making the file is the only sure test of whether the folder takes a
+    # new one. Where it does not, a file already there that may be written
+    # is written into, as before.
+    if (!file.create(partial, showWarnings = FALSE)) {
+      if (!file.exists(target)) {
+        hb_abort(
+          c("Destination cannot be written.", "x" = "{.path {path}}"),
+          class = "harbour_error_bad_argument"
+        )
+      }
+      partial <- target
+    }
+  }
   zip::zip(
-    zipfile = .hb_absolute_path(path),
+    zipfile = partial,
     files = entries,
     root = staging,
     mode = "cherry-pick"
   )
+  if (!identical(partial, target)) {
+    # A replaced file keeps its permissions, as one written into did.
+    if (file.exists(target)) {
+      Sys.chmod(partial, file.mode(target), use_umask = FALSE)
+    }
+    # A file that cannot be replaced - another program holds it open, or
+    # the folder lets files be written but not removed - is written into
+    # instead, as it always was, but only now the archive is complete.
+    moved <- suppressWarnings(file.rename(partial, target)) ||
+      suppressWarnings(
+        file.copy(partial, target, overwrite = TRUE, copy.mode = FALSE)
+      )
+    if (!moved) {
+      hb_abort(
+        c("Could not move the archive into place.", "x" = "{.path {path}}"),
+        class = "harbour_error_bad_argument"
+      )
+    }
+  }
   invisible(x)
 }
 
@@ -175,6 +262,12 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
 #' A list-column holding objects - file, image or location cells read from
 #' a live base - is flattened to `text`: a new base has none of the assets
 #' those cells point at.
+#'
+#' New row ids, table ids, column keys and select-option ids are drawn
+#' from the session's random number generator, so building a base
+#' advances `.Random.seed`: a random draw made after `hb_dtable()` differs
+#' from the same draw made without it. Set the seed after building the
+#' base when an analysis needs its random numbers not to depend on it.
 #'
 #' @param ... Named data frames, one per table.
 #' @param base_name Name recorded for the base.
@@ -346,7 +439,7 @@ hb_validate_dtable <- function(x, ...) {
 #' @examples
 #' path <- system.file("extdata", "example.dtable", package = "harbouR")
 #' base <- hb_read_dtable(path, assets = "extract")
-#' hb_asset_path(base, "file://dtable-bundle/asset/files/readme.txt")
+#' hb_asset_path(base, "file://dtable-bundle/asset/files/2026-07/readme.txt")
 #' @export
 hb_asset_path <- function(x, url, ...) {
   rlang::check_dots_empty()
@@ -356,8 +449,7 @@ hb_asset_path <- function(x, url, ...) {
     return(NA_character_)
   }
   relative <- sub("^file://dtable-bundle/", "", url)
-  if (grepl("\\\\", relative) ||
-      any(strsplit(relative, "/", fixed = TRUE)[[1L]] == "..")) {
+  if (.hb_climbs_out(relative)) {
     return(NA_character_)
   }
   relative <- sub("^/+", "", relative)
@@ -366,9 +458,7 @@ hb_asset_path <- function(x, url, ...) {
   if (!file.exists(candidate) || dir.exists(candidate)) {
     return(NA_character_)
   }
-  root <- normalizePath(x$assets_dir, winslash = "/", mustWork = TRUE)
-  resolved <- normalizePath(candidate, winslash = "/", mustWork = TRUE)
-  if (!startsWith(resolved, paste0(sub("/+$", "", root), "/"))) {
+  if (!.hb_path_inside(candidate, x$assets_dir)) {
     return(NA_character_)
   }
   candidate
@@ -457,6 +547,113 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     chunks[[length(chunks) + 1L]] <- chunk
   }
   unlist(chunks, use.names = FALSE) %||% raw()
+}
+
+#' Does a relative path climb out of the directory it is resolved in?
+#'
+#' A `..` component climbs out, and so does a backslash: it is a separator
+#' on Windows, where `asset\..\..` means what `asset/../..` does.
+#'
+#' @param paths Relative paths, `/`-separated.
+#' @return A logical vector as long as `paths`.
+#' @keywords internal
+#' @noRd
+.hb_climbs_out <- function(paths) {
+  dotdot <- vapply(
+    strsplit(paths, "/", fixed = TRUE),
+    function(parts) any(parts == ".."),
+    logical(1)
+  )
+  grepl("\\", paths, fixed = TRUE) | dotdot
+}
+
+#' Do paths lead to somewhere inside a directory?
+#'
+#' Links are followed, so a path that only looks as if it is inside, but
+#' leads elsewhere, is outside.
+#'
+#' @param paths Paths, which should exist.
+#' @param root A directory that exists.
+#' @return A logical vector as long as `paths`.
+#' @keywords internal
+#' @noRd
+.hb_path_inside <- function(paths, root) {
+  root <- normalizePath(root, winslash = "/", mustWork = TRUE)
+  resolved <- normalizePath(paths, winslash = "/", mustWork = FALSE)
+  startsWith(resolved, paste0(sub("/+$", "", root), "/"))
+}
+
+#' Refuse an asset tree that would not extract inside its directory
+#'
+#' A `.dtable` is an ordinary ZIP archive, so its entry names are whatever
+#' its author chose. One that is absolute or climbs out, or an entry that
+#' is a symbolic link, could write wherever the user can - `~/.Rprofile`
+#' included. A single such entry refuses the whole archive, before
+#' anything is written.
+#'
+#' @param entries The asset rows of a `zip::zip_list()` listing.
+#' @param call The frame to blame for the error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_asset_entries <- function(entries, call = rlang::caller_env()) {
+  name <- entries$filename
+  # zip::zip_list() reports each entry's type from zip 2.3.3, the release
+  # in which zip::unzip() began to make a link entry into a link.
+  type <- entries[["type"]] %||% character(length(name))
+  # A backslash separates folders on Windows, so `..` is looked for between
+  # either separator. Elsewhere a backslash is only a character, one an
+  # uploaded file's name may hold, so on its own it refuses nothing.
+  climbs <- vapply(
+    strsplit(name, "[/\\\\]"),
+    function(parts) any(parts == ".."),
+    logical(1)
+  )
+  unsafe <- climbs | grepl("^([/\\\\]|[A-Za-z]:)", name) |
+    type %in% "symlink"
+  bad <- name[unsafe]
+  if (length(bad) > 0L) {
+    # Not the path: in the explorer that is a temporary upload name the user
+    # never chose, and its notice names the file already.
+    hb_abort(
+      c("That file's assets cannot be extracted safely.",
+        "x" = "{length(bad)} unsafe entr{?y/ies}: {.file {bad}}.",
+        "i" = "An asset must be a plain file or folder inside
+               {.file asset/}, with no {.file ..} in its name and no
+               leading {.file /} or drive letter."),
+      class = "harbour_error_bad_argument",
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
+#' Check that every extracted asset landed inside its directory
+#'
+#' The names were checked before extracting. This catches what a name
+#' cannot show, such as a link already in a user-supplied `assets_dir`
+#' that leads out of it.
+#'
+#' @param dir The extraction directory.
+#' @param entries The names of the entries extracted into it.
+#' @param call The frame to blame for the error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_extracted <- function(dir, entries, call = rlang::caller_env()) {
+  written <- file.exists(file.path(dir, entries))
+  entries <- entries[written]
+  outside <- entries[!.hb_path_inside(file.path(dir, entries), dir)]
+  if (length(outside) > 0L) {
+    hb_abort(
+      c("Some assets were extracted outside {.path {dir}}.",
+        "x" = "{.file {outside}}",
+        "i" = "Part of {.arg assets_dir} is a link that leads out of it."),
+      class = "harbour_error_bad_argument",
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' @keywords internal
@@ -731,6 +928,105 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   file.path(normalizePath(dirname(path), mustWork = FALSE), basename(path))
 }
 
+#' Can an existing file be opened for writing?
+#'
+#' It is opened for appending, so nothing in it changes. That is the test
+#' writing straight into the file used to apply; `file.access()` only
+#' approximates it, and can be wrong on a network file system.
+#'
+#' @param path An existing file, as an absolute path: `file()` gives some
+#'   bare names, such as `"stdin"`, a meaning of their own.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_can_write <- function(path) {
+  con <- tryCatch(
+    suppressWarnings(file(path, open = "ab")),
+    error = function(cnd) NULL
+  )
+  if (is.null(con)) {
+    return(FALSE)
+  }
+  close(con)
+  TRUE
+}
+
+#' Copy the extracted asset tree into the staging directory
+#'
+#' `file.copy(recursive = TRUE)` follows symbolic links, so a link in the
+#' tree would put whatever it points at, from anywhere on the machine,
+#' into the archive. The tree is copied entry by entry instead, leaving out
+#' links and anything that resolves outside it, and given the permissions
+#' the recursive copy gave: a tree without links is staged as before.
+#'
+#' @param from The `asset/` directory to copy.
+#' @param to Where the copy goes. It must not exist yet.
+#' @param call The frame to blame for any error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_stage_assets <- function(from, to, call = rlang::caller_env()) {
+  entries <- list.files(from, recursive = TRUE, all.files = TRUE,
+                        include.dirs = TRUE, no.. = TRUE)
+  src <- file.path(from, entries)
+  target <- Sys.readlink(src)
+  link <- (!is.na(target) & nzchar(target)) | !.hb_path_inside(src, from)
+  # list.files() also lists what is behind a link to a folder.
+  behind <- vapply(
+    entries,
+    function(entry) any(startsWith(entry, paste0(entries[link], "/"))),
+    logical(1),
+    USE.NAMES = FALSE
+  )
+  keep <- !link & !behind
+  is_dir <- dir.exists(src)
+  dirs <- entries[keep & is_dir]
+  files <- entries[keep & !is_dir]
+
+  dir.create(to, showWarnings = FALSE)
+  for (folder in file.path(to, dirs)) {
+    dir.create(folder, recursive = TRUE, showWarnings = FALSE)
+  }
+  copied <- file.copy(file.path(from, files), file.path(to, files),
+                      copy.mode = FALSE)
+  # list.files() passes over a folder it cannot read without a word, so a
+  # folder that cannot be read has failed to copy as surely as one that
+  # could not be made.
+  folders <- c("", dirs)
+  readable <- file.access(c(from, file.path(from, dirs)), 5L) == 0L
+  made <- dir.exists(c(to, file.path(to, dirs)))
+  failed <- c(folders[!readable | !made], files[!copied])
+  if (length(failed) > 0L) {
+    failed <- file.path(basename(from), failed)
+    hb_abort(
+      c("The assets could not be copied into the archive.",
+        "x" = "Not copied: {.file {failed}}."),
+      class = "harbour_error_bad_argument",
+      call = call
+    )
+  }
+  # The source's permission bits, less the umask, as the recursive copy
+  # set them; folders last, once nothing more is written into them.
+  bits <- function(paths) bitwAnd(as.integer(file.mode(paths)), 511L)
+  Sys.chmod(file.path(to, files), bits(file.path(from, files)))
+  Sys.chmod(file.path(to, dirs), bits(file.path(from, dirs)))
+  Sys.chmod(to, bits(from))
+
+  skipped <- entries[link & !behind]
+  if (length(skipped) > 0L) {
+    skipped <- file.path(basename(from), skipped)
+    cli::cli_warn(
+      c("Left {length(skipped)} link{?s} out of the archive.",
+        "x" = "{.file {skipped}}",
+        "i" = "Links in the asset tree are not followed: they can lead to
+               files anywhere on this machine."),
+      class = "harbour_warning_asset_link",
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Warn before writing a base whose bundled assets are not available
 #'
 #' A base read with `assets = "none"` keeps the cells that point at
@@ -748,7 +1044,7 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   if (have && assets) {
     return(invisible(NULL))
   }
-  referenced <- nrow(x$assets %||% .hb_empty_asset_tibble())
+  referenced <- .hb_count_asset_files(x$assets)
   if (referenced == 0L) {
     return(invisible(NULL))
   }
@@ -764,4 +1060,17 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     }
   ))
   invisible(NULL)
+}
+
+#' Count the files in an asset listing
+#'
+#' `zip::zip_list()` lists each folder as an entry of its own, its name
+#' ending in "/". Only the files are assets.
+#'
+#' @param assets The `assets` component of a `harbour_dtable`.
+#' @return A single integer.
+#' @keywords internal
+#' @noRd
+.hb_count_asset_files <- function(assets) {
+  sum(!endsWith(assets$filename %||% character(), "/"))
 }

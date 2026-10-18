@@ -50,6 +50,15 @@ them as a typed tibble. Pagination is handled internally; the returned
 tibble always has the table's columns in declared order plus an \verb{_id}
 column.
 }
+\section{Views on a \code{.dtable} file}{
+
+On a \code{harbour_dtable}, \code{view} restricts the rows only to the row ids
+the file records for that view, kept in table order. The view's filters
+and sorts are not applied. A view that records no rows returns the
+whole table, with a warning of class \code{harbour_warning_view_filters}
+when the view has filters that were therefore not applied.
+}
+
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()

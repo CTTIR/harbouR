@@ -115,6 +115,8 @@ Writing one back is lossless, and `hb_dtable()` builds a base out of
 ordinary data frames so you can import R results into SeaTable:
 
 ``` r
+# extract the assets, so the attachments are written back too
+base <- hb_read_dtable(path, assets = "extract")
 hb_write_dtable(base, "my-base.dtable")
 
 hb_dtable(Measurements = my_data) |>

@@ -14,16 +14,20 @@ hb_read_dtable(path, ..., assets = c("none", "extract"), assets_dir = NULL)
 \item{assets}{Whether to extract the bundled \verb{asset/} tree.
 \code{"none"}, the default, reads only \code{content.json}. \code{"extract"} unpacks
 the assets so \code{\link[=hb_asset_path]{hb_asset_path()}} can resolve attachment URLs to local
-files.}
+files. An archive whose asset entries could land outside
+\code{assets_dir} - a name that is absolute or has a \code{..} component,
+between slashes or backslashes, or an entry that is a symbolic link -
+is refused before anything is extracted.}
 
 \item{assets_dir}{Where to extract assets to. Defaults to a session
 temporary directory.}
 }
 \value{
 A \code{harbour_dtable}: a list with components \code{content} (the
-parsed tree), \code{path}, \code{assets} (a tibble of bundled files),
-\code{assets_dir} and \code{base_name}. Note that \code{names()} on a
-\code{harbour_dtable} gives its \emph{table} names, not these components -
+parsed tree), \code{path}, \code{assets} (the archive's own listing of its
+\verb{asset/} tree, as \code{\link[zip:zip_list]{zip::zip_list()}} gives it: one row per entry,
+folders included), \code{assets_dir} and \code{base_name}. Note that \code{names()}
+on a \code{harbour_dtable} gives its \emph{table} names, not these components -
 reach them with \code{$} or \code{unclass()}.
 }
 \description{

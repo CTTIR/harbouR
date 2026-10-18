@@ -25,16 +25,29 @@ one. Default \code{TRUE}.}
 \description{
 Produces a ZIP archive SeaTable can import. Round-tripping is lossless:
 reading a file and writing it back yields a \code{content.json} that parses
-to an identical structure, verified against a real 750 KB export.
+to an identical structure, verified against a real 750 KB export. The
+attachments go back in too when the file was read with
+\code{assets = "extract"}.
+}
+\details{
+The archive is built in a temporary file beside \code{path} and moved into
+place only once it is complete, so a failed write cannot destroy the
+file it replaces - even when that is the file the base was read from.
+Where no new file can be made beside \code{path}, or there is nothing at
+\code{path} to lose - an empty file such as \verb{/dev/null}, or a link to a file
+not made yet - the archive is written straight into it. A symbolic link
+in the extracted asset tree is left out, with a warning, rather than
+followed to wherever it points.
 }
 \examples{
 path <- system.file("extdata", "example.dtable", package = "harbouR")
-base <- hb_read_dtable(path)
+# extract the assets, so the attachments are written back too
+base <- hb_read_dtable(path, assets = "extract")
 
 out <- tempfile(fileext = ".dtable")
 hb_write_dtable(base, out)
 
-# the round trip preserves the base exactly
+# content.json round-trips exactly
 identical(hb_read_dtable(out)$content, base$content)
 }
 \seealso{

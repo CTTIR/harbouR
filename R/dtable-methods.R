@@ -10,12 +10,14 @@
 print.harbour_dtable <- function(x, ...) {
   rlang::check_dots_empty()
   tables <- x$content$tables %||% list()
+  # Files only: the listing has a row for every folder as well.
+  n_assets <- .hb_count_asset_files(x$assets)
   cli::cli_h1("<harbour_dtable>")
   cli::cli_bullets(c(
     "*" = "base   : {.val {x$base_name}}",
     "*" = "tables : {length(tables)}",
     "*" = "rows   : {sum(.hb_count_field(tables, 'rows'))}",
-    "*" = "assets : {nrow(x$assets)}"
+    "*" = "assets : {n_assets}"
   ))
   if (length(tables) > 0L) {
     cli::cli_text("")
@@ -263,6 +265,12 @@ hb_list_views.harbour_dtable <- function(x, table, ...) {
 #'   names. On disk a select cell holds an option id; over the API it
 #'   holds the name, so this is what makes a local read and a server read
 #'   of the same column agree. Set `FALSE` to see the raw ids.
+#' @section Views on a `.dtable` file:
+#' On a `harbour_dtable`, `view` restricts the rows only to the row ids
+#' the file records for that view, kept in table order. The view's filters
+#' and sorts are not applied. A view that records no rows returns the
+#' whole table, with a warning of class `harbour_warning_view_filters`
+#' when the view has filters that were therefore not applied.
 #' @rdname hb_read_table
 #' @method hb_read_table harbour_dtable
 #' @export
@@ -303,6 +311,9 @@ hb_read_table.harbour_dtable <- function(x, table, ..., view = NULL,
 #'
 #' A view's `rows` array, when non-empty, lists the row ids it displays.
 #' Filters are not re-evaluated: harbouR reports what the file records.
+#' When the array is empty every row is returned, so a view with filters
+#' then says that they were not applied rather than letting the whole
+#' table pass for the filtered one.
 #'
 #' @param tbl A table object.
 #' @param view A view name.
@@ -325,6 +336,16 @@ hb_read_table.harbour_dtable <- function(x, table, ..., view = NULL,
   }
   shown <- unlist(views[[idx]]$rows %||% list(), use.names = FALSE)
   if (length(shown) == 0L) {
+    if (length(views[[idx]]$filters) > 0L) {
+      cli::cli_warn(
+        c("View {.val {view}} has filters, but the file records no rows
+           for it.",
+          "i" = "Filters are not applied to a {.file .dtable} file, so this
+                 is every row of {.val {tbl$name}}."),
+        class = "harbour_warning_view_filters",
+        call = call
+      )
+    }
     return(rows)
   }
   ids <- vapply(

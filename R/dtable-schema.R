@@ -53,7 +53,7 @@
 #' `jsonlite` writes `list()` as `[]`. SeaTable's importer expects `{}` in
 #' these slots, so anything harbouR constructs must use
 #' `.hb_empty_object()`. Round-tripping a file that was read is safe,
-#' because `fromJSON()` gives an empty *named* list.
+#' because jsonlite parses `{}` to an empty *named* list.
 #'
 #' @keywords internal
 #' @noRd
@@ -140,17 +140,20 @@
 #' Parse `content.json` bytes
 #'
 #' Read as raw and convert explicitly, so the result never depends on the
-#' session locale.
+#' session locale. `rawToChar()` gives a string with no declared encoding,
+#' which jsonlite would take to be in the session's own and convert to
+#' UTF-8 a second time, so the text is marked as the UTF-8 it is.
+#'
+#' `parse_json()` rather than `fromJSON()`: given a short string that is
+#' not valid JSON, `fromJSON()` reads it as a file path or fetches it as a
+#' URL, and a `content.json` holds whatever its author put there.
 #'
 #' @param bytes A raw vector.
 #' @return The parsed tree, with no simplification.
 #' @keywords internal
 #' @noRd
 .hb_dtable_from_json <- function(bytes) {
-  jsonlite::fromJSON(
-    rawToChar(bytes),
-    simplifyVector = FALSE,
-    simplifyDataFrame = FALSE,
-    simplifyMatrix = FALSE
-  )
+  text <- rawToChar(bytes)
+  Encoding(text) <- "UTF-8"
+  jsonlite::parse_json(text, simplifyVector = FALSE)
 }

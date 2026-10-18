@@ -24,7 +24,7 @@ Attachment cells in an export point at
 \examples{
 path <- system.file("extdata", "example.dtable", package = "harbouR")
 base <- hb_read_dtable(path, assets = "extract")
-hb_asset_path(base, "file://dtable-bundle/asset/files/readme.txt")
+hb_asset_path(base, "file://dtable-bundle/asset/files/2026-07/readme.txt")
 }
 \seealso{
 Other dtable:

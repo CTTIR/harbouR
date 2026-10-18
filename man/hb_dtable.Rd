@@ -28,6 +28,12 @@ character vectors \code{multiple-select} with the values it uses as options.
 A list-column holding objects - file, image or location cells read from
 a live base - is flattened to \code{text}: a new base has none of the assets
 those cells point at.
+
+New row ids, table ids, column keys and select-option ids are drawn
+from the session's random number generator, so building a base
+advances \code{.Random.seed}: a random draw made after \code{hb_dtable()} differs
+from the same draw made without it. Set the seed after building the
+base when an analysis needs its random numbers not to depend on it.
 }
 \examples{
 base <- hb_dtable(

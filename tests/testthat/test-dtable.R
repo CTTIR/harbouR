@@ -438,8 +438,9 @@ test_that("writing a base whose assets were not extracted warns loudly", {
   # otherwise silently produce an archive with dangling attachments.
   src <- system.file("extdata", "example.dtable", package = "harbouR")
   out <- withr::local_tempfile(fileext = ".dtable")
+  # Two files: the listing's five folder entries are not assets.
   expect_warning(hb_write_dtable(hb_read_dtable(src), out),
-                 "bundled asset")
+                 "references 2 bundled assets")
   expect_identical(nrow(zip::zip_list(out)), 1L)
 })
 
