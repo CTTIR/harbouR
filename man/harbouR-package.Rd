@@ -4,7 +4,7 @@
 \name{harbouR-package}
 \alias{harbouR}
 \alias{harbouR-package}
-\title{harbouR: R Client for SeaTable Collaborative Databases}
+\title{harbouR: Work with Self-Hosted SeaTable Servers and Data Files}
 \description{
 An unofficial R client for working with SeaTable data from R: read and
 write a local \code{.dtable} export with no server at all, or connect

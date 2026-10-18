@@ -9,8 +9,6 @@ mock_client <- function(server = "https://demo.example.org",
     timeout = 10
   )
   cl$.base_token <- "BASETOKENSECRET"
-  cl$.dtable_server <- server
-  cl$.dtable_db <- server
   cl$.base_name <- "harbouR demo base"
   cl$.metadata <- harbouR::hb_example_metadata()
   cl

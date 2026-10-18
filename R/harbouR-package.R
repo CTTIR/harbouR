@@ -1,4 +1,4 @@
-#' harbouR: R Client for SeaTable Collaborative Databases
+#' harbouR: Work with Self-Hosted SeaTable Servers and Data Files
 #'
 #' An unofficial R client for working with SeaTable data from R: read and
 #' write a local \code{.dtable} export with no server at all, or connect
