@@ -12,7 +12,14 @@
 #'
 #' The UI packages (`shiny`, `bslib`, `reactable`) are in `Suggests`, so
 #' the client itself stays headless. A missing one produces a single
-#' informative error rather than a stack trace.
+#' informative error rather than a stack trace. The Excel download also
+#' needs `writexl`; without it the app says so when you ask for one.
+#'
+#' Shiny refuses uploads over 5 MB by default, and a `.dtable` with
+#' attachments is often larger, so while the app runs it accepts files up
+#' to 1 GB. To choose another limit, set the `shiny.maxRequestSize`
+#' option, in bytes, before calling `hb_run_explorer()`; a value you have
+#' set is left as it is.
 #'
 #' @param x Optional `harbour_client` or `harbour_dtable` to open with.
 #' @param ... Passed to [shiny::runApp()].
@@ -25,8 +32,9 @@
 #' # the bundled example base, no credentials needed
 #' hb_run_explorer()
 #'
-#' # or start from a file
-#' hb_run_explorer(hb_read_dtable("my-base.dtable"))
+#' # or start from a file, with its attachments, so that a .dtable
+#' # download keeps them
+#' hb_run_explorer(hb_read_dtable("my-base.dtable", assets = "extract"))
 #' @export
 hb_run_explorer <- function(x = NULL, ..., host = "127.0.0.1", port = NULL) {
   rlang::check_dots_used()
@@ -53,6 +61,12 @@ hb_run_explorer <- function(x = NULL, ..., host = "127.0.0.1", port = NULL) {
     ui = .hb_app_ui(),
     server = .hb_app_server(preset = x)
   )
+  # Shiny refuses uploads over 5 MB, and a real export with attachments is
+  # often larger. Lift the cap to 1 GB for as long as the app runs, but
+  # leave a limit the user chose alone.
+  if (is.null(getOption("shiny.maxRequestSize"))) {
+    rlang::local_options(shiny.maxRequestSize = 1024^3)
+  }
   shiny::runApp(app, host = host, port = port, ...)
   invisible(NULL)
 }

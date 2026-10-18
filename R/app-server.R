@@ -281,16 +281,37 @@
       if (is.null(state$source)) {
         return(.hb_placeholder("Open a base to export it."))
       }
-      shiny::tags$div(
-        class = "d-flex gap-2 flex-wrap",
-        shiny::downloadButton("dl_dtable", ".dtable",
-                              class = "btn-primary btn-sm"),
-        shiny::downloadButton("dl_xlsx", "Excel workbook",
-                              class = "btn-outline-secondary btn-sm"),
-        shiny::downloadButton("dl_csv", "CSV (zipped)",
-                              class = "btn-outline-secondary btn-sm"),
-        shiny::downloadButton("dl_table_csv", "This table as CSV",
-                              class = "btn-outline-secondary btn-sm")
+      # A file is written back as it was read, its attachments with it
+      # only if they were extracted when it was opened. A live base has no
+      # file behind it: its .dtable is rebuilt from the rows, which carry
+      # the values but not the base's configuration.
+      note <- if (!is_harbour_dtable(state$source)) {
+        "Download the whole base. A live base is rebuilt from its rows, so
+         its .dtable keeps the values but not the column types, select
+         options, attachments or views; a spreadsheet flattens the columns
+         a cell cannot hold."
+      } else if (.hb_assets_left_out(state$source)) {
+        "Download the whole base. This file was opened without its
+         attachments, so its .dtable leaves them out; open it from the
+         Source panel to keep them. A spreadsheet flattens the columns a
+         cell cannot hold."
+      } else {
+        "Download the whole base. A .dtable keeps everything; a spreadsheet
+         flattens the columns a cell cannot hold."
+      }
+      shiny::tagList(
+        shiny::tags$p(class = "text-muted small", note),
+        shiny::tags$div(
+          class = "d-flex gap-2 flex-wrap",
+          shiny::downloadButton("dl_dtable", ".dtable",
+                                class = "btn-primary btn-sm"),
+          shiny::downloadButton("dl_xlsx", "Excel workbook",
+                                class = "btn-outline-secondary btn-sm"),
+          shiny::downloadButton("dl_csv", "CSV (zipped)",
+                                class = "btn-outline-secondary btn-sm"),
+          shiny::downloadButton("dl_table_csv", "This table as CSV",
+                                class = "btn-outline-secondary btn-sm")
+        )
       )
     })
 
@@ -305,20 +326,25 @@
       shiny::outputOptions(output, id, suspendWhenHidden = FALSE)
     }
 
-    # The handlers delegate to .hb_export(), which is an ordinary function
-    # and so can be tested directly. A downloadHandler's content closure
-    # cannot be reached through shiny::testServer(), so inlining this logic
-    # would leave every download untested.
+    # The handlers delegate to .hb_export(), an ordinary function, so every
+    # export can also be tested with any source and path, no session needed.
     output$dl_dtable <- shiny::downloadHandler(
       filename = function() .hb_download_name(state, "dtable"),
-      content = function(file) .hb_export(state$source, "dtable", file)
+      content = function(file) {
+        .hb_download(session, file, "Could not write the .dtable", {
+          .hb_export(state$source, "dtable", file)
+          if (!is_harbour_dtable(state$source)) .hb_notify_rebuilt()
+        })
+      }
     )
 
     output$dl_xlsx <- shiny::downloadHandler(
       filename = function() .hb_download_name(state, "xlsx"),
       content = function(file) {
-        .hb_notify_flattening(session, {
-          .hb_export(state$source, "xlsx", file)
+        .hb_download(session, file, "Could not write the Excel workbook", {
+          .hb_notify_flattening(session, {
+            .hb_export(state$source, "xlsx", file)
+          })
         })
       }
     )
@@ -326,8 +352,10 @@
     output$dl_csv <- shiny::downloadHandler(
       filename = function() .hb_download_name(state, "zip"),
       content = function(file) {
-        .hb_notify_flattening(session, {
-          .hb_export(state$source, "csv-zip", file)
+        .hb_download(session, file, "Could not write the CSV files", {
+          .hb_notify_flattening(session, {
+            .hb_export(state$source, "csv-zip", file)
+          })
         })
       }
     )
@@ -337,7 +365,15 @@
         paste0(.hb_safe_filename(state$table %||% "table"), ".csv")
       },
       content = function(file) {
-        .hb_export(state$source, "table-csv", file, data = table_data())
+        .hb_download(session, file, "Could not write the CSV", {
+          # The whole table, read afresh: table_data() is the Data panel's
+          # preview, capped by its Rows setting, and a file named after the
+          # table must not quietly hold only its first rows.
+          data <- if (!is.null(state$table)) {
+            hb_read_table(state$source, state$table)
+          }
+          .hb_export(state$source, "table-csv", file, data = data)
+        })
       }
     )
   }
@@ -459,8 +495,28 @@
     # the reserved _id name - an export that cannot be re-opened.
     data[, !names(data) %in% .hb_dtable_row_system_fields, drop = FALSE]
   })
+  # Built the way the CSV and Excel importers build a base, so that a table
+  # called "collaborators" or "base_name" is not taken for hb_dtable()'s
+  # argument of that name: the first would vanish from the download, the
+  # second stop it.
   names(frames) <- index$name
-  rlang::exec(hb_dtable, !!!frames, base_name = x$.base_name %||% "base")
+  .hb_dtable_from_frames(frames, x$.base_name %||% "base")
+}
+
+#' Whether a .dtable written from a file would leave its attachments out
+#'
+#' A file read with `assets = "none"` keeps the cells that point at its
+#' attachments but not the files, so a download of it cannot carry them.
+#' Only file entries count: the listing has a row for each folder too.
+#'
+#' @param x A `harbour_dtable`.
+#' @return `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_assets_left_out <- function(x) {
+  bundled <- !endsWith(x$assets$filename %||% character(), "/")
+  extracted <- !is.null(x$assets_dir) && dir.exists(x$assets_dir)
+  any(bundled) && !extracted
 }
 
 #' Build the download filename for the current base
@@ -519,9 +575,7 @@
 #' Write one export to a path
 #'
 #' The body of every download the explorer offers. Kept as a plain
-#' function so it can be called directly from tests: a downloadHandler's
-#' content closure is not reachable through `shiny::testServer()`, so
-#' inlining this logic would leave every download untested.
+#' function so tests can call it directly, with any source and path.
 #'
 #' @param source A `harbour_dtable` or `harbour_client`.
 #' @param kind One of `"dtable"`, `"xlsx"`, `"csv-zip"`, `"table-csv"`.
@@ -541,15 +595,32 @@
   switch(
     kind,
     dtable = hb_write_dtable(.hb_as_dtable(source), path),
-    xlsx = hb_write_xlsx(source, path),
+    xlsx = {
+      # hb_write_xlsx() asks for writexl through rlang::check_installed(),
+      # which in an interactive session offers to install it at the
+      # console: a prompt the explorer's user never sees, with the app
+      # frozen until it is answered. Refuse with a reason the app can show.
+      if (!requireNamespace("writexl", quietly = TRUE)) {
+        hb_abort(
+          c("The Excel workbook needs the {.pkg writexl} package.",
+            "i" = "Install it with {.code install.packages(\"writexl\")}."),
+          class = "harbour_error_unsupported",
+          call = call
+        )
+      }
+      hb_write_xlsx(source, path)
+    },
     `csv-zip` = {
       dir <- tempfile("harbour-csv-")
       dir.create(dir)
       on.exit(unlink(dir, recursive = TRUE), add = TRUE)
-      hb_write_csv(source, dir)
+      # Zip what was written rather than what list.files() finds: it skips
+      # names that start with a dot, so a table called ".notes" would be
+      # left out of the archive without a word.
+      written <- hb_write_csv(source, dir)
       zip::zip(
         zipfile = .hb_absolute_path(path),
-        files = list.files(dir), root = dir, mode = "cherry-pick"
+        files = basename(written), root = dir, mode = "cherry-pick"
       )
     },
     `table-csv` = {
@@ -564,6 +635,54 @@
     }
   )
   invisible(path)
+}
+
+#' Run one download, reporting a failure in the browser
+#'
+#' An error in a download handler is printed to the R console, which the
+#' app's user cannot see, and the browser is left with a failed download
+#' and no reason. The reason is shown as a notification instead, as for
+#' every other action in the app, and anything half-written is removed so
+#' Shiny never serves a truncated file as if it were complete.
+#'
+#' @param session The shiny session.
+#' @param path The file the download writes.
+#' @param title What was being attempted.
+#' @param expr The export.
+#' @return `path`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_download <- function(session, path, title, expr) {
+  done <- .hb_try(session, title, {
+    force(expr)
+    TRUE
+  })
+  if (is.null(done)) unlink(path)
+  invisible(path)
+}
+
+#' Say what a .dtable built from a live base leaves out
+#'
+#' A file source is written back as it was read, but a live base has no
+#' file to copy: `.hb_as_dtable()` builds one from the rows. Without a word
+#' that download would look as complete as a file export.
+#'
+#' @return The notification's id.
+#' @keywords internal
+#' @noRd
+.hb_notify_rebuilt <- function() {
+  shiny::showNotification(
+    shiny::tags$div(
+      shiny::tags$strong("The .dtable was rebuilt from the rows"),
+      shiny::tags$div(
+        class = "small",
+        "A live base has no file to copy, so the download holds its values,
+         with the column types inferred from them again. Select options,
+         attachments and views are not kept."
+      )
+    ),
+    type = "warning", duration = 12
+  )
 }
 
 #' Surface the export's flattening report in the browser

@@ -161,12 +161,9 @@
 #' @keywords internal
 #' @noRd
 .hb_export_ui <- function() {
+  # What a download keeps depends on the source, so the explanation is
+  # rendered with the buttons rather than fixed here.
   shiny::tagList(
-    shiny::tags$p(
-      class = "text-muted small",
-      "Download the whole base. A .dtable keeps everything; a spreadsheet
-       flattens the columns a cell cannot hold."
-    ),
     shiny::uiOutput("export_panel")
   )
 }

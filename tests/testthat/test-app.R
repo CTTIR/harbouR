@@ -205,6 +205,7 @@ test_that("the source kind is reported from the object", {
 })
 
 test_that("the theme is built from the logo's palette", {
+  skip_if_not_installed("shiny")
   pal <- harbouR:::.hb_palette()
   expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", pal)))
   css <- as.character(harbouR:::.hb_styles())
@@ -241,7 +242,6 @@ test_that("Run query is disabled without a server", {
 })
 
 test_that("every export produces a file with valid content", {
-  skip_if_not_installed("writexl")
   base <- hb_read_dtable(
     system.file("extdata", "example.dtable", package = "harbouR"),
     assets = "extract"
@@ -252,10 +252,6 @@ test_that("every export produces a file with valid content", {
   expect_identical(length(hb_read_dtable(f1)), 2L)
   # the .dtable export is the lossless one: assets come with it
   expect_true(any(grepl("readme.txt", zip::zip_list(f1)$filename)))
-
-  f2 <- withr::local_tempfile(fileext = ".xlsx")
-  suppressMessages(harbouR:::.hb_export(base, "xlsx", f2))
-  expect_setequal(readxl::excel_sheets(f2), c("Samples", "Reference"))
 
   f3 <- withr::local_tempfile(fileext = ".zip")
   suppressMessages(harbouR:::.hb_export(base, "csv-zip", f3))
@@ -268,6 +264,18 @@ test_that("every export produces a file with valid content", {
   back <- utils::read.csv(f4, check.names = FALSE)
   expect_identical(nrow(back), 2L)
   expect_true("Name" %in% names(back))
+})
+
+test_that("the Excel export produces a workbook with one sheet per table", {
+  # writexl writes it and readxl reads it back; both are Suggests.
+  skip_if_not_installed("writexl")
+  skip_if_not_installed("readxl")
+  base <- hb_read_dtable(
+    system.file("extdata", "example.dtable", package = "harbouR")
+  )
+  f2 <- withr::local_tempfile(fileext = ".xlsx")
+  suppressMessages(harbouR:::.hb_export(base, "xlsx", f2))
+  expect_setequal(readxl::excel_sheets(f2), c("Samples", "Reference"))
 })
 
 test_that("exporting with nothing open is a clear error, not a corrupt file", {
@@ -355,6 +363,7 @@ test_that("an out-of-range row count falls back rather than blanking", {
 })
 
 test_that("a hostile column type cannot inject markup into the schema tab", {
+  skip_if_not_installed("htmltools")
   # The Schema tab renders the type through reactable with html = TRUE.
   # An unescaped type string from an opened .dtable would run script in a
   # session that may hold the user's API token.

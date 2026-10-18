@@ -32,15 +32,23 @@ network.
 
 The UI packages (\code{shiny}, \code{bslib}, \code{reactable}) are in \code{Suggests}, so
 the client itself stays headless. A missing one produces a single
-informative error rather than a stack trace.
+informative error rather than a stack trace. The Excel download also
+needs \code{writexl}; without it the app says so when you ask for one.
+
+Shiny refuses uploads over 5 MB by default, and a \code{.dtable} with
+attachments is often larger, so while the app runs it accepts files up
+to 1 GB. To choose another limit, set the \code{shiny.maxRequestSize}
+option, in bytes, before calling \code{hb_run_explorer()}; a value you have
+set is left as it is.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # the bundled example base, no credentials needed
 hb_run_explorer()
 
-# or start from a file
-hb_run_explorer(hb_read_dtable("my-base.dtable"))
+# or start from a file, with its attachments, so that a .dtable
+# download keeps them
+hb_run_explorer(hb_read_dtable("my-base.dtable", assets = "extract"))
 \dontshow{\}) # examplesIf}
 }
 \concept{shiny}
