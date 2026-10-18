@@ -71,6 +71,9 @@ every row was returned.}
 that is neither \code{TRUE} nor \code{FALSE} as \code{null}. Field: \code{columns}.}
 \item{\code{harbour_warning_asset_link}}{\code{\link[=hb_write_dtable]{hb_write_dtable()}} left symbolic
 links in the asset tree out of the archive.}
+\item{\code{harbour_warning_id_column}}{\code{\link[=hb_read_csv]{hb_read_csv()}} or \code{\link[=hb_read_xlsx]{hb_read_xlsx()}}
+dropped a column named \verb{_id} that held values other than SeaTable
+row ids.}
 }
 }
 

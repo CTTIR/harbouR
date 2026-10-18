@@ -628,10 +628,7 @@
         hb_abort("No table is open.", class = "harbour_error_bad_argument",
                  call = call)
       }
-      utils::write.csv(
-        .hb_display_frame(data), path,
-        row.names = FALSE, fileEncoding = "UTF-8"
-      )
+      .hb_write_csv_file(.hb_display_frame(data), path)
     }
   )
   invisible(path)

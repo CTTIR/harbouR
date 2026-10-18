@@ -64,6 +64,9 @@
 #'     that is neither `TRUE` nor `FALSE` as `null`. Field: `columns`.}
 #'   \item{`harbour_warning_asset_link`}{[hb_write_dtable()] left symbolic
 #'     links in the asset tree out of the archive.}
+#'   \item{`harbour_warning_id_column`}{[hb_read_csv()] or [hb_read_xlsx()]
+#'     dropped a column named `_id` that held values other than SeaTable
+#'     row ids.}
 #' }
 #'
 #' @examples

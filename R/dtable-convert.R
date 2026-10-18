@@ -78,7 +78,26 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
       class = "harbour_error_bad_argument"
     )
   }
-  writexl::write_xlsx(sheets, path = path)
+  # writexl shortens a long name and replaces the characters Excel does not
+  # allow, which can make two names clash that the check above passed;
+  # libxlsxwriter then fails with an error that names neither table.
+  rlang::try_fetch(
+    writexl::write_xlsx(sheets, path = path),
+    error = function(cnd) {
+      if (!grepl("already in use", conditionMessage(cnd), fixed = TRUE)) {
+        return(rlang::zap())
+      }
+      hb_abort(
+        c("Two table names give the same sheet name.",
+          "i" = "Excel shortens sheet names to 31 characters, replaces
+                 characters it does not allow and ignores case.",
+          "i" = "Export the tables to separate workbooks with
+                 {.arg tables}."),
+        class = "harbour_error_bad_argument",
+        parent = cnd
+      )
+    }
+  )
   invisible(path)
 }
 
@@ -121,10 +140,7 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
   paths <- character(length(sheets))
   for (i in seq_along(sheets)) {
     file <- file.path(dir, filenames[[i]])
-    utils::write.csv(
-      sheets[[i]], file,
-      row.names = FALSE, fileEncoding = "UTF-8"
-    )
+    .hb_write_csv_file(sheets[[i]], file)
     paths[[i]] <- file
   }
   invisible(paths)
@@ -153,8 +169,10 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #'
 #' The files must be UTF-8, with or without a byte-order mark. A file in
 #' another encoding is refused, naming the first line that is not valid
-#' UTF-8. The `_id` column that [hb_write_csv()] writes is dropped: the
-#' new base has row identifiers of its own.
+#' UTF-8. A column named `_id`, such as the one [hb_write_csv()] writes,
+#' is dropped: SeaTable keeps that name for the row identifier, and the new
+#' base has identifiers of its own. One that holds anything but SeaTable
+#' row ids, such as a database's keys, is dropped with a warning.
 #'
 #' @param files Paths to `.csv` files. Table names come from the file
 #'   names unless `files` is named.
@@ -189,7 +207,7 @@ hb_read_csv <- function(files, ..., base_name = "harbouR base") {
   blank <- !nzchar(names(files))
   names(files)[blank] <- tools::file_path_sans_ext(basename(files[blank]))
   frames <- lapply(files, .hb_read_csv_file, call = rlang::current_env())
-  .hb_import_base(frames, base_name)
+  .hb_import_base(frames, base_name, call = rlang::current_env())
 }
 
 #' Read tables into a new base from an Excel workbook
@@ -198,8 +216,9 @@ hb_read_csv <- function(files, ..., base_name = "harbouR base") {
 #' base rather than restoring one.
 #'
 #' A column's type follows its cells, judged over every row of the sheet.
-#' A column with no values at all is text, and the `_id` column that
-#' [hb_write_xlsx()] writes is dropped.
+#' A column with no values at all is text. A column named `_id`, such as
+#' the one [hb_write_xlsx()] writes, is dropped, with a warning when it
+#' holds anything but SeaTable row ids.
 #'
 #' @param path Path to an `.xlsx` file.
 #' @param ... These dots are for future extensions and must be empty.
@@ -244,7 +263,7 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
     )
   })
   names(frames) <- wanted
-  .hb_import_base(frames, base_name)
+  .hb_import_base(frames, base_name, call = rlang::current_env())
 }
 
 #' Read one CSV file as read.csv() would, without losing text
@@ -259,11 +278,111 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' @keywords internal
 #' @noRd
 .hb_read_csv_file <- function(path, call = rlang::caller_env()) {
-  .hb_check_csv_text(path, call = call)
-  frame <- utils::read.csv(path, colClasses = "character",
-                           check.names = FALSE, fileEncoding = "UTF-8")
+  # A pipe or a FIFO can be read only once, and the check reads it before
+  # read.csv() would; such input is read into a file first. A regular file
+  # is read where it is, so that read.csv()'s own warnings name it.
+  source <- path
+  if (grepl("^/(dev|proc)/", path) || !isTRUE(file.size(path) > 0)) {
+    source <- tempfile("harbour-csv-")
+    on.exit(unlink(source), add = TRUE)
+    if (!isTRUE(file.copy(path, source))) {
+      hb_abort(
+        c("Could not read a CSV file.", "x" = "{.path {path}}"),
+        class = "harbour_error_bad_argument",
+        call = call
+      )
+    }
+  }
+  text <- .hb_check_csv_text(source, shown = path, call = call)
+  frame <- rlang::try_fetch(
+    .hb_read_csv_text(source, bom = text$bom),
+    error = function(cnd) {
+      # read.csv() gives up on a file of blank lines, with a message that
+      # names no file.
+      if (!text$blank) {
+        return(rlang::zap())
+      }
+      hb_abort(
+        c("A CSV file is empty.",
+          "x" = "{.path {path}}",
+          "i" = "A table needs at least a header line naming its columns."),
+        class = "harbour_error_bad_argument",
+        call = call,
+        parent = cnd
+      )
+    }
+  )
   frame[] <- lapply(frame, .hb_convert_csv_column)
   frame
+}
+
+#' Read checked UTF-8 bytes as a CSV
+#'
+#' In a UTF-8 session this is `read.csv(fileEncoding = "UTF-8")`, as it
+#' always was. In any other session that connection would re-encode the
+#' text into the session's encoding and stop at the first character the
+#' encoding lacks, with only a generic warning. The bytes are known to be
+#' UTF-8, so they are read as they are and declared UTF-8 instead, and a
+#' byte-order mark, which `scan()` drops only in a UTF-8 session, is
+#' dropped here.
+#'
+#' @param path Path to a `.csv` file whose bytes are UTF-8.
+#' @param bom Whether its first line starts with a byte-order mark.
+#' @return A data frame of character columns.
+#' @keywords internal
+#' @noRd
+.hb_read_csv_text <- function(path, bom = FALSE) {
+  if (isTRUE(l10n_info()[["UTF-8"]])) {
+    return(utils::read.csv(path, colClasses = "character",
+                           check.names = FALSE, fileEncoding = "UTF-8"))
+  }
+  con <- file(path, open = "rt", encoding = "native.enc")
+  on.exit(close(con), add = TRUE)
+  if (bom) {
+    first <- readLines(con, n = 1L, warn = FALSE)
+    pushBack(sub("^\ufeff", "", first, useBytes = TRUE), con,
+             encoding = "bytes")
+  }
+  utils::read.csv(con, colClasses = "character", check.names = FALSE,
+                  encoding = "UTF-8")
+}
+
+#' Write a data frame as a UTF-8 CSV file
+#'
+#' In a UTF-8 session this is `write.csv(fileEncoding = "UTF-8")`, as it
+#' always was. In any other session `write.csv()` first translates every
+#' string into the session's encoding, writing a character it lacks as
+#' the literal text `<U+00B0>`, so the strings are handed over as their
+#' UTF-8 bytes, which it then writes unchanged.
+#'
+#' @param frame A data frame.
+#' @param file The path to write.
+#' @return `file`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_write_csv_file <- function(frame, file) {
+  if (isTRUE(l10n_info()[["UTF-8"]])) {
+    utils::write.csv(frame, file, row.names = FALSE, fileEncoding = "UTF-8")
+    return(invisible(file))
+  }
+  as_bytes <- function(x) {
+    x <- enc2utf8(x)
+    Encoding(x) <- "unknown"
+    x
+  }
+  frame[] <- lapply(frame, function(col) {
+    if (is.factor(col)) {
+      levels(col) <- as_bytes(levels(col))
+    } else if (is.character(col)) {
+      col <- as_bytes(col)
+    }
+    col
+  })
+  names(frame) <- as_bytes(names(frame))
+  con <- file(file, open = "w", encoding = "native.enc")
+  on.exit(close(con), add = TRUE)
+  utils::write.csv(frame, con, row.names = FALSE)
+  invisible(file)
 }
 
 #' Convert one CSV column as read.csv() would, unless that loses text
@@ -294,11 +413,15 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' letter.
 #'
 #' @param path Path to a `.csv` file.
+#' @param shown The path to name in messages: the file the user gave,
+#'   when `path` is a copy of it.
 #' @param call The frame to blame for any error.
-#' @return `NULL`, invisibly.
+#' @return A list: `bom`, whether the first line starts with a byte-order
+#'   mark, and `blank`, whether every line is blank.
 #' @keywords internal
 #' @noRd
-.hb_check_csv_text <- function(path, call = rlang::caller_env()) {
+.hb_check_csv_text <- function(path, shown = path,
+                               call = rlang::caller_env()) {
   # "native.enc" hands the bytes over unconverted, whatever
   # options(encoding) says, and text mode still unpacks a compressed file
   # the way read.csv() does. Nuls are skipped rather than cutting a line
@@ -312,7 +435,7 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
     line <- bad[[1L]]
     hb_abort(
       c("A CSV file is not UTF-8.",
-        "x" = "{.path {path}} has bytes that are not valid UTF-8 on line
+        "x" = "{.path {shown}} has bytes that are not valid UTF-8 on line
                {line}.",
         "i" = "Re-save it as {.val CSV UTF-8} and read it again."),
       class = "harbour_error_bad_argument",
@@ -323,19 +446,22 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
   # "no lines available in input" that do not say which file. A
   # byte-order mark is not content, and readLines() drops one only in a
   # UTF-8 locale.
+  bom <- FALSE
   if (length(lines) > 0L) {
-    lines[[1L]] <- sub("^\ufeff", "", lines[[1L]], useBytes = TRUE)
+    first <- sub("^\ufeff", "", lines[[1L]], useBytes = TRUE)
+    bom <- !identical(first, lines[[1L]])
+    lines[[1L]] <- first
   }
   if (!any(nzchar(lines))) {
     hb_abort(
       c("A CSV file is empty.",
-        "x" = "{.path {path}}",
+        "x" = "{.path {shown}}",
         "i" = "A table needs at least a header line naming its columns."),
       class = "harbour_error_bad_argument",
       call = call
     )
   }
-  invisible(NULL)
+  list(bom = bom, blank = !any(nzchar(trimws(lines))))
 }
 
 #' Build a new base from imported data frames
@@ -347,14 +473,29 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' @return A `harbour_dtable`.
 #' @keywords internal
 #' @noRd
-.hb_import_base <- function(frames, base_name) {
-  frames <- lapply(frames, function(frame) {
+.hb_import_base <- function(frames, base_name,
+                            call = rlang::caller_env()) {
+  tables <- names(frames)
+  frames <- lapply(seq_along(frames), function(k) {
+    frame <- frames[[k]]
     # The exporters write the _id that hb_read_table() adds. Kept as an
     # ordinary column it collides with the row identifier, and no table of
     # the new base could be read. The other row fields collide with nothing
     # offline and have always imported, so they stay. Columns go one at a
     # time, because subsetting with `[` would rename repeated names.
     for (i in rev(which(names(frame) == "_id"))) {
+      # An export's _id holds row ids; any other is data of the user's
+      # own, such as a database's keys, and its loss is reported.
+      if (!.hb_holds_row_ids(frame[[i]])) {
+        table <- tables[[k]]
+        cli::cli_warn(
+          c("Dropped the {.field _id} column of table {.val {table}}.",
+            "i" = "SeaTable keeps {.field _id} for its row identifier.
+                   Rename the column in the file to keep its values."),
+          class = "harbour_warning_id_column",
+          call = call
+        )
+      }
       frame[[i]] <- NULL
     }
     # A column with no values gives read.csv() and readxl nothing to judge
@@ -367,7 +508,20 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
     }
     frame
   })
+  names(frames) <- tables
   .hb_dtable_from_frames(frames, base_name)
+}
+
+#' Does a column hold SeaTable row ids, and nothing else?
+#'
+#' @param x A column.
+#' @return A single `TRUE` or `FALSE`; `TRUE` for a column with no values.
+#' @keywords internal
+#' @noRd
+.hb_holds_row_ids <- function(x) {
+  values <- as.character(x)
+  values <- values[!is.na(values) & nzchar(values)]
+  all(grepl("^[A-Za-z0-9_-]{22}$", values))
 }
 
 #' Build a base from a named list of data frames

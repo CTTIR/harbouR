@@ -87,6 +87,9 @@ test_that("every other column is typed exactly as read.csv() types it", {
   for (name in names(bytes)) {
     path <- file.path(dir, paste0(name, ".csv"))
     writeBin(bytes[[name]], path)
+    # read.csv(fileEncoding = "UTF-8") reads a byte-order mark only in a
+    # UTF-8 session, so only there is it a reference for one.
+    if (name == "bom" && !isTRUE(l10n_info()[["UTF-8"]])) next
     expect_identical(
       harbouR:::.hb_read_csv_file(path), read_csv_as_before(path),
       label = name
@@ -95,6 +98,9 @@ test_that("every other column is typed exactly as read.csv() types it", {
 })
 
 test_that("the example base's CSV export reads as before but for its Ref", {
+  # Outside a UTF-8 session read.csv(fileEncoding = "UTF-8") cuts the file
+  # off at its first non-ASCII character, so it is a reference only here.
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "the session is not UTF-8")
   dir <- withr::local_tempdir()
   base <- hb_read_dtable(example_dtable())
   files <- suppressMessages(hb_write_csv(base, dir))
@@ -191,6 +197,61 @@ test_that("an empty CSV file is refused, naming it", {
   expect_error(hb_read_csv(bom), class = "harbour_error_bad_argument")
 })
 
+test_that("a UTF-8 file reads whole in a session that is not UTF-8", {
+  # Written before the locale changes, so the bytes are exactly these.
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeBin(c(
+    as.raw(c(0xef, 0xbb, 0xbf)),
+    charToRaw("Name,Temp (\xc2\xb0C)\nM\xc3\xbcller,1\n"),
+    charToRaw("\xe6\x97\xa5\xe6\x9c\xac,2\ngamma,3\n")
+  ), path)
+  withr::local_locale(c(LC_CTYPE = "C"))
+  skip_if(isTRUE(l10n_info()[["UTF-8"]]), "The C locale is UTF-8 here.")
+  data <- hb_read_table(hb_read_csv(c(T = path)), "T")
+  expect_identical(names(data)[1:2], c("Name", "Temp (\u00b0C)"))
+  expect_identical(data$Name, c("M\u00fcller", "\u65e5\u672c", "gamma"))
+})
+
+test_that("hb_write_csv writes UTF-8 in a session that is not UTF-8", {
+  dir <- withr::local_tempdir()
+  base <- hb_dtable(T = data.frame(Name = c("M\u00fcller", "\u65e5\u672c")))
+  withr::local_locale(c(LC_CTYPE = "C"))
+  skip_if(isTRUE(l10n_info()[["UTF-8"]]), "The C locale is UTF-8 here.")
+  path <- hb_write_csv(base, dir)
+  text <- rawToChar(readBin(path, "raw", file.size(path)))
+  Encoding(text) <- "UTF-8"
+  expect_true(grepl("M\u00fcller", text, fixed = TRUE, useBytes = TRUE))
+  expect_true(grepl("\u65e5\u672c", text, fixed = TRUE, useBytes = TRUE))
+  expect_false(grepl("<U+", text, fixed = TRUE, useBytes = TRUE))
+})
+
+test_that("a CSV that may be a pipe is copied before it is read", {
+  # A pipe or a FIFO reports no size and can be read only once, while the
+  # check reads a file before read.csv() does; such input is copied and
+  # the copy read. A regular file is read where it is, so that read.csv()'s
+  # warnings name it.
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("a,b", "1,x", "2,y"), path)
+  copies <- 0L
+  real_copy <- base::file.copy
+  local_mocked_bindings(
+    file.copy = function(...) {
+      copies <<- copies + 1L
+      real_copy(...)
+    },
+    .package = "base"
+  )
+  expect_identical(harbouR:::.hb_read_csv_file(path)$a, c(1L, 2L))
+  expect_identical(copies, 0L)
+  local_mocked_bindings(file.size = function(...) 0, .package = "base")
+  expect_identical(harbouR:::.hb_read_csv_file(path)$a, c(1L, 2L))
+  expect_identical(copies, 1L)
+  # Messages about the copy name the file as it was given.
+  writeBin(as.raw(c(0x41, 0xb0, 0x0a)), path)
+  expect_error(harbouR:::.hb_read_csv_file(path), basename(path),
+               fixed = TRUE, class = "harbour_error_bad_argument")
+})
+
 test_that("a byte-order mark alone is empty in any locale", {
   path <- withr::local_tempfile(fileext = ".csv")
   writeBin(c(as.raw(c(0xef, 0xbb, 0xbf)), charToRaw("\r\n")), path)
@@ -225,7 +286,10 @@ test_that("hb_dtable() itself still makes an all-NA logical a checkbox", {
 test_that("a CSV export reads back into a base whose tables can be read", {
   base <- hb_read_dtable(example_dtable())
   dir <- withr::local_tempdir()
-  again <- hb_read_csv(suppressMessages(hb_write_csv(base, dir)))
+  # The exported _id holds row ids, so it is dropped without a word.
+  again <- expect_no_warning(
+    hb_read_csv(suppressMessages(hb_write_csv(base, dir)))
+  )
   expect_identical(names(again), names(base))
   for (table in names(base)) {
     original <- hb_read_table(base, table)
@@ -242,21 +306,38 @@ test_that("a CSV export reads back into a base whose tables can be read", {
   expect_identical(hb_read_table(again, "Samples")$Ref, c("0001", NA))
 })
 
-test_that("only the exported _id is dropped on import", {
+test_that("only the _id column is dropped on import", {
   # A column a user named like another of SeaTable's row fields collides
   # with nothing offline, and has always been imported as a column.
   dir <- withr::local_tempdir()
   path <- file.path(dir, "T.csv")
   writeLines(c("Name,_ctime,_id", "a,x,r1", "b,y,r2"), path)
-  base <- hb_read_csv(path)
+  expect_warning(base <- hb_read_csv(path),
+                 class = "harbour_warning_id_column")
   expect_identical(hb_list_columns(base, "T")$name, c("Name", "_ctime"))
   expect_identical(hb_read_table(base, "T")[["_ctime"]], c("x", "y"))
+})
+
+test_that("an _id column of the user's own is dropped with a warning", {
+  # A database export keeps its own keys under _id, which SeaTable keeps
+  # for the row identifier; the loss is reported, naming the table.
+  dir <- withr::local_tempdir()
+  path <- file.path(dir, "customers.csv")
+  writeLines(c("_id,name", "507f1f77bcf86cd799439011,alice",
+               "507f191e810c19729de860ea,bob"), path)
+  expect_warning(base <- hb_read_csv(path), "customers",
+                 class = "harbour_warning_id_column")
+  expect_identical(hb_list_columns(base, "customers")$name, "name")
+  # Row ids, as an export holds them, go without a word.
+  writeLines(c("_id,name", "S6zTWoOyQBeUyxsMzhAmWA,alice", ",bob"), path)
+  expect_no_warning(hb_read_csv(path))
 })
 
 test_that("repeated column names in a CSV header are kept as they are", {
   path <- withr::local_tempfile(fileext = ".csv")
   writeLines(c("a,a,b,_id,c,c", "1,2,x,old,,"), path)
-  base <- hb_read_csv(c(T = path))
+  expect_warning(base <- hb_read_csv(c(T = path)),
+                 class = "harbour_warning_id_column")
   columns <- hb_list_columns(base, "T")
   expect_identical(columns$name, c("a", "a", "b", "c", "c"))
   expect_identical(columns$type,
@@ -418,6 +499,8 @@ test_that("hb_write_xlsx refuses table names that differ only in case", {
 })
 
 test_that("only A to Z are folded when comparing sheet names", {
+  # The names hold letters a session that is not UTF-8 cannot represent.
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "the session is not UTF-8")
   skip_if_not_installed("writexl", "2.0.0")
   skip_if_not_installed("readxl")
   frames <- stats::setNames(

@@ -24,8 +24,9 @@ base rather than restoring one.
 }
 \details{
 A column's type follows its cells, judged over every row of the sheet.
-A column with no values at all is text, and the \verb{_id} column that
-\code{\link[=hb_write_xlsx]{hb_write_xlsx()}} writes is dropped.
+A column with no values at all is text. A column named \verb{_id}, such as
+the one \code{\link[=hb_write_xlsx]{hb_write_xlsx()}} writes, is dropped, with a warning when it
+holds anything but SeaTable row ids.
 }
 \examples{
 \dontshow{if (rlang::is_installed(c("writexl", "readxl"))) withAutoprint(\{ # examplesIf}

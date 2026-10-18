@@ -173,7 +173,10 @@ First release.
 
   * Re-importing an export gave a base none of whose tables could be
     read: the exported `_id` became an ordinary column. `hb_read_csv()`
-    and `hb_read_xlsx()` now drop it.
+    and `hb_read_xlsx()` now drop a column of that name, which SeaTable
+    keeps for its row identifier; one that holds anything but SeaTable
+    row ids - a database's keys, say - is dropped with a warning naming
+    its table.
   * `hb_read_csv()` kept `read.csv()`'s type guessing, which ignores
     quoting, so `"0001"` came back as `1` - the auto-number column of an
     export among them - and a 19-digit barcode was rounded. A column
@@ -181,18 +184,23 @@ First release.
     digits, now stays text; every other column is typed as before. The
     help now says that dates arrive as text and that a literal `NA` is
     read as missing.
-  * `hb_read_csv()` refuses a file that is not UTF-8, naming the line; a
-    Windows-1252 file, as Excel's plain "CSV" often is, was cut off at
-    its first accented letter. An empty file is refused, naming it, and
-    an empty column is text rather than a checkbox reading `FALSE` in
-    every row.
+  * `hb_read_csv()` refuses a file whose bytes are not valid UTF-8,
+    naming the line; a Windows-1252 file, as Excel's plain "CSV" often
+    is, was cut off at its first accented letter. In a session that is
+    not UTF-8, a valid UTF-8 file was cut off at the first character the
+    session could not hold, and one with a byte-order mark failed;
+    `hb_write_csv()` there wrote such characters as text like
+    `<U+00B0>`. Both now read and write UTF-8 in any session. An empty
+    file is refused, naming it, and an empty column is text rather than a
+    checkbox reading `FALSE` in every row.
   * `hb_read_xlsx()` judges a column's type by every row of the sheet.
     `readxl` looked at the first 1000, and later values that did not fit
     were lost.
   * A file or sheet named `collaborators` or `base_name` imports as a
     table; the first used to vanish into the base's collaborator list.
-    `hb_write_xlsx()` refuses table names that differ only in case, which
-    Excel cannot hold as separate sheets. The flattening message names
+    `hb_write_xlsx()` refuses table names that differ only in case, or
+    that clash once shortened and cleaned to Excel's rules, which Excel
+    cannot hold as separate sheets. The flattening message names
     every column instead of the first 20, and the help lists every loss
     the exports make.
 
