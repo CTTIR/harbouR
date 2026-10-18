@@ -6,11 +6,16 @@ make_resp <- function(status = 200L, body = NULL) {
             class = "httr2_response")
 }
 
+# A real httr2 response, with the JSON content type SeaTable sends. A
+# hand-built structure without one cannot be parsed by resp_body_json(),
+# which once hid the fact that every parsed error body crashed the error
+# translator.
 make_http_cond <- function(status, body_json = "{}") {
-  resp <- structure(
-    list(status_code = status, headers = list(),
-         body = charToRaw(body_json)),
-    class = "httr2_response")
+  resp <- httr2::response(
+    status_code = status,
+    headers = list(`Content-Type` = "application/json"),
+    body = charToRaw(body_json)
+  )
   structure(list(message = "x", resp = resp),
             class = c(paste0("httr2_http_", status), "httr2_http",
                       "rlang_error", "error", "condition"))

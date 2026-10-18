@@ -78,7 +78,7 @@
     Condition
       Error:
       ! SeaTable request failed (HTTP 401).
-      x SeaTable returned an error.
+      x upstream said no
       i Check that the API token is valid for this base.
 
 ---
@@ -88,7 +88,7 @@
     Condition
       Error:
       ! SeaTable request failed (HTTP 403).
-      x SeaTable returned an error.
+      x upstream said no
       i Check that the token has permission for this endpoint.
 
 ---
@@ -98,7 +98,7 @@
     Condition
       Error:
       ! SeaTable request failed (HTTP 404).
-      x SeaTable returned an error.
+      x upstream said no
       i Verify the path and base UUID.
 
 ---
@@ -108,7 +108,7 @@
     Condition
       Error:
       ! SeaTable request failed (HTTP 429).
-      x SeaTable returned an error.
+      x upstream said no
       i Rate-limited - slow down or batch your requests.
 
 ---
@@ -118,7 +118,7 @@
     Condition
       Error:
       ! SeaTable request failed (HTTP 500).
-      x SeaTable returned an error.
+      x upstream said no
 
 # hb_update_rows() insists on an id column
 

@@ -121,7 +121,17 @@
     httr2::req_timeout(client$timeout %||% 30)
   resp <- .hb_perform_raw(req, call = call)
   body <- .hb_resp_json(resp, call = call)
-  client$.base_token <- body$access_token %||% body$dtable_access_token
+  tok <- body$access_token %||% body$dtable_access_token
+  if (is.null(tok)) {
+    # Without this check the next request would go out as "Bearer " and
+    # fail with a 401 that blames the credentials rather than the reply.
+    hb_abort(
+      "Base-token response had no {.field access_token} field.",
+      class = "harbour_error_auth",
+      call = call
+    )
+  }
+  client$.base_token <- tok
   client$.workspace_id <- body$workspace_id
   client$.base_uuid_seen <- body$dtable_uuid %||% body$base_uuid
   if (is.null(client$base_uuid)) client$base_uuid <- client$.base_uuid_seen
@@ -171,9 +181,9 @@
 
 #' @keywords internal
 #' @noRd
-.hb_perform_raw <- function(req, call = rlang::caller_env()) {
+.hb_perform_raw <- function(req, path = NULL, call = rlang::caller_env()) {
   rlang::try_fetch(
-    httr2::req_perform(req),
+    httr2::req_perform(req, path = path),
     httr2_http = function(cnd) .hb_translate_error(cnd, call = call)
   )
 }
@@ -183,9 +193,8 @@
 .hb_translate_error <- function(e, call = rlang::caller_env()) {
   resp <- e$resp
   status <- if (!is.null(resp)) httr2::resp_status(resp) else NA_integer_
-  body <- tryCatch(httr2::resp_body_json(resp), error = function(cnd) NULL)
-  msg <- body$error_msg %||% body$detail %||% body$msg %||% body$message %||%
-    "SeaTable returned an error."
+  body <- .hb_error_body(resp)
+  msg <- .hb_error_message(body)
   url <- tryCatch(resp$url, error = function(cnd) NULL) %||% NA_character_
   hint <- switch(as.character(status),
     "401" = "Check that the API token is valid for this base.",
@@ -202,9 +211,55 @@
     class = .hb_http_class(status),
     status = status,
     url = url,
-    body = body,
+    # Not `body`: rlang::abort() reserves that name for the message body,
+    # and a parsed JSON list there aborts with an rlang error instead.
+    response_body = body,
     call = call
   )
+}
+
+#' Read an error response's body without trusting its content type
+#'
+#' Some endpoints answer a 400 with a plain-text body - `Column ColA
+#' exists.` - under an `application/json` content type, so
+#' `resp_body_json()` fails and the server's explanation would be lost.
+#'
+#' @param resp An `httr2_response`, or `NULL`.
+#' @return The parsed JSON, the body text when it is not JSON, or `NULL`.
+#' @keywords internal
+#' @noRd
+.hb_error_body <- function(resp) {
+  if (is.null(resp)) {
+    return(NULL)
+  }
+  text <- tryCatch(httr2::resp_body_string(resp), error = function(cnd) NULL)
+  if (is.null(text) || !nzchar(trimws(text))) {
+    return(NULL)
+  }
+  tryCatch(
+    jsonlite::fromJSON(text, simplifyVector = FALSE),
+    error = function(cnd) trimws(text)
+  )
+}
+
+#' Pull the server's explanation out of an error body
+#'
+#' @param body What `.hb_error_body()` returned.
+#' @return A single string.
+#' @keywords internal
+#' @noRd
+.hb_error_message <- function(body) {
+  msg <- if (is.list(body)) {
+    body$error_msg %||% body$error_message %||% body$detail %||%
+      body$msg %||% body$message
+  } else if (!grepl("^\\s*<", body %||% "<")) {
+    # Plain text is shown; an HTML error page from a proxy is not.
+    substr(body, 1L, 300L)
+  }
+  if (is.character(msg) && length(msg) == 1L && nzchar(msg)) {
+    return(msg)
+  }
+  "SeaTable returned an error."
 }
 
 #' @keywords internal
@@ -262,7 +317,9 @@
   )
   req <- httr2::req_method(req, method)
   if (!is.null(body)) {
-    req <- httr2::req_body_json(req, body)
+    # jsonlite writes a missing number as the *string* "NA" unless told
+    # otherwise, so an empty numeric cell would reach SeaTable as text.
+    req <- httr2::req_body_json(req, body, na = "null")
   }
   resp <- .hb_perform(req, client, auth = auth, call = call)
   if (identical(httr2::resp_status(resp), 204L)) {

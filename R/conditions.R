@@ -8,16 +8,21 @@
 #'
 #' \describe{
 #'   \item{`harbour_error_auth`}{Credentials are missing, malformed, or
-#'     were rejected by the server. Fields: none.}
+#'     were rejected by the server. Fields: `status`, `url` and
+#'     `response_body` when the server answered HTTP 401; none when the
+#'     problem was caught before any request.}
 #'   \item{`harbour_error_http`}{The server returned a non-2xx status that
-#'     has no more specific subclass. Fields: `status`, `url`, `body`.}
+#'     has no more specific subclass. Fields: `status`, `url` and
+#'     `response_body` - the parsed JSON, or the text when the server did
+#'     not send JSON.}
 #'   \item{`harbour_error_not_found`}{HTTP 404, or a named table, view or
 #'     column that does not exist in the base. Fields: `status`, `url`,
-#'     `body` for the HTTP case.}
+#'     `response_body` for the HTTP case.}
 #'   \item{`harbour_error_permission`}{HTTP 403. The token is valid but
-#'     is not allowed to do this. Fields: `status`, `url`, `body`.}
+#'     is not allowed to do this. Fields: `status`, `url`,
+#'     `response_body`.}
 #'   \item{`harbour_error_rate_limit`}{HTTP 429. Fields: `status`, `url`,
-#'     `body`.}
+#'     `response_body`.}
 #'   \item{`harbour_error_bad_argument`}{An argument failed validation
 #'     before any request was made. Fields: none.}
 #'   \item{`harbour_error_unsupported`}{The operation is not available -
@@ -45,9 +50,10 @@ NULL
 #' so no error escapes without a class.
 #'
 #' @param message A character vector, formatted by cli.
-#' @param class Character. The specific subclass, without the
-#'   `harbour_error_` prefix already applied - pass the full class name.
+#' @param class Character. The specific subclass, given in full - for
+#'   example `"harbour_error_auth"`. `harbour_error` is appended.
 #' @param ... Named data fields stored on the condition.
+#' @param call The frame the error is reported as coming from.
 #' @param parent An upstream condition to chain, or `NULL`.
 #' @param .envir Environment in which the cli message is interpolated.
 #'   Defaults to the caller's frame, which is where the values referenced

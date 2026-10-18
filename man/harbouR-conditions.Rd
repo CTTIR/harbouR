@@ -13,16 +13,21 @@ rather than matching on message text.
 
 \describe{
 \item{\code{harbour_error_auth}}{Credentials are missing, malformed, or
-were rejected by the server. Fields: none.}
+were rejected by the server. Fields: \code{status}, \code{url} and
+\code{response_body} when the server answered HTTP 401; none when the
+problem was caught before any request.}
 \item{\code{harbour_error_http}}{The server returned a non-2xx status that
-has no more specific subclass. Fields: \code{status}, \code{url}, \code{body}.}
+has no more specific subclass. Fields: \code{status}, \code{url} and
+\code{response_body} - the parsed JSON, or the text when the server did
+not send JSON.}
 \item{\code{harbour_error_not_found}}{HTTP 404, or a named table, view or
 column that does not exist in the base. Fields: \code{status}, \code{url},
-\code{body} for the HTTP case.}
+\code{response_body} for the HTTP case.}
 \item{\code{harbour_error_permission}}{HTTP 403. The token is valid but
-is not allowed to do this. Fields: \code{status}, \code{url}, \code{body}.}
+is not allowed to do this. Fields: \code{status}, \code{url},
+\code{response_body}.}
 \item{\code{harbour_error_rate_limit}}{HTTP 429. Fields: \code{status}, \code{url},
-\code{body}.}
+\code{response_body}.}
 \item{\code{harbour_error_bad_argument}}{An argument failed validation
 before any request was made. Fields: none.}
 \item{\code{harbour_error_unsupported}}{The operation is not available -

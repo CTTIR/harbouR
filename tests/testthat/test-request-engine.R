@@ -217,3 +217,63 @@ test_that(".hb_req constructs a request object with a query", {
                            query = list(table_name = "Samples"))
   expect_s3_class(req, "httr2_request")
 })
+
+test_that("a missing number reaches the wire as null, not the string NA", {
+  # jsonlite writes NA_real_ as "NA" by default, which SeaTable stores as
+  # text in a number column.
+  cl <- mock_client()
+  sent <- NULL
+  testthat::local_mocked_bindings(
+    .hb_perform = function(req, client, auth = "base", call = NULL) {
+      sent <<- req
+      make_resp(204L)
+    },
+    .package = "harbouR"
+  )
+  harbouR:::.hb_request(
+    cl, "/x/", method = "POST",
+    body = list(rows = list(list(n = NA_real_, s = NA_character_)))
+  )
+  wire <- rawToChar(httr2::req_dry_run(sent, quiet = TRUE)$body)
+  expect_identical(wire, '{"rows":[{"n":null,"s":null}]}')
+})
+
+test_that("the server's own explanation reaches the error message", {
+  # SeaTable uses error_msg on some endpoints and error_message on others.
+  cnd <- make_http_cond(400L, '{"error_type": "x", "error_message": "bad table"}')
+  expect_error(harbouR:::.hb_translate_error(cnd), "bad table")
+
+  # A parsed body is kept on the condition. It cannot be called `body`:
+  # rlang::abort() reserves that name, and used to crash here instead.
+  err <- tryCatch(
+    harbouR:::.hb_translate_error(make_http_cond(400L, '{"error_msg": "no"}')),
+    error = function(e) e
+  )
+  expect_s3_class(err, "harbour_error_http")
+  expect_identical(err$response_body, list(error_msg = "no"))
+})
+
+test_that("a plain-text error body is shown; an HTML page is not", {
+  plain <- make_http_cond(400L, "Column ColA exists.")
+  expect_error(harbouR:::.hb_translate_error(plain), "Column ColA exists.")
+
+  html <- make_http_cond(502L, "<html><body>Bad Gateway</body></html>")
+  err <- tryCatch(harbouR:::.hb_translate_error(html), error = function(e) e)
+  expect_false(grepl("<html>", conditionMessage(err), fixed = TRUE))
+  expect_match(conditionMessage(err), "SeaTable returned an error.")
+})
+
+test_that("a base-token reply without a token is an auth error", {
+  cl <- mock_client()
+  cl$.base_token <- NULL
+  testthat::local_mocked_bindings(
+    .hb_perform_raw = function(req, path = NULL, call = NULL) make_resp(200L),
+    .hb_resp_json = function(resp, call = NULL) list(dtable_uuid = "u"),
+    .package = "harbouR"
+  )
+  expect_error(
+    harbouR:::.hb_get_base_token(cl),
+    class = "harbour_error_auth"
+  )
+  expect_null(cl$.base_token)
+})
