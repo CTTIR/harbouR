@@ -58,15 +58,20 @@ str(samples[, c("Name", "Concentration", "Status", "Collected")])
 * `checkbox` becomes `logical`. A box that was never ticked reads as
   `FALSE`, as SeaTable shows it. When you write, harbouR sends the JSON
   `true` or `false` SeaTable needs: a number is ticked unless it is 0,
-  the strings `"TRUE"` and `"FALSE"` mean what they say, and any other
-  non-empty string is sent as empty, with a warning.
+  and a string is read as `as.logical()` reads it, so `"TRUE"`,
+  `"true"` and `"T"` tick the box and `"FALSE"`, `"false"` and `"F"`
+  clear it. Any other non-empty string, `NA` and `NaN` are sent as
+  empty, the string with a warning.
 * `date` always becomes `POSIXct`, in UTC. In a date-only column - one
   whose format has no time - the value is midnight UTC on the date
   SeaTable shows, whatever the server's time zone, so `as.Date()` gives
   that calendar date. A date-time column holds an instant: a server
   sends it with its UTC offset and harbouR converts it to UTC, while a
   `.dtable` stores it without one and harbouR reads it as UTC. A column
-  that reports no format is read as a date-time.
+  that reports no format is read as a date-time. Written to a date-only
+  column, a `Date` is sent as itself and a date-time as the date it
+  shows in its own time zone, except one at exactly midnight UTC, which
+  keeps its UTC date, so a cell read and written back keeps its day.
 
 ### List-columns
 

@@ -40,6 +40,11 @@ with it, so \code{\link[=as.Date]{as.Date()}} gives that date. A date-time read 
 is an instant and is converted to UTC; a date-time stored without an
 offset, as in a \code{.dtable} file, is read as UTC. A column that reports
 no format is read as a date-time.
+
+Written to a date-only column, a \code{Date} is sent as itself and a
+date-time as the date it shows in its own time zone, except one at
+exactly midnight UTC, which keeps its UTC date: a cell read and written
+back keeps its day. A date-time column is sent the instant, in UTC.
 }
 \examples{
 hb_column_types()

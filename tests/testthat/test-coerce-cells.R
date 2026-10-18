@@ -585,3 +585,41 @@ test_that("a date-only cell read from the API is written back unchanged", {
   )
   expect_identical(rows[[1L]]$Due, "2030-06-20")
 })
+
+test_that("a date-time in a date-only column is written as the day it shows", {
+  # Built as local midnight east of UTC, the instant falls on the day
+  # before in UTC; the value still shows, and means, its own day.
+  column <- date_column("YYYY-MM-DD")
+  written <- function(value) {
+    rows <- harbouR:::.hb_tibble_to_rows(
+      tibble::tibble(Due = value), list(column)
+    )
+    rows[[1L]]$Due
+  }
+  expect_identical(
+    written(as.POSIXct("2030-06-20", tz = "Europe/Berlin")), "2030-06-20"
+  )
+  expect_identical(
+    written(as.POSIXct("2030-06-20 22:00", tz = "America/New_York")),
+    "2030-06-20"
+  )
+  expect_identical(
+    written(as.POSIXlt("2030-06-20 00:30", tz = "Pacific/Auckland")),
+    "2030-06-20"
+  )
+  # A value harbouR read keeps its day after it is moved to another zone.
+  read <- read_column(list("2030-06-20T00:00:00+02:00"), column)
+  attr(read, "tzone") <- "America/New_York"
+  expect_identical(written(read), "2030-06-20")
+})
+
+test_that("a POSIXlt in a date-time column is sent as its instant", {
+  local <- as.POSIXlt("2030-06-20 22:00", tz = "America/New_York")
+  expect_identical(
+    harbouR:::.hb_serialise_cell(local, "date"), "2030-06-21T02:00:00Z"
+  )
+  expect_identical(
+    harbouR:::.hb_serialise_cell(as.Date("2030-06-20"), "date"),
+    "2030-06-20T00:00:00Z"
+  )
+})

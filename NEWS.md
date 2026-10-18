@@ -26,9 +26,11 @@ First release.
   `hb_get_row()` and `hb_query()` returned the evening before. A `date`
   column whose format has no time now reads as midnight UTC on the date
   SeaTable shows, and is written as `YYYY-MM-DD`, so reading a cell and
-  writing it back keeps its day on either side of UTC. Date-time cells,
-  dates stored without an offset (as in a `.dtable`) and columns that
-  report no format read as before.
+  writing it back keeps its day on either side of UTC. A date-time
+  written to such a column is sent as the date it shows in its own time
+  zone, except one at exactly midnight UTC, which keeps its UTC date.
+  Date-time cells, dates stored without an offset (as in a `.dtable`)
+  and columns that report no format read as before.
 
 * Security:
 
@@ -111,6 +113,8 @@ First release.
   * `hb_update_column()` with only `column_data` named the type from the
     cached schema, so a column whose type had changed since was converted
     back. It now asks the server.
+  * A `POSIXlt` written to a date-time column was sent as its wall-clock
+    time labelled as UTC; it is now sent as the instant it stands for.
 
 * Files:
 

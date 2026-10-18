@@ -19,6 +19,11 @@
 #' offset, as in a `.dtable` file, is read as UTC. A column that reports
 #' no format is read as a date-time.
 #'
+#' Written to a date-only column, a `Date` is sent as itself and a
+#' date-time as the date it shows in its own time zone, except one at
+#' exactly midnight UTC, which keeps its UTC date: a cell read and written
+#' back keeps its day. A date-time column is sent the instant, in UTC.
+#'
 #' @return A tibble with one row per type and columns:
 #'   \describe{
 #'     \item{`seatable`}{chr. The type name as SeaTable reports it, or one
@@ -583,10 +588,9 @@ hb_column_types <- function() {
     }
     # A date-only cell is sent as the calendar date, the form SeaTable
     # documents for it. With a time and a zone attached, a server that
-    # converts the instant to its own zone would store the day before on
-    # any server west of UTC. The date is the one harbouR reads back.
+    # converts the instant to its own zone could store another day.
     if (names_[[j]] %in% date_only && inherits(values, c("Date", "POSIXt"))) {
-      values <- format(values, "%Y-%m-%d", tz = "UTC")
+      values <- .hb_calendar_date(values)
     }
     values
   })
@@ -620,6 +624,27 @@ hb_column_types <- function() {
   state$checkbox <- intersect(names_, state$checkbox)
   .hb_warn_unsendable(state, call = call)
   rows
+}
+
+#' The calendar date a date-only cell is written as
+#'
+#' A `Date` is its own date. A date-time is the date it shows in its own
+#' time zone, so a value built as local midnight keeps its day. One at
+#' exactly midnight UTC - how harbouR reads a date-only cell - keeps its
+#' UTC date instead, even after it has been moved to another zone.
+#'
+#' @param values A `Date` or `POSIXt` vector.
+#' @return A character vector of `YYYY-MM-DD` dates, `NA` where `values`
+#'   is missing.
+#' @keywords internal
+#' @noRd
+.hb_calendar_date <- function(values) {
+  out <- format(values, "%Y-%m-%d")
+  if (inherits(values, "POSIXct")) {
+    midnight <- !is.na(values) & unclass(values) %% 86400 == 0
+    out[midnight] <- format(values[midnight], "%Y-%m-%d", tz = "UTC")
+  }
+  out
 }
 
 #' Warn, once per write, about cells that could not be sent as they were
@@ -782,7 +807,9 @@ hb_column_types <- function() {
 #' @noRd
 .hb_serialise_cell <- function(value, type, report = .hb_report_cell) {
   if (inherits(value, c("Date", "POSIXt"))) {
-    return(format(value, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
+    # Through POSIXct: format() of a POSIXlt ignores `tz`, and would label
+    # its own wall-clock time as UTC.
+    return(format(as.POSIXct(value), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
   }
   # A difftime that arrives whole - a list-column cell, say - still has
   # its units.
