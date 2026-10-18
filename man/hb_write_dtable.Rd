@@ -16,7 +16,8 @@ hb_write_dtable(x, path, ..., assets = TRUE, overwrite = TRUE)
 \item{assets}{Whether to repack the extracted asset tree, if there is
 one. Default \code{TRUE}.}
 
-\item{overwrite}{Refuse to clobber an existing file unless \code{TRUE}.}
+\item{overwrite}{Whether to replace an existing file at \code{path}. Default
+\code{TRUE}; set \code{FALSE} to refuse.}
 }
 \value{
 \code{x}, invisibly.

@@ -194,10 +194,14 @@ summary.harbour_dtable <- function(object, ...) {
     return(values)
   }
   translate <- function(x) {
-    hit <- unname(lookup[as.character(x)])
+    x <- as.character(x)
+    hit <- unname(lookup[x])
     # An id with no matching option is left as it is rather than becoming
-    # NA: better to show the user something than to lose the value.
-    ifelse(is.na(hit), as.character(x), hit)
+    # NA: better to show the user something than to lose the value. Not
+    # ifelse(), which turns an empty cell's character(0) into logical(0).
+    miss <- is.na(hit)
+    hit[miss] <- x[miss]
+    hit
   }
   if (is.list(values)) {
     return(lapply(values, translate))

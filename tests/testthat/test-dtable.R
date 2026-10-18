@@ -154,6 +154,53 @@ test_that("hb_dtable infers a single-select from a factor", {
   expect_length(columns$data[[1L]]$options, 2L)
 })
 
+test_that("hb_dtable stores select cells as option ids, as SeaTable does", {
+  # The reader translates ids back to names and leaves anything it does
+  # not recognise alone, so writing names round-tripped inside harbouR
+  # while SeaTable, which looks the id up, showed every cell empty.
+  data <- tibble::tibble(
+    g = factor(c("x", "y", "x")),
+    tags = list(c("a", "b"), character(), "b")
+  )
+  base <- hb_dtable(T1 = data)
+  tbl <- base$content$tables[[1L]]
+  ids <- function(column) {
+    stats::setNames(
+      vapply(column$data$options, function(o) o$id, character(1)),
+      vapply(column$data$options, function(o) o$name, character(1))
+    )
+  }
+  single <- ids(tbl$columns[[1L]])
+  multi <- ids(tbl$columns[[2L]])
+  expect_identical(tbl$columns[[2L]]$type, "multiple-select")
+  expect_named(multi, c("a", "b"))
+  key1 <- tbl$columns[[1L]]$key
+  key2 <- tbl$columns[[2L]]$key
+  expect_identical(tbl$rows[[2L]][[key1]], single[["y"]])
+  expect_identical(tbl$rows[[1L]][[key2]], as.list(unname(multi)))
+
+  out <- withr::local_tempfile(fileext = ".dtable")
+  hb_write_dtable(base, out)
+  back <- hb_read_table(hb_read_dtable(out), "T1")
+  expect_identical(back$g, c("x", "y", "x"))
+  expect_identical(back$tags, list(c("a", "b"), character(), "b"))
+})
+
+test_that("hb_dtable flattens list-columns of objects to text", {
+  # File and location cells from a live base point at assets a new base
+  # does not have; as a multiple-select they would become nonsense options.
+  data <- tibble::tibble(
+    files = list(list(list(name = "a.pdf", url = "u")), list()),
+    where = list(list(lat = 1, lng = 2), list())
+  )
+  base <- hb_dtable(T1 = data)
+  types <- hb_list_columns(base, "T1")$type
+  expect_identical(types, c("text", "text"))
+  back <- hb_read_table(base, "T1")
+  expect_identical(back$files, c("a.pdf", NA))
+  expect_identical(back$where, c("1, 2", NA))
+})
+
 test_that("hb_validate_dtable reports a clean base as clean", {
   problems <- hb_validate_dtable(hb_read_dtable(fixture()))
   expect_named(problems, c("location", "problem", "severity"))
@@ -484,4 +531,12 @@ test_that("CSV filename collisions fail before writing any files", {
                  class = "harbour_error_bad_argument")
     expect_false(dir.exists(dest))
   }
+})
+
+test_that("an empty multiple-select cell read from a file is character(0)", {
+  # ifelse() on a zero-length id vector returned logical(0), so a file read
+  # broke the promise that empty and populated cells agree in type.
+  base <- hb_dtable(T1 = tibble::tibble(tags = list("a", character())))
+  tags <- hb_read_table(base, "T1")$tags
+  expect_identical(tags[[2L]], character())
 })

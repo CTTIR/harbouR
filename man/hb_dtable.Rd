@@ -23,8 +23,11 @@ be written out as a SeaTable base and imported.
 \details{
 Column types are inferred: \code{character} becomes \code{text}, \code{numeric}
 \code{number}, \code{logical} \code{checkbox}, \code{Date} and \code{POSIXct} \code{date}, \code{factor}
-\code{single-select} with its levels as options, and list-columns
-\code{multiple-select}.
+\code{single-select} with its levels as options, and a list-column of
+character vectors \code{multiple-select} with the values it uses as options.
+A list-column holding objects - file, image or location cells read from
+a live base - is flattened to \code{text}: a new base has none of the assets
+those cells point at.
 }
 \examples{
 base <- hb_dtable(

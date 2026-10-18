@@ -90,7 +90,8 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #' @param ... These dots are for future extensions and must be empty.
 #' @param assets Whether to repack the extracted asset tree, if there is
 #'   one. Default `TRUE`.
-#' @param overwrite Refuse to clobber an existing file unless `TRUE`.
+#' @param overwrite Whether to replace an existing file at `path`. Default
+#'   `TRUE`; set `FALSE` to refuse.
 #'
 #' @return `x`, invisibly.
 #'
@@ -169,8 +170,11 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
 #'
 #' Column types are inferred: `character` becomes `text`, `numeric`
 #' `number`, `logical` `checkbox`, `Date` and `POSIXct` `date`, `factor`
-#' `single-select` with its levels as options, and list-columns
-#' `multiple-select`.
+#' `single-select` with its levels as options, and a list-column of
+#' character vectors `multiple-select` with the values it uses as options.
+#' A list-column holding objects - file, image or location cells read from
+#' a live base - is flattened to `text`: a new base has none of the assets
+#' those cells point at.
 #'
 #' @param ... Named data frames, one per table.
 #' @param base_name Name recorded for the base.
@@ -444,13 +448,15 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 .hb_dtable_read_entry <- function(path, entry) {
   con <- unz(path, entry, open = "rb")
   on.exit(close(con), add = TRUE)
-  out <- raw()
+  # Growing one raw vector chunk by chunk copies it every time; collecting
+  # the chunks and joining them once keeps a large base linear.
+  chunks <- list()
   repeat {
     chunk <- readBin(con, "raw", n = 1048576L)
     if (length(chunk) == 0L) break
-    out <- c(out, chunk)
+    chunks[[length(chunks) + 1L]] <- chunk
   }
-  out
+  unlist(chunks, use.names = FALSE) %||% raw()
 }
 
 #' @keywords internal
@@ -477,6 +483,11 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @keywords internal
 #' @noRd
 .hb_build_table <- function(name, data, id) {
+  for (i in seq_along(data)) {
+    if (.hb_holds_objects(data[[i]])) {
+      data[[i]] <- .hb_flatten_column(data[[i]])
+    }
+  }
   keys <- character()
   columns <- vector("list", ncol(data))
   for (i in seq_along(data)) {
@@ -484,12 +495,24 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     keys <- c(keys, key)
     columns[[i]] <- .hb_build_column(names(data)[[i]], data[[i]], key)
   }
+  # On disk a select cell holds the option's id, not its name.
+  option_ids <- lapply(columns, function(column) {
+    options <- column$data$options
+    if (is.null(options)) {
+      return(NULL)
+    }
+    stats::setNames(
+      .hb_chr_field(options, "id"), .hb_chr_field(options, "name")
+    )
+  })
   rows <- vector("list", nrow(data))
   stamp <- .hb_dtable_timestamp()
   for (r in seq_len(nrow(data))) {
     row <- list(`_id` = .hb_new_row_id(), `_ctime` = stamp, `_mtime` = stamp)
     for (i in seq_along(data)) {
-      value <- .hb_cell_out(data[[i]][[r]], columns[[i]]$type)
+      value <- .hb_cell_out(
+        data[[i]][[r]], columns[[i]]$type, option_ids[[i]]
+      )
       # An empty cell is absent from the row entirely, which is what
       # SeaTable itself writes.
       if (!is.null(value)) {
@@ -551,9 +574,11 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   data <- NULL
   if (type == "single-select") {
     levels <- levels(values) %||% unique(stats::na.omit(as.character(values)))
-    data <- list(options = lapply(levels, function(level) {
-      list(id = .hb_new_short_id(), name = level, color = "#eaa700")
-    }))
+    data <- list(options = .hb_select_options(levels))
+  }
+  if (type == "multiple-select") {
+    used <- as.character(unlist(values, use.names = FALSE))
+    data <- list(options = .hb_select_options(unique(used[!is.na(used)])))
   }
   if (type == "date") {
     data <- list(format = "YYYY-MM-DD HH:mm")
@@ -571,6 +596,34 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     permitted_users = .hb_empty_array(),
     permitted_group = .hb_empty_array()
   )
+}
+
+#' Build the options of a select column
+#'
+#' @param labels The option names, in order.
+#' @return A list of option objects with ids unique within the column.
+#' @keywords internal
+#' @noRd
+.hb_select_options <- function(labels) {
+  ids <- character()
+  options <- vector("list", length(labels))
+  for (i in seq_along(labels)) {
+    id <- .hb_new_short_id(ids)
+    ids <- c(ids, id)
+    options[[i]] <- list(id = id, name = labels[[i]], color = "#eaa700")
+  }
+  options
+}
+
+#' Does a list-column hold objects rather than vectors of scalars?
+#'
+#' @param values A column.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_holds_objects <- function(values) {
+  is.list(values) && !is.data.frame(values) &&
+    any(vapply(values, is.list, logical(1)))
 }
 
 #' @keywords internal
@@ -598,11 +651,12 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #'
 #' @param value A single cell value.
 #' @param type The SeaTable column type.
+#' @param option_ids For a select column, option ids named by option name.
 #' @return The JSON-ready value, or `NULL` when the cell is empty - in
 #'   which case the key is omitted from the row, as SeaTable does.
 #' @keywords internal
 #' @noRd
-.hb_cell_out <- function(value, type) {
+.hb_cell_out <- function(value, type, option_ids = NULL) {
   if (is.null(value) || length(value) == 0L) {
     return(NULL)
   }
@@ -615,8 +669,12 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   if (type == "date") {
     return(format(as.POSIXct(value), "%Y-%m-%dT%H:%M:%S", tz = "UTC"))
   }
+  if (type == "single-select") {
+    return(.hb_option_id(as.character(value), option_ids))
+  }
   if (type == "multiple-select") {
-    return(.hb_as_json_array(unlist(value, use.names = FALSE)))
+    labels <- as.character(unlist(value, use.names = FALSE))
+    return(.hb_as_json_array(.hb_option_id(labels[!is.na(labels)], option_ids)))
   }
   if (type == "checkbox") {
     return(isTRUE(value))
@@ -637,6 +695,24 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     return(out)
   }
   as.character(value)
+}
+
+#' Translate option names to the ids a `.dtable` stores
+#'
+#' @param labels Option names.
+#' @param option_ids Option ids named by option name, or `NULL`.
+#' @return A character vector as long as `labels`; a name with no option is
+#'   kept as it is.
+#' @keywords internal
+#' @noRd
+.hb_option_id <- function(labels, option_ids) {
+  if (is.null(option_ids)) {
+    return(labels)
+  }
+  hit <- unname(option_ids[labels])
+  miss <- is.na(hit)
+  hit[miss] <- labels[miss]
+  hit
 }
 
 #' Make a path absolute without requiring it to exist
