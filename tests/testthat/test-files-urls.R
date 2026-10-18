@@ -267,6 +267,16 @@ test_that("hb_delete_asset refuses a URL that names no file", {
       hb_delete_asset(cl, "/files/2026-07/"),
       class = "harbour_error_bad_argument"
     )
+    # Cut short without its slash, or with a `.` or `..` the server would
+    # resolve to a folder.
+    for (url in c("/workspace/42/asset/demo-uuid",
+                  "/workspace/42/asset/demo-uuid/.",
+                  "/workspace/42/asset/demo-uuid/files/..",
+                  "/workspace/42/asset/demo-uuid/files/%2E%2E",
+                  "/files/../x.pdf")) {
+      expect_error(hb_delete_asset(cl, url),
+                   class = "harbour_error_bad_argument", info = url)
+    }
   })
   expect_length(rec$calls, 0L)
 })

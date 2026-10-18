@@ -24,12 +24,15 @@ password is HTTP 400, an unknown API token HTTP 403 - and such an
 error carries \code{harbour_error_http} or \code{harbour_error_permission}
 as well.}
 \item{\code{harbour_error_http}}{The server returned a non-2xx status that
-has no more specific subclass, or could not be reached (status
-\code{NA}). Fields: \code{status}, \code{url} and \code{response_body} - the parsed
-JSON, or the text when the server did not send JSON. A server that
-could not be reached - a refused connection, a DNS or TLS failure,
-a timeout - also carries httr2's classes \code{httr2_failure} and
-\code{httr2_error}, and has no \code{response_body}.}
+has no more specific subclass, or the request got no complete
+answer (status \code{NA}). Fields: \code{status}, \code{url} and \code{response_body} -
+the parsed JSON, or the text when the server did not send JSON. A
+request that got no answer - a refused connection, a DNS or TLS
+failure, a timeout, a dropped connection - also carries httr2's
+classes \code{httr2_failure} and \code{httr2_error}, and has no
+\code{response_body}. After a timeout or a dropped connection the server
+may already have applied a write, so a status of \code{NA} alone does
+not make sending the write again safe.}
 \item{\code{harbour_error_not_found}}{HTTP 404, or a named table, view or
 column that does not exist in the base. Fields: \code{status}, \code{url},
 \code{response_body} for the HTTP case.}

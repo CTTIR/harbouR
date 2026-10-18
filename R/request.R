@@ -54,8 +54,25 @@
     },
     base = {
       tok <- client$.base_token
-      if (is.null(tok) || .hb_base_token_lapsing(client)) {
+      if (is.null(tok)) {
         tok <- .hb_get_base_token(client, call = call)
+      } else if (.hb_base_token_lapsing(client)) {
+        # Renewed early, so the cached token still works for a few minutes:
+        # if the exchange fails for a moment - a server restarting, a rate
+        # limit - the call goes ahead with it rather than failing. Refused
+        # credentials, or a token already past its expiry, still fail.
+        keep <- function(cnd) {
+          expired <- .hb_base_token_lapsing(client, margin = 0)
+          if (inherits(cnd, "harbour_error_auth") || expired) {
+            return(rlang::zap())
+          }
+          tok
+        }
+        tok <- rlang::try_fetch(
+          .hb_get_base_token(client, call = call),
+          harbour_error_http = keep,
+          harbour_error_rate_limit = keep
+        )
       }
       # The gateway expects Bearer for base tokens. `Token` is still right
       # for the web API's account and API tokens, handled above.
@@ -148,7 +165,12 @@
     .hb_perform_raw(req, call = call),
     harbour_error = function(cnd) {
       # A wrong password is a 400 here, with the reason in
-      # `non_field_errors`.
+      # `non_field_errors`. A 400 that is not JSON comes from a proxy in
+      # front of the server - plain HTTP sent to an HTTPS port, say - and
+      # says nothing about the credentials.
+      if (identical(cnd$status, 400L) && !is.list(cnd$response_body)) {
+        return(rlang::zap())
+      }
       .hb_rejected_credentials(
         cnd, c(400L, 401L, 403L),
         "SeaTable rejected the username and password (HTTP {status}).",
@@ -311,13 +333,16 @@
   # two path segments. .hb_base_path() has already escaped every segment.
   # The method is set here, with the retry policy chosen for it, so the two
   # cannot disagree.
+  # Worked out once: req_headers() evaluates its arguments more than once,
+  # which would fetch or renew a token twice.
+  authorization <- .hb_auth_header(client, auth, call = call)
   req <- httr2::request(paste0(base, path)) |>
     httr2::req_method(method) |>
     httr2::req_user_agent(.hb_user_agent()) |>
     httr2::req_headers(
       # NULL drops the header, which is what `auth = "none"` wants: some
       # endpoints (ping, server-info) reject a token they did not expect.
-      Authorization = .hb_auth_header(client, auth, call = call),
+      Authorization = authorization,
       Accept = "application/json"
     ) |>
     httr2::req_timeout(client$timeout %||% 30) |>
@@ -396,10 +421,32 @@
   # holds the password in clear text. For that one, chain only the
   # transport error underneath, which says why without the request.
   login <- grepl("/api2/auth-token/", url, fixed = TRUE)
-  hb_abort(
+  cause <- cnd$parent
+  # Only a failure before anything was sent means the server was never
+  # reached. A timeout, a dropped connection or an empty reply can come
+  # after the server received the request, and applied it.
+  unreached <- inherits(cause, c(
+    "curl_error_couldnt_resolve_host", "curl_error_couldnt_resolve_proxy",
+    "curl_error_couldnt_connect", "curl_error_ssl_connect_error",
+    "curl_error_peer_failed_verification"
+  ))
+  method <- toupper(req$method %||% if (is.null(req$body)) "GET" else "POST")
+  message <- if (unreached) {
     c("Could not reach the SeaTable server at {.url {server}}.",
-      "i" = "Check the server URL and your network connection."
-    ),
+      "i" = "Check the server URL and your network connection.")
+  } else {
+    c("The request to the SeaTable server at {.url {server}} did not
+       complete.",
+      if (inherits(cause, "curl_error_operation_timedout")) {
+        c("i" = "It took longer than the client's {.arg timeout} allows.")
+      },
+      if (!method %in% c("GET", "HEAD")) {
+        c("!" = "The server may have applied this change; check before
+                 sending it again.")
+      })
+  }
+  hb_abort(
+    message,
     class = c("harbour_error_http", "httr2_failure", "httr2_error"),
     status = NA_integer_,
     url = url,
@@ -524,10 +571,8 @@
   # .hb_perform_raw() reports whatever the second answer is.
   resend <- function() {
     .hb_refresh_base_token(client, call = call)
-    req2 <- httr2::req_headers(
-      req,
-      Authorization = .hb_auth_header(client, "base", call = call)
-    )
+    authorization <- .hb_auth_header(client, "base", call = call)
+    req2 <- httr2::req_headers(req, Authorization = authorization)
     .hb_perform_raw(req2, call = call, client = client)
   }
   rlang::try_fetch(

@@ -89,8 +89,12 @@ hb_read_table.harbour_client <- function(x,
     # A cursor that does not advance hands back the same page for ever.
     # Stop at the first repeat rather than collect duplicates up to the cap,
     # or return them as rows when n_max ends the read first.
+    # A last page that n_max shortens repeats only the start of the one
+    # before it, so the new page is compared with that start.
     ids <- .hb_chr_field(chunk, "_id")
-    if (length(chunk) == want && !anyNA(ids) && identical(ids, previous)) {
+    repeated <- length(previous) >= length(ids) &&
+      identical(ids, previous[seq_along(ids)])
+    if (length(chunk) == want && !anyNA(ids) && repeated) {
       hb_abort(
         c("The server returned the same {length(ids)} rows for two pages
            in a row.",

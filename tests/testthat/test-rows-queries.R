@@ -465,6 +465,22 @@ test_that("a server that repeats a page is stopped at the repeat", {
     ),
     class = "harbour_error_http"
   )
+
+  # A server that honours limit but ignores start, on a read that n_max
+  # ends part-way through a page: the short last page repeats the start
+  # of the one before it.
+  start_ignored <- function(path, method, query, body) {
+    list(rows = lapply(seq_len(query$limit), function(i) {
+      list(`_id` = paste0("r", i))
+    }))
+  }
+  expect_error(
+    with_mocked_request(
+      hb_read_table(cl, "T", page_size = 10L, n_max = 15),
+      response = start_ignored
+    ),
+    class = "harbour_error_http"
+  )
 })
 
 # --- hb_get_row() -----------------------------------------------------------

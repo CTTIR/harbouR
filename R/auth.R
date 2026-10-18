@@ -27,15 +27,23 @@ hb_ping <- function(client, ...) {
     error = function(cnd) {
       # A server that did not answer has already been reported as one by
       # the request engine; chain httr2's own condition beneath that, so
-      # the cause is not told twice.
-      if (inherits(cnd, "harbour_error") && inherits(cnd, "httr2_failure")) {
+      # the cause is not told twice. The error keeps that one's status,
+      # URL and classes, as every other verb's does.
+      transport <- inherits(cnd, "harbour_error") &&
+        inherits(cnd, "httr2_failure")
+      status <- cnd$status %||% NA_integer_
+      url <- cnd$url %||% NA_character_
+      if (transport) {
         cnd <- cnd$parent %||% cnd
       }
       hb_abort(
         c("Could not reach {.url {client$server}}.",
           "i" = "Check the server URL and your network connection."
         ),
-        class = "harbour_error_http",
+        class = c("harbour_error_http",
+                  if (transport) c("httr2_failure", "httr2_error")),
+        status = status,
+        url = url,
         parent = cnd
       )
     }

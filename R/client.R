@@ -96,20 +96,26 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
     .check_string(username)
     .check_string(password, secret = TRUE)
     # Only an account client names its base by workspace and name. An
-    # API-token client ignores both, so they are not checked for it. A
-    # factor reached the URL as its label, so it is taken as one.
-    if (is.factor(workspace_id)) workspace_id <- as.character(workspace_id)
-    if (is.factor(base_name)) base_name <- as.character(base_name)
+    # API-token client ignores both, so they are not checked for it. Any
+    # value that reached the URL as its text has always worked, so it is
+    # taken as that text rather than refused.
+    workspace_id <- .hb_unwrap_value(workspace_id)
+    base_name <- .hb_unwrap_value(base_name)
     .check_workspace_id(workspace_id)
-    # A base whose name is a number has always been reachable by passing
-    # that number, so it is taken as the digits rather than refused.
+    # A base whose name is a number is reachable by passing that number: a
+    # whole one as its digits, any other as as.character() writes it.
     number <- is.numeric(base_name) && length(base_name) == 1L
     if (number && is.finite(base_name)) {
-      base_name <- .hb_format_id(base_name)
+      base_name <- if (base_name == round(base_name)) {
+        .hb_format_id(base_name)
+      } else {
+        as.character(base_name)
+      }
     }
     .check_string(base_name, allow_null = TRUE)
   }
-  .check_positive_number(timeout, allow_null = TRUE)
+  # httr2 refuses a timeout of a millisecond or less, at the first request.
+  .check_positive_number(timeout, allow_null = TRUE, min = 0.001)
 
   if (has_acct && (is.null(workspace_id) || is.null(base_name))) {
     cli::cli_warn(c(

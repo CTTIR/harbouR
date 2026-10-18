@@ -107,21 +107,47 @@
 .check_positive_number <- function(x,
                                    arg = rlang::caller_arg(x),
                                    allow_null = FALSE,
+                                   min = 0,
                                    call = rlang::caller_env()) {
   if (allow_null && is.null(x)) {
     return(invisible(NULL))
   }
   # Inf passes: as a timeout it has always been handed on to curl as it is.
-  if (!is.numeric(x) || length(x) != 1L || is.na(x) || x <= 0) {
+  ok <- is.numeric(x) && length(x) == 1L && !is.na(x) && x > 0 && x >= min
+  if (!ok) {
+    what <- if (min > 0) {
+      "{.arg {arg}} must be a single number of at least {min}."
+    } else {
+      "{.arg {arg}} must be a single number greater than 0."
+    }
     hb_abort(
-      c("{.arg {arg}} must be a single number greater than 0.",
-        "x" = "You supplied {.val {x}}."
-      ),
+      c(what, "x" = "You supplied {.val {x}}."),
       call = call,
       class = "harbour_error_bad_argument"
     )
   }
   invisible(NULL)
+}
+
+#' Take a value out of what usually wraps it
+#'
+#' A one-element list or a one-cell data frame - what a config reader or
+#' single-bracket indexing gives - holds the value itself, and a factor
+#' or a date reaches a URL as its text. Each reached the URL as that text,
+#' so it is taken as it.
+#'
+#' @param x Any value.
+#' @return `x`, unwrapped where it was wrapped.
+#' @keywords internal
+#' @noRd
+.hb_unwrap_value <- function(x) {
+  if (is.list(x) && length(x) == 1L && length(x[[1L]]) == 1L) {
+    x <- x[[1L]]
+  }
+  if (is.factor(x) || inherits(x, "Date")) {
+    x <- as.character(x)
+  }
+  x
 }
 
 #' @keywords internal

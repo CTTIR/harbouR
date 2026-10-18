@@ -472,11 +472,16 @@ hb_delete_asset <- function(client, url, ...) {
   path <- .hb_asset_path(url)
   # The endpoint deletes one attachment. The server itself, or an asset
   # URL cut short, reduces to the asset root or a folder, and what the
-  # server would delete for that is nothing anyone asked for.
-  if (endsWith(path, "/")) {
+  # server would delete for that is nothing anyone asked for; so does a
+  # path with a `.` or `..` in it, once the server resolves it.
+  segments <- strsplit(path, "/", fixed = TRUE)[[1L]]
+  root <- grepl(
+    "/workspace/[^/]+/asset(-preview)?/[^/]+$", sub("[?#].*$", "", url)
+  )
+  if (endsWith(path, "/") || root || any(segments %in% c(".", ".."))) {
     hb_abort(
       c("{.arg url} names no file.",
-        "x" = "It reduces to the folder {.path {path}} below the asset root.",
+        "x" = "It reduces to {.path {path}} below the asset root.",
         "i" = "Pass the URL or path of the file to delete."
       ),
       class = "harbour_error_bad_argument"

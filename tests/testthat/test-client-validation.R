@@ -142,6 +142,34 @@ test_that("a factor workspace id or base name is taken as its label", {
   )
 })
 
+test_that("a wrapped workspace id or base name is taken as its value", {
+  # A config reader or single-bracket indexing gives a one-element list or
+  # a one-cell data frame, and a date reached the URL as its text.
+  account <- function(workspace_id, base_name) {
+    hb_client(
+      server = "https://x.example.org", username = "u", password = "p",
+      workspace_id = workspace_id, base_name = base_name
+    )
+  }
+  cl <- account(list(7), list("B"))
+  expect_identical(cl$workspace_id, 7)
+  expect_identical(cl$base_name, "B")
+  cl <- account(data.frame(id = 7L), data.frame(name = "B"))
+  expect_identical(cl$workspace_id, 7L)
+  expect_identical(cl$base_name, "B")
+  expect_identical(account(7, as.Date("2024-01-02"))$base_name, "2024-01-02")
+  # A number that is not whole keeps every digit as.character() gives it.
+  expect_identical(account(7, 3.14159265)$base_name, "3.14159265")
+})
+
+test_that("a timeout httr2 would refuse is refused at once", {
+  expect_error(
+    hb_client(server = "https://x.example.org", api_token = "t",
+              timeout = 0.0005),
+    class = "harbour_error_bad_argument"
+  )
+})
+
 test_that("an API-token client is not held to arguments it ignores", {
   # An API token names its base, so workspace_id and base_name are never
   # used for it and were never checked.
@@ -165,7 +193,7 @@ test_that("the timeout must be a positive number of seconds", {
     expect_s3_class(client(good), "harbour_client")
   }
   expect_error(
-    client("30"), "`timeout` must be a single number greater than 0.",
+    client("30"), "`timeout` must be a single number of at least 0.001.",
     fixed = TRUE
   )
 })

@@ -15,7 +15,9 @@ First release.
   only after a 401, so a client older than the token's three days failed
   every base call with `harbour_error_permission`. The token is now
   renewed a few minutes before the expiry it carries, and once more after
-  a 403 "invalid token"; any other 403 is still not retried.
+  a 403 "invalid token"; any other 403 is still not retried. Should the
+  early renewal fail for a moment, the call goes ahead with the token
+  that is still valid.
   `hb_check_credentials()` on a username/password client also drops the
   cached base token once the login succeeds.
 
@@ -61,11 +63,14 @@ First release.
     an unknown API token (HTTP 403) `harbour_error_permission`. The old
     class is kept alongside, and the message passes on the server's
     reason.
-  * A server that cannot be reached - a refused connection, a DNS or TLS
-    failure, a timeout - raises `harbour_error_http` with `status` `NA`
-    from every function, not only `hb_ping()`. It escaped as httr2's
-    bare `httr2_failure`; that class is kept, so handlers written for it
-    still match.
+  * A request that gets no answer - a refused connection, a DNS or TLS
+    failure, a timeout, a dropped connection - raises `harbour_error_http`
+    with `status` `NA` and the request's URL from every function,
+    `hb_ping()` included. It escaped as httr2's bare `httr2_failure`;
+    that class is kept, so handlers written for it still match. The
+    message says the server could not be reached only when nothing was
+    sent; after a timeout, a write says to check before sending it again,
+    since the server may have applied it.
   * `?"harbouR-conditions"` now lists the warning classes, and says that
     argument-matching errors from rlang keep the classes rlang gives
     them.
@@ -129,8 +134,8 @@ First release.
     base's file at the same path. `hb_download_file()` and
     `hb_delete_asset()` now refuse a URL of another base or server, and
     `hb_delete_asset()` refuses one that names no file - the server
-    itself, or an asset URL cut short - instead of asking to delete the
-    asset root.
+    itself, an asset URL cut short, or a path with `.` or `..` in it -
+    instead of asking to delete the asset root or a folder.
   * `hb_upload_file()` escapes the folders of a custom `relative_path`
     like the file name, and its file object has the type `"file"`, as
     SeaTable's own file cells do, rather than a MIME type. Its help says

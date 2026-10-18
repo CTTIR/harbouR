@@ -87,11 +87,15 @@ api_client <- function(server = "https://demo.example.org",
 
 # How httr2 reports a request that got no answer: an `httr2_failure`
 # around the transport error.
-transport_failure <- function(reason = "Could not resolve host") {
+transport_failure <- function(reason = "Could not resolve host",
+                              curl = "couldnt_resolve_host") {
   rlang::error_cnd(
     class = c("httr2_failure", "httr2_error"),
     message = "Failed to perform HTTP request.",
-    parent = simpleError(reason)
+    parent = rlang::error_cnd(
+      class = c(paste0("curl_error_", curl), "curl_error"),
+      message = reason
+    )
   )
 }
 
@@ -210,6 +214,29 @@ test_that("a base token is renewed a few minutes before it lapses", {
   expect_identical(renewals("opaque", NULL), 0L)
 })
 
+test_that("a failed early renewal keeps a token that still works", {
+  # Renewal starts minutes before the token lapses, so a moment's outage of
+  # the exchange must not fail a call the cached token can still make.
+  cl <- mock_client()
+  valid <- fake_jwt(now() + 120)
+  cl$.base_token <- valid
+  seen <- local_replies(function(req) {
+    if (grepl("/app-access-token/", req$url, fixed = TRUE)) {
+      json_resp(502L, '{"error_msg": "bad gateway"}', req$url)
+    } else {
+      json_resp(200L, '{"tables": []}', req$url)
+    }
+  })
+  expect_no_error(hb_metadata(cl))
+  # One attempt to renew, then the call itself, with the cached token.
+  expect_length(seen$reqs, 2L)
+  expect_identical(auth_of(seen$reqs[[2L]]), paste("Bearer", valid))
+  # A token already past its expiry has nothing to fall back on.
+  cl <- mock_client()
+  cl$.base_token <- fake_jwt(now() - 60)
+  expect_error(hb_metadata(cl), class = "harbour_error_http")
+})
+
 test_that("a base token the gateway calls invalid is renewed, then retried", {
   # The API gateway refuses a lapsed base token with 403 "invalid token",
   # not 401, so a client older than the token's lifetime never recovered.
@@ -309,6 +336,21 @@ test_that("a refused password is an auth error with the server's reason", {
     fixed = TRUE
   )
   expect_match(conditionMessage(err), "username and password", fixed = TRUE)
+})
+
+test_that("a login 400 that is not JSON is not blamed on the password", {
+  # SeaTable's own 400 is JSON; a web page comes from a proxy, as when
+  # plain HTTP is sent to an HTTPS port.
+  cl <- account_client()
+  local_replies(function(req) {
+    httr2::response(
+      status_code = 400L, url = req$url,
+      headers = list(`Content-Type` = "text/html"),
+      body = charToRaw("<html><body>400 Bad Request</body></html>")
+    )
+  })
+  err <- expect_error(hb_check_credentials(cl), class = "harbour_error_http")
+  expect_false(inherits(err, "harbour_error_auth"))
 })
 
 test_that("a login refused with 401 or 403 is an auth error too", {
@@ -452,6 +494,30 @@ test_that("a server that cannot be reached is a classed HTTP error", {
   expect_error(hb_check_credentials(cl), class = "harbour_error_http")
 })
 
+test_that("a request that timed out is not reported as never sent", {
+  # A timeout can come after the server received the request, and for a
+  # write after it applied it, so the error does not say the server was
+  # never reached, and a write says to check before sending it again.
+  cl <- mock_client()
+  cl$.metadata <- hb_example_metadata()
+  httr2::local_mocked_responses(function(req) {
+    transport_failure("Operation timed out", curl = "operation_timedout")
+  })
+  err <- expect_error(
+    hb_append_rows(cl, "Samples", tibble::tibble(Name = "a")),
+    class = "harbour_error_http"
+  )
+  expect_identical(err$status, NA_integer_)
+  shown <- conditionMessage(err)
+  expect_false(grepl("Could not reach", shown, fixed = TRUE))
+  expect_match(shown, "did not complete", fixed = TRUE)
+  expect_match(shown, "may have applied this change", fixed = TRUE)
+  expect_match(shown, "timeout", fixed = TRUE)
+  # A read changes nothing, so it carries no such warning.
+  err <- expect_error(hb_server_info(cl), class = "harbour_error_http")
+  expect_false(grepl("may have applied", conditionMessage(err), fixed = TRUE))
+})
+
 test_that("a login that cannot reach the server never carries the password", {
   # httr2's condition keeps the whole request, and the login request's
   # body holds the password in clear text. The password is built at run
@@ -533,6 +599,10 @@ test_that("hb_ping still reports an unreachable server in its own words", {
   httr2::local_mocked_responses(function(req) transport_failure())
   err <- expect_error(hb_ping(cl), class = "harbour_error_http")
   expect_match(conditionMessage(err), "Could not reach", fixed = TRUE)
+  # With the status, URL and classes every other verb's error has.
+  expect_identical(err$status, NA_integer_)
+  expect_identical(err$url, "https://demo.example.org/api2/ping/")
+  expect_s3_class(err, "httr2_failure")
   # Its cause is httr2's own condition, as it always was, not a second
   # harbouR error saying the same thing.
   expect_s3_class(err$parent, "httr2_failure")
