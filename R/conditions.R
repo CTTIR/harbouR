@@ -61,10 +61,12 @@
 #'     every row was returned.}
 #'   \item{`harbour_warning_query_limit`}{[hb_query()] ran SQL without a
 #'     `LIMIT` clause, so SeaTable returned at most 100 rows.}
-#'   \item{`harbour_warning_non_finite`}{A write sent `Inf`, `-Inf` or
-#'     `NaN`, which JSON cannot hold, as `null`. Field: `columns`.}
-#'   \item{`harbour_warning_checkbox_value`}{A write sent a checkbox value
-#'     that is neither `TRUE` nor `FALSE` as `null`. Field: `columns`.}
+#'   \item{`harbour_warning_non_finite`}{[hb_append_rows()] or
+#'     [hb_update_rows()] sent `Inf`, `-Inf` or `NaN`, which JSON cannot
+#'     hold, as `null`. Field: `columns`.}
+#'   \item{`harbour_warning_checkbox_value`}{[hb_append_rows()] or
+#'     [hb_update_rows()] sent a checkbox string that [as.logical()] cannot
+#'     read as `TRUE` or `FALSE` as `null`. Field: `columns`.}
 #'   \item{`harbour_warning_asset_link`}{[hb_write_dtable()] left symbolic
 #'     links in the asset tree out of the archive.}
 #'   \item{`harbour_warning_id_column`}{[hb_read_csv()] or [hb_read_xlsx()]

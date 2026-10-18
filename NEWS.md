@@ -101,8 +101,10 @@ First release.
 
   * A checkbox is sent as a JSON boolean. A 0/1 column, which is how
     `read.csv()` and most exports store a flag, went out as numbers,
-    which SeaTable stores as unticked. A string that is neither `TRUE`
-    nor `FALSE` is sent as empty, with a warning, rather than guessed.
+    which SeaTable stores as unticked. A number is ticked unless it is 0,
+    and a string is read as `as.logical()` reads it (`"TRUE"`, `"true"`
+    or `"T"`, and the same for `FALSE`); any other string is sent as
+    empty, with a warning, rather than guessed.
   * The file object `hb_upload_file()` returns, written as
     `tibble(Reports = list(obj))`, went out as an array of its fields; it
     is now the array of objects a file cell holds. A named vector of
@@ -111,7 +113,8 @@ First release.
     in `hb_query()` all went out as JSON objects or strings rather than
     arrays.
   * `Inf`, `-Inf` and `NaN`, which JSON cannot hold, are still sent as
-    `null`, but now with one warning per write naming the columns. A
+    `null`, but now with one warning per write naming the columns; in a
+    checkbox column `Inf` is a number other than 0, and ticks. A
     `difftime` written to a duration column is sent in seconds, the unit
     SeaTable stores; 90 minutes went out as 90. `hb_update_rows()` now
     serialises through the same path as `hb_append_rows()`.
@@ -508,8 +511,9 @@ The notes below record what changed during development, against an
   using them, so a wrong type gives a classed harbouR error rather than a
   raw R one.
 
-* Writing `Inf` or `NaN` to a `.dtable` warns. JSON cannot hold them, so
-  they become `null` and read back as `NA`; that is now visible.
+* Writing `Inf` to a `.dtable` warns. JSON cannot hold it, so it becomes
+  `null` and reads back as `NA`; that is now visible. `NaN` is written as
+  an empty cell, as `NA` is.
 
 * The endpoint contract test pins request-body field names as well as
   paths. Renaming a body field previously left the suite green.

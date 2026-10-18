@@ -68,10 +68,12 @@ a filtered view of a \code{.dtable} file that records no rows for it, so
 every row was returned.}
 \item{\code{harbour_warning_query_limit}}{\code{\link[=hb_query]{hb_query()}} ran SQL without a
 \code{LIMIT} clause, so SeaTable returned at most 100 rows.}
-\item{\code{harbour_warning_non_finite}}{A write sent \code{Inf}, \code{-Inf} or
-\code{NaN}, which JSON cannot hold, as \code{null}. Field: \code{columns}.}
-\item{\code{harbour_warning_checkbox_value}}{A write sent a checkbox value
-that is neither \code{TRUE} nor \code{FALSE} as \code{null}. Field: \code{columns}.}
+\item{\code{harbour_warning_non_finite}}{\code{\link[=hb_append_rows]{hb_append_rows()}} or
+\code{\link[=hb_update_rows]{hb_update_rows()}} sent \code{Inf}, \code{-Inf} or \code{NaN}, which JSON cannot
+hold, as \code{null}. Field: \code{columns}.}
+\item{\code{harbour_warning_checkbox_value}}{\code{\link[=hb_append_rows]{hb_append_rows()}} or
+\code{\link[=hb_update_rows]{hb_update_rows()}} sent a checkbox string that \code{\link[=as.logical]{as.logical()}} cannot
+read as \code{TRUE} or \code{FALSE} as \code{null}. Field: \code{columns}.}
 \item{\code{harbour_warning_asset_link}}{\code{\link[=hb_write_dtable]{hb_write_dtable()}} left symbolic
 links in the asset tree out of the archive.}
 \item{\code{harbour_warning_id_column}}{\code{\link[=hb_read_csv]{hb_read_csv()}} or \code{\link[=hb_read_xlsx]{hb_read_xlsx()}}
