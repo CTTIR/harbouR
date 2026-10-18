@@ -148,9 +148,12 @@ First release.
   * `hb_write_dtable()` builds the archive beside its destination and
     moves it into place once complete, so a failed write cannot destroy
     the file it replaces, even the one the base was read from. The bytes
-    written are the same. An asset that cannot be copied stops the write,
-    and links in the asset tree are left out, with a warning, instead of
-    followed.
+    written are the same. A destination that cannot be replaced - another
+    program holds it open, or the folder lets files be written but not
+    removed - is written into once the archive is complete, and should
+    that fail, the complete archive is kept beside it and the error says
+    where. An asset that cannot be copied stops the write, and links in
+    the asset tree are left out, with a warning, instead of followed.
   * Text in a `.dtable` read in a session that is not UTF-8 - `Rscript`
     under cron, or a container with `LANG` unset - came back mangled, and
     `hb_write_dtable()` then saved it that way. It now reads as it does

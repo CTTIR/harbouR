@@ -33,11 +33,17 @@ attachments go back in too when the file was read with
 The archive is built in a temporary file beside \code{path} and moved into
 place only once it is complete, so a failed write cannot destroy the
 file it replaces - even when that is the file the base was read from.
-Where no new file can be made beside \code{path}, or there is nothing at
-\code{path} to lose - an empty file such as \verb{/dev/null}, or a link to a file
-not made yet - the archive is written straight into it. A symbolic link
-in the extracted asset tree is left out, with a warning, rather than
-followed to wherever it points.
+Replacing a file gives it a new identity on disk, so any other hard
+link to it keeps the old content. Where no new file can be made beside
+\code{path}, or there is nothing at \code{path} to lose - an empty file such as
+\verb{/dev/null}, or a link to a file not made yet - the archive is written
+straight into it. A file that cannot be replaced, because another
+program holds it open or the folder lets files be written but not
+removed, is written into once the archive is complete; that needs room
+for a second copy, and should it fail, the complete archive is kept
+beside \code{path} and the error says where. A symbolic link in the
+extracted asset tree is left out, with a warning, rather than followed
+to wherever it points.
 }
 \examples{
 path <- system.file("extdata", "example.dtable", package = "harbouR")

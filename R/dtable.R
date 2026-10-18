@@ -99,11 +99,17 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #' The archive is built in a temporary file beside `path` and moved into
 #' place only once it is complete, so a failed write cannot destroy the
 #' file it replaces - even when that is the file the base was read from.
-#' Where no new file can be made beside `path`, or there is nothing at
-#' `path` to lose - an empty file such as `/dev/null`, or a link to a file
-#' not made yet - the archive is written straight into it. A symbolic link
-#' in the extracted asset tree is left out, with a warning, rather than
-#' followed to wherever it points.
+#' Replacing a file gives it a new identity on disk, so any other hard
+#' link to it keeps the old content. Where no new file can be made beside
+#' `path`, or there is nothing at `path` to lose - an empty file such as
+#' `/dev/null`, or a link to a file not made yet - the archive is written
+#' straight into it. A file that cannot be replaced, because another
+#' program holds it open or the folder lets files be written but not
+#' removed, is written into once the archive is complete; that needs room
+#' for a second copy, and should it fail, the complete archive is kept
+#' beside `path` and the error says where. A symbolic link in the
+#' extracted asset tree is left out, with a warning, rather than followed
+#' to wherever it points.
 #'
 #' @param x A `harbour_dtable`.
 #' @param path Destination path.
@@ -144,9 +150,11 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
   }
   # The archive is moved into place rather than written into the file, so
   # a file that may not be written would no longer stop it: refuse one
-  # here, as opening it for writing did.
+  # here, as opening it for writing did. An empty destination is written
+  # into, and so tested by the write itself; opening a pipe here would
+  # end its reader's input and leave the write waiting for ever.
   unwritable <- dir.exists(path) ||
-    (file.exists(path) && !.hb_can_write(.hb_absolute_path(path)))
+    (isTRUE(file.size(path) > 0) && !.hb_can_write(.hb_absolute_path(path)))
   if (unwritable) {
     hb_abort(
       c("Destination cannot be written.", "x" = "{.path {path}}"),
@@ -207,19 +215,21 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
   }
   partial <- target
   if (!in_place) {
-    partial <- tempfile(".harbour-dtable-", tmpdir = dirname(target))
-    on.exit(unlink(partial), add = TRUE)
+    scratch <- tempfile(".harbour-dtable-", tmpdir = dirname(target))
+    # Only ever the scratch file: when it cannot be made, the archive is
+    # written into the destination, which must then survive this function.
+    keep_scratch <- FALSE
+    on.exit(if (!keep_scratch) unlink(scratch), add = TRUE)
     # Making the file is the only sure test of whether the folder takes a
     # new one. Where it does not, a file already there that may be written
     # is written into, as before.
-    if (!file.create(partial, showWarnings = FALSE)) {
-      if (!file.exists(target)) {
-        hb_abort(
-          c("Destination cannot be written.", "x" = "{.path {path}}"),
-          class = "harbour_error_bad_argument"
-        )
-      }
-      partial <- target
+    if (file.create(scratch, showWarnings = FALSE)) {
+      partial <- scratch
+    } else if (!file.exists(target)) {
+      hb_abort(
+        c("Destination cannot be written.", "x" = "{.path {path}}"),
+        class = "harbour_error_bad_argument"
+      )
     }
   }
   zip::zip(
@@ -233,21 +243,65 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
     if (file.exists(target)) {
       Sys.chmod(partial, file.mode(target), use_umask = FALSE)
     }
-    # A file that cannot be replaced - another program holds it open, or
-    # the folder lets files be written but not removed - is written into
-    # instead, as it always was, but only now the archive is complete.
-    moved <- suppressWarnings(file.rename(partial, target)) ||
-      suppressWarnings(
-        file.copy(partial, target, overwrite = TRUE, copy.mode = FALSE)
-      )
-    if (!moved) {
-      hb_abort(
-        c("Could not move the archive into place.", "x" = "{.path {path}}"),
-        class = "harbour_error_bad_argument"
-      )
+    if (!suppressWarnings(file.rename(partial, target))) {
+      outcome <- .hb_write_into(partial, target)
+      if (identical(outcome, "damaged")) {
+        # The copy emptied the destination before it failed, so the
+        # archive is the only complete copy of the base left.
+        keep_scratch <- TRUE
+        hb_abort(
+          c("Could not write the archive into place.",
+            "x" = "{.path {path}} was left incomplete.",
+            "i" = "The new archive is kept at {.path {partial}}."),
+          class = "harbour_error_bad_argument"
+        )
+      }
+      if (identical(outcome, "refused")) {
+        hb_abort(
+          c("Could not move the archive into place.", "x" = "{.path {path}}"),
+          class = "harbour_error_bad_argument"
+        )
+      }
     }
   }
   invisible(x)
+}
+
+#' Write a finished archive into a destination that cannot be replaced
+#'
+#' Another program may hold the file open, or the folder may let files be
+#' written but not removed. The archive is then copied into the file, as
+#' writing into it always did, but only now that it is complete.
+#' `file.copy()` empties the destination before it writes and misses some
+#' failed writes, so the result is checked against the archive.
+#'
+#' @param archive The finished archive, beside `target`.
+#' @param target The destination, as an absolute path.
+#' @return `"written"`; `"refused"` when the destination is as it was;
+#'   or `"damaged"` when the copy changed it but did not complete.
+#' @keywords internal
+#' @noRd
+.hb_write_into <- function(archive, target) {
+  digest <- function(file) unname(tools::md5sum(file))
+  before <- digest(target)
+  copied <- suppressWarnings(
+    file.copy(archive, target, overwrite = TRUE, copy.mode = FALSE)
+  )
+  written <- digest(target)
+  if (!copied || !identical(written, digest(archive))) {
+    return(if (identical(written, before)) "refused" else "damaged")
+  }
+  # A folder that lets files be written but not removed keeps the archive
+  # beside the destination as well; emptied, it at least takes no room.
+  unlink(archive)
+  if (file.exists(archive)) {
+    file.create(archive, showWarnings = FALSE)
+    cli::cli_warn(
+      c("Could not remove the temporary file {.path {archive}}.",
+        "i" = "It has been emptied; delete it once the folder allows.")
+    )
+  }
+  "written"
 }
 
 #' Build a `.dtable` base from data frames
@@ -551,20 +605,21 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 
 #' Does a relative path climb out of the directory it is resolved in?
 #'
-#' A `..` component climbs out, and so does a backslash: it is a separator
-#' on Windows, where `asset\..\..` means what `asset/../..` does.
+#' A `..` component climbs out. A backslash separates folders on Windows,
+#' where `asset\..\..` means what `asset/../..` does, so `..` is looked
+#' for between either separator; elsewhere a backslash is a character in a
+#' name, as extraction treats it.
 #'
-#' @param paths Relative paths, `/`-separated.
+#' @param paths Relative paths.
 #' @return A logical vector as long as `paths`.
 #' @keywords internal
 #' @noRd
 .hb_climbs_out <- function(paths) {
-  dotdot <- vapply(
-    strsplit(paths, "/", fixed = TRUE),
+  vapply(
+    strsplit(paths, "[/\\\\]"),
     function(parts) any(parts == ".."),
     logical(1)
   )
-  grepl("\\", paths, fixed = TRUE) | dotdot
 }
 
 #' Do paths lead to somewhere inside a directory?
@@ -601,15 +656,9 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   # zip::zip_list() reports each entry's type from zip 2.3.3, the release
   # in which zip::unzip() began to make a link entry into a link.
   type <- entries[["type"]] %||% character(length(name))
-  # A backslash separates folders on Windows, so `..` is looked for between
-  # either separator. Elsewhere a backslash is only a character, one an
-  # uploaded file's name may hold, so on its own it refuses nothing.
-  climbs <- vapply(
-    strsplit(name, "[/\\\\]"),
-    function(parts) any(parts == ".."),
-    logical(1)
-  )
-  unsafe <- climbs | grepl("^([/\\\\]|[A-Za-z]:)", name) |
+  # A backslash on its own is a character an uploaded file's name may
+  # hold, so only a `..` between either separator refuses a name.
+  unsafe <- .hb_climbs_out(name) | grepl("^([/\\\\]|[A-Za-z]:)", name) |
     type %in% "symlink"
   bad <- name[unsafe]
   if (length(bad) > 0L) {

@@ -133,6 +133,11 @@ test_that("a backslash that climbs nowhere is part of a file's name", {
   base <- hb_read_dtable(archive, assets = "extract", assets_dir = target)
   expect_true("asset/files/a\\b.txt" %in% base$assets$filename)
   expect_true(file.exists(file.path(target, "asset/files/a\\b.txt")))
+  # The resolver follows the same rule as extraction.
+  expect_identical(
+    hb_asset_path(base, "file://dtable-bundle/asset/files/a\\b.txt"),
+    file.path(target, "asset/files/a\\b.txt")
+  )
   expect_true(all(startsWith(
     normalizePath(file.path(sandbox, everything_under(sandbox))),
     normalizePath(target)
@@ -461,6 +466,97 @@ test_that("/dev/null can still be written to", {
   skip_if(file.access("/dev", 2L) == 0L, "this user can write to /dev")
   expect_no_error(hb_write_dtable(hb_dtable(A = data.frame(x = 1)),
                                   "/dev/null"))
+})
+
+test_that("a file in a folder that refuses new files survives the write", {
+  # A folder can refuse new files and still allow deleting them, as an
+  # access-control list or a full file-count quota does. The archive is
+  # then written into the destination, which must outlive the write.
+  dir <- withr::local_tempdir()
+  out <- file.path(dir, "base.dtable")
+  hb_write_dtable(hb_dtable(A = data.frame(x = 1)), out)
+  real_create <- base::file.create
+  local_mocked_bindings(
+    file.create = function(...) {
+      paths <- c(...)
+      if (any(startsWith(basename(paths), ".harbour-dtable-"))) {
+        return(FALSE)
+      }
+      real_create(...)
+    },
+    .package = "base"
+  )
+  hb_write_dtable(hb_dtable(B = data.frame(y = 2)), out)
+  expect_true(file.exists(out))
+  expect_identical(names(hb_read_dtable(out)), "B")
+})
+
+test_that("a copy that fails part-way keeps the finished archive", {
+  # file.copy() empties the destination before it writes, so a copy that
+  # then fails leaves the archive beside it as the only complete copy.
+  dir <- withr::local_tempdir()
+  out <- file.path(dir, "base.dtable")
+  hb_write_dtable(hb_dtable(A = data.frame(x = 1)), out)
+  local_mocked_bindings(
+    file.rename = function(...) FALSE,
+    file.append = function(...) FALSE,
+    .package = "base"
+  )
+  err <- expect_error(
+    hb_write_dtable(hb_dtable(B = data.frame(y = 2)), out),
+    "kept at", class = "harbour_error_bad_argument"
+  )
+  kept <- setdiff(list.files(dir, all.files = TRUE, no.. = TRUE),
+                  "base.dtable")
+  expect_length(kept, 1L)
+  expect_match(conditionMessage(err), kept, fixed = TRUE)
+  expect_identical(names(hb_read_dtable(file.path(dir, kept))), "B")
+})
+
+test_that("a copy that reports success but writes too little is an error", {
+  dir <- withr::local_tempdir()
+  out <- file.path(dir, "base.dtable")
+  hb_write_dtable(hb_dtable(A = data.frame(x = 1)), out)
+  local_mocked_bindings(
+    file.rename = function(...) FALSE,
+    file.append = function(file1, file2) {
+      writeBin(readBin(file2, "raw", 10L), file1)
+      TRUE
+    },
+    .package = "base"
+  )
+  expect_error(
+    hb_write_dtable(hb_dtable(B = data.frame(y = 2)), out),
+    "kept at", class = "harbour_error_bad_argument"
+  )
+})
+
+test_that("a temporary archive that cannot be removed is emptied", {
+  # A folder that lets files be written but not removed keeps the archive
+  # beside the destination too.
+  dir <- withr::local_tempdir()
+  out <- file.path(dir, "base.dtable")
+  hb_write_dtable(hb_dtable(A = data.frame(x = 1)), out)
+  real_unlink <- base::unlink
+  local_mocked_bindings(
+    file.rename = function(...) FALSE,
+    unlink = function(x, ...) {
+      if (any(startsWith(basename(x), ".harbour-dtable-"))) {
+        return(invisible(1L))
+      }
+      real_unlink(x, ...)
+    },
+    .package = "base"
+  )
+  expect_warning(
+    hb_write_dtable(hb_dtable(B = data.frame(y = 2)), out),
+    "Could not remove the temporary file"
+  )
+  expect_identical(names(hb_read_dtable(out)), "B")
+  left <- setdiff(list.files(dir, all.files = TRUE, no.. = TRUE),
+                  "base.dtable")
+  expect_length(left, 1L)
+  expect_identical(file.size(file.path(dir, left)), 0)
 })
 
 test_that("a file in a folder that takes no new files is written into", {
