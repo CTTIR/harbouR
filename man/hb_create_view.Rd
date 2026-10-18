@@ -15,7 +15,10 @@ hb_create_view(client, table, view, ..., settings = list())
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{settings}{Optional list of view settings.}
+\item{settings}{Optional named list of further fields for the new view,
+such as \code{type} (\code{"table"}, the default, or \code{"archive"}) or
+\code{is_locked}. SeaTable sets filters, sorts and hidden columns only on
+an existing view, so follow with \code{\link[=hb_update_view]{hb_update_view()}} for those.}
 }
 \value{
 Invisibly returns the client.

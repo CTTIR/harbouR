@@ -37,12 +37,22 @@ hb_list_views.harbour_client <- function(x, table, ...,
   tibble::tibble(
     name = .hb_chr_field(views, "name"),
     type = .hb_chr_field(views, "type"),
-    is_default = vapply(
-      views,
-      function(view) isTRUE(view$is_default),
-      logical(1)
-    )
+    is_default = vapply(views, .hb_is_default_view, logical(1))
   )
+}
+
+#' Is this the table's default view?
+#'
+#' SeaTable does not report `is_default`; its default view is the one with
+#' id `"0000"`, as in a `.dtable` file. The flag is still honoured if a
+#' server or a test fixture sends it.
+#'
+#' @param view A view object.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_is_default_view <- function(view) {
+  isTRUE(view$is_default) || identical(view[["_id"]], "0000")
 }
 
 #' Get a view's settings
@@ -65,12 +75,12 @@ hb_get_view <- function(client, table, view, ...) {
   .check_string(view)
   body <- .hb_request(client, .hb_base_path(client, "views", view, ""),
     service = "gateway", auth = "base", method = "GET",
-    query = list(table_name = table, view_name = view)
+    query = list(table_name = table)
   )
   tibble::tibble(
     name = as.character(body$name %||% view),
     type = as.character(body$type %||% NA_character_),
-    is_default = isTRUE(body$is_default),
+    is_default = .hb_is_default_view(body),
     filters = list(body$filters %||% list()),
     sorts = list(body$sorts %||% list()),
     hidden_columns = list(as.character(
@@ -83,7 +93,10 @@ hb_get_view <- function(client, table, view, ...) {
 #' @inheritParams hb_metadata
 #' @param table Table name.
 #' @param view New view name.
-#' @param settings Optional list of view settings.
+#' @param settings Optional named list of further fields for the new view,
+#'   such as `type` (`"table"`, the default, or `"archive"`) or
+#'   `is_locked`. SeaTable sets filters, sorts and hidden columns only on
+#'   an existing view, so follow with [hb_update_view()] for those.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family views
@@ -96,11 +109,13 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
   .check_client(client)
   .check_string(table)
   .check_string(view)
-  body <- list(table_name = table, name = view)
-  body <- c(body, settings)
+  .hb_check_settings(settings)
+  # The table is named in the query string, not the body; the server
+  # rejects a body-only table_name.
+  body <- utils::modifyList(list(name = view, type = "table"), settings)
   .hb_request(client, .hb_base_path(client, "views", ""),
     service = "gateway", auth = "base", method = "POST",
-    body = body
+    query = list(table_name = table), body = body
   )
   .hb_invalidate_metadata(client)
   invisible(client)
@@ -108,6 +123,9 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
 
 #' Update a view
 #' @inheritParams hb_create_view
+#' @param settings Named list of the fields to change: `name` to rename
+#'   the view, `is_locked`, `filters`, `filter_conjunction`, `sorts`,
+#'   `groupbys` or `hidden_columns`. Fields you leave out are unchanged.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family views
@@ -120,15 +138,10 @@ hb_update_view <- function(client, table, view, settings, ...) {
   .check_client(client)
   .check_string(table)
   .check_string(view)
-  if (!is.list(settings)) {
-    hb_abort("{.arg settings} must be a list.",
-      class = "harbour_error_bad_argument"
-    )
-  }
-  body <- c(list(table_name = table, view_name = view), settings)
+  .hb_check_settings(settings, allow_empty = FALSE)
   .hb_request(client, .hb_base_path(client, "views", view, ""),
     service = "gateway", auth = "base", method = "PUT",
-    body = body
+    query = list(table_name = table), body = settings
   )
   .hb_invalidate_metadata(client)
   invisible(client)
@@ -152,7 +165,7 @@ hb_delete_view <- function(client, table, view, ...) {
   .check_string(view)
   .hb_request(client, .hb_base_path(client, "views", view, ""),
     service = "gateway", auth = "base", method = "DELETE",
-    body = list(table_name = table, view_name = view)
+    query = list(table_name = table)
   )
   .hb_invalidate_metadata(client)
   invisible(client)
@@ -190,4 +203,29 @@ hb_delete_view <- function(client, table, view, ...) {
     query = list(table_name = table), call = call
   )
   body$views %||% list()
+}
+
+#' Validate a view-settings list
+#'
+#' An update needs at least one field: an empty list would also reach the
+#' server as `[]`, which is not the object it expects.
+#'
+#' @param settings The settings to check.
+#' @param allow_empty Whether an empty list is acceptable.
+#' @param call The frame to blame for any error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_settings <- function(settings, allow_empty = TRUE,
+                               call = rlang::caller_env()) {
+  empty <- is.list(settings) && length(settings) == 0L
+  ok <- is.list(settings) && (empty || rlang::is_named(settings))
+  if (!ok || (empty && !allow_empty)) {
+    hb_abort(
+      c("{.arg settings} must be a named list of view fields.",
+        "i" = "For example {.code list(filter_conjunction = \"And\")}."),
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  invisible(NULL)
 }

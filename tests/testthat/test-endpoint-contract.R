@@ -156,32 +156,34 @@ ENDPOINTS <- list(
       hb_delete_select_option(cl, "Samples", "Status", "draft")
     }
   ),
+  # Every view endpoint takes table_name in the query string.
   list(
     fn = "hb_create_view",
-    body = c("table_name", "name"), method = "POST",
+    body = c("name", "type"), method = "POST",
+    query = list(table_name = "Samples"),
     path = paste0(GATEWAY, "views/"), service = "gateway", auth = "base",
     call = function(cl) hb_create_view(cl, "Samples", "New view")
   ),
   list(
     fn = "hb_get_view", method = "GET",
+    query = list(table_name = "Samples"),
     path = paste0(GATEWAY, "views/Default/"),
     service = "gateway", auth = "base",
     call = function(cl) hb_get_view(cl, "Samples", "Default")
   ),
   list(
     fn = "hb_update_view",
-    # view_name is redundant with the path segment but harmless, and
-    # pinning it here documents that harbouR sends both.
-    body = c("table_name", "view_name", "row_height"), method = "PUT",
+    body = c("filter_conjunction"), method = "PUT",
+    query = list(table_name = "Samples"),
     path = paste0(GATEWAY, "views/Default/"),
     service = "gateway", auth = "base",
     call = function(cl) {
-      hb_update_view(cl, "Samples", "Default", list(row_height = "tall"))
+      hb_update_view(cl, "Samples", "Default", list(filter_conjunction = "Or"))
     }
   ),
   list(
-    fn = "hb_delete_view",
-    body = c("table_name", "view_name"), method = "DELETE",
+    fn = "hb_delete_view", no_body = TRUE, method = "DELETE",
+    query = list(table_name = "Samples"),
     path = paste0(GATEWAY, "views/Default/"),
     service = "gateway", auth = "base",
     call = function(cl) hb_delete_view(cl, "Samples", "Default")

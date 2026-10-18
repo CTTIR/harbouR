@@ -13,7 +13,9 @@ hb_update_view(client, table, view, settings, ...)
 
 \item{view}{New view name.}
 
-\item{settings}{Optional list of view settings.}
+\item{settings}{Named list of the fields to change: \code{name} to rename
+the view, \code{is_locked}, \code{filters}, \code{filter_conjunction}, \code{sorts},
+\code{groupbys} or \code{hidden_columns}. Fields you leave out are unchanged.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
