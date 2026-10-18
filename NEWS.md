@@ -2,6 +2,243 @@
 
 First release.
 
+* **A write is no longer sent twice after a server error.** Every request
+  was retried after a 500, 502, 503 or 504, so an append that a proxy
+  gave up on after the server had applied it could store its rows twice.
+  `POST`, `PUT` and `DELETE` requests are now retried only after a 429,
+  which means the server declined them; `GET` requests keep their
+  retries. `hb_query()` sends all SQL as `POST`, so a `SELECT` that meets
+  a 5xx now fails at once as well.
+
+* **A base token is renewed before it lapses.** The API gateway refuses an
+  expired base token with HTTP 403 "invalid token", and harbouR renewed it
+  only after a 401, so a client older than the token's three days failed
+  every base call with `harbour_error_permission`. The token is now
+  renewed a few minutes before the expiry it carries, and once more after
+  a 403 "invalid token"; any other 403 is still not retried.
+  `hb_check_credentials()` on a username/password client also drops the
+  cached base token once the login succeeds.
+
+* **Date-only cells read from a server no longer land on the day before.**
+  SeaTable sends such a cell as midnight in the server's time zone, with
+  its offset (`2030-06-20T00:00:00+02:00`), and harbouR converted that
+  instant to UTC, so on any server east of UTC `hb_read_table()`,
+  `hb_get_row()` and `hb_query()` returned the evening before. A `date`
+  column whose format has no time now reads as midnight UTC on the date
+  SeaTable shows, and is written as `YYYY-MM-DD`, so reading a cell and
+  writing it back keeps its day on either side of UTC. Date-time cells,
+  dates stored without an offset (as in a `.dtable`) and columns that
+  report no format read as before.
+
+* Security:
+
+  * `hb_read_dtable(assets = "extract")` extracted whatever names an
+    archive held, so a crafted `.dtable` - the explorer opens uploads
+    this way - could write files outside `assets_dir`, `~/.Rprofile`
+    among them. An archive whose asset entries are absolute, climb out
+    with `..` or are symbolic links is now refused before anything is
+    extracted, and only entries under `asset/` count as assets.
+  * A `content.json`, or a server's reply, that is a short string rather
+    than JSON is no longer read as a file path or fetched as a URL, which
+    `jsonlite::fromJSON()` does with such a string. It is parsed as JSON
+    text only.
+  * `print()` on a client ran any `{...}` in the base name or server URL
+    as R code, and so did `hb_write_dtable()` with a table name when it
+    refused a base. Both now show the text as it is.
+  * The error from a request that got no answer held the client's API
+    token, password and cached tokens, so saving it - with `saveRDS()`,
+    or by returning it from a parallel worker - wrote them out. It no
+    longer holds them. A malformed `api_token` or `password` is no longer
+    shown in `hb_client()`'s error message.
+
+* Errors:
+
+  * Credentials the server refuses raise `harbour_error_auth`, as
+    `hb_check_credentials()` documents. A wrong password (HTTP 400)
+    raised `harbour_error_http` with "SeaTable returned an error.", and
+    an unknown API token (HTTP 403) `harbour_error_permission`. The old
+    class is kept alongside, and the message passes on the server's
+    reason.
+  * A server that cannot be reached - a refused connection, a DNS or TLS
+    failure, a timeout - raises `harbour_error_http` with `status` `NA`
+    from every function, not only `hb_ping()`. It escaped as httr2's
+    bare `httr2_failure`; that class is kept, so handlers written for it
+    still match.
+  * `?"harbouR-conditions"` now lists the warning classes, and says that
+    argument-matching errors from rlang keep the classes rlang gives
+    them.
+
+* Reading from a server:
+
+  * `hb_query()` returned every column of a join as `NA`: SeaTable keys
+    the cells of a join by column key whatever `convert_keys` says. They
+    are now read by key, under the names the server reports.
+  * `hb_read_table()` through a view returns the columns the view hides
+    as `NA`, because SeaTable leaves them out of the rows. That looked
+    like empty data; it now warns, naming them.
+  * `hb_read_table()` gave up after 1000 requests whatever their size, so
+    with a small `page_size` a large table was an error, and so was one
+    ending exactly on the limit. The limit is now about ten million rows,
+    a read that ends on it completes, and a server that returns the same
+    page twice is stopped at once.
+  * `hb_query()`'s warning about a missing `LIMIT` came at most once
+    every eight hours across all queries, so later ones were cut to 100
+    rows without a word, and the word *limit* anywhere in the SQL
+    silenced it. It is now rate-limited per query and ignores quoted
+    strings and back-ticked names.
+  * Reading a table whose date cells repeat is faster: each distinct date
+    string in a column is parsed once, and pages are combined once at the
+    end rather than on every request.
+
+* Writing to a server:
+
+  * A checkbox is sent as a JSON boolean. A 0/1 column, which is how
+    `read.csv()` and most exports store a flag, went out as numbers,
+    which SeaTable stores as unticked. A string that is neither `TRUE`
+    nor `FALSE` is sent as empty, with a warning, rather than guessed.
+  * The file object `hb_upload_file()` returns, written as
+    `tibble(Reports = list(obj))`, went out as an array of its fields; it
+    is now the array of objects a file cell holds. A named vector of
+    image URLs, one `hidden_columns` key in `hb_update_view()`, named row
+    ids in `hb_lock_rows()` and `hb_unlock_rows()`, and named `parameters`
+    in `hb_query()` all went out as JSON objects or strings rather than
+    arrays.
+  * `Inf`, `-Inf` and `NaN`, which JSON cannot hold, are still sent as
+    `null`, but now with one warning per write naming the columns. A
+    `difftime` written to a duration column is sent in seconds, the unit
+    SeaTable stores; 90 minutes went out as 90. `hb_update_rows()` now
+    serialises through the same path as `hb_append_rows()`.
+  * `hb_update_column()` with only `column_data` named the type from the
+    cached schema, so a column whose type had changed since was converted
+    back. It now asks the server.
+
+* Files:
+
+  * `hb_download_file()` recognised an asset URL only when it began with
+    the client's `server` exactly as typed. A relative URL, the form
+    SeaTable writes into cells, failed, and a host in other capitals,
+    `http` for `https` or an explicit `:443` was fetched directly, saving
+    SeaTable's login page as the file. Asset URLs are now recognised by
+    their path, and a download that ends on the login page fails.
+  * The download and delete endpoints act on the client's base whatever
+    a URL names, so a URL from another base downloaded, or deleted, this
+    base's file at the same path. `hb_download_file()` and
+    `hb_delete_asset()` now refuse a URL of another base or server, and
+    `hb_delete_asset()` refuses one that names no file - the server
+    itself, or an asset URL cut short - instead of asking to delete the
+    asset root.
+  * `hb_upload_file()` escapes the folders of a custom `relative_path`
+    like the file name, and its file object has the type `"file"`, as
+    SeaTable's own file cells do, rather than a MIME type. Its help says
+    what the default `relative_path = "files"` stands for.
+
+* The client:
+
+  * Logging in and exchanging an API token work for a server reached
+    under a path, such as `https://example.org/seatable`; both went to
+    the root of the host.
+  * `hb_client()` refuses a `workspace_id`, `base_name` or `timeout` that
+    could not work, instead of failing at the first request, and sends a
+    round workspace id such as `1e5` as `100000` rather than `1e+05`. A
+    username/password client remembers the base it named, so
+    `hb_metadata()$base_name` is its name rather than `NA`.
+
+* `.dtable` files:
+
+  * `hb_write_dtable()` builds the archive beside its destination and
+    moves it into place once complete, so a failed write cannot destroy
+    the file it replaces, even the one the base was read from. The bytes
+    written are the same. An asset that cannot be copied stops the write,
+    and links in the asset tree are left out, with a warning, instead of
+    followed.
+  * Text in a `.dtable` read in a session that is not UTF-8 - `Rscript`
+    under cron, or a container with `LANG` unset - came back mangled, and
+    `hb_write_dtable()` then saved it that way. It now reads as it does
+    in a UTF-8 session.
+  * `print()` and the warning about assets that will not be written
+    counted the archive's folders as assets: the example showed 7 for its
+    2 files.
+  * On a `.dtable`, `hb_read_table(view = )` applies none of the view's
+    filters or sorts, which its help now says; a filtered view that
+    records no rows warns that every row was returned.
+
+* CSV and Excel:
+
+  * Re-importing an export gave a base none of whose tables could be
+    read: the exported `_id` became an ordinary column. `hb_read_csv()`
+    and `hb_read_xlsx()` now drop it.
+  * `hb_read_csv()` kept `read.csv()`'s type guessing, which ignores
+    quoting, so `"0001"` came back as `1` - the auto-number column of an
+    export among them - and a 19-digit barcode was rounded. A column
+    holding an integer with a leading zero, or one of more than 15
+    digits, now stays text; every other column is typed as before. The
+    help now says that dates arrive as text and that a literal `NA` is
+    read as missing.
+  * `hb_read_csv()` refuses a file that is not UTF-8, naming the line; a
+    Windows-1252 file, as Excel's plain "CSV" often is, was cut off at
+    its first accented letter. An empty file is refused, naming it, and
+    an empty column is text rather than a checkbox reading `FALSE` in
+    every row.
+  * `hb_read_xlsx()` judges a column's type by every row of the sheet.
+    `readxl` looked at the first 1000, and later values that did not fit
+    were lost.
+  * A file or sheet named `collaborators` or `base_name` imports as a
+    table; the first used to vanish into the base's collaborator list.
+    `hb_write_xlsx()` refuses table names that differ only in case, which
+    Excel cannot hold as separate sheets. The flattening message names
+    every column instead of the first 20, and the help lists every loss
+    the exports make.
+
+* The explorer:
+
+  * "This table as CSV" held only the rows the Data panel had loaded,
+    1000 by default; it now holds the whole table. The zipped CSV left
+    out any table whose name starts with a dot.
+  * The Export panel said a `.dtable` keeps everything. For a live base
+    that file is rebuilt from the rows, so column types are inferred
+    again and select options, attachments and views are lost; for a file
+    opened without its assets, the attachments are left out. The panel
+    now says which applies, and a live base's `.dtable` download shows a
+    notification. That download also kept a table named `collaborators`
+    out of the file, and failed on one named `base_name`.
+  * A failed download is reported in the app rather than only in the R
+    console, and a missing `writexl` is named instead of prompting at
+    the console. The Query panel says, on every query without `LIMIT`,
+    that SeaTable returned at most 100 rows. The app accepts uploads up
+    to 1 GB while it runs, unless `shiny.maxRequestSize` is set: the
+    5 MB that Shiny allows by default refused most real exports.
+
+* Documentation and tests:
+
+  * The API lock pins the signatures of the registered S3 methods as
+    well as the exports: the arguments users pass to `hb_read_table()`
+    and the `hb_list_*()` verbs belong to the methods, not the generics,
+    so a changed default there passed the lock. The new section matches the
+    manuscript anchor exactly.
+  * Golden tests pin what the offline paths return: every column of the
+    bundled example as read, `hb_column_types()`, the example data, the
+    `.dtable` and CSV files the writers produce, and what the CSV and
+    Excel exports read back as.
+  * pkgdown builds the citation page from the source `DESCRIPTION`, so it
+    cited the maintainer alone; it now lists all six authors.
+  * `hb_column_types()` corrects three notes: single-select values are
+    not validated on write (SeaTable adds an unknown name as a new
+    option), an unset checkbox reads as `FALSE`, and digital-signature
+    cells are left out of writes because a signature should come from
+    the signer. Its help says `percent`, `dollar` and `euro` are number
+    formats, which SeaTable reports as type `number`, rather than column
+    types.
+  * The examples and README read the example file with
+    `assets = "extract"` before writing it back, the `hb_asset_path()`
+    example resolves a file the example holds, and `hb_dtable()`'s help
+    notes that building a base advances `.Random.seed`. The help no
+    longer says `hb_append_rows()`'s reply lacks the new rows' ids, nor
+    that the example rows cover every column type.
+  * The explorer's tests skip rather than error without `readxl`,
+    `shiny` or `htmltools`, and two static checks that skipped in every
+    CI job now run there. The live-server tests compare harbouR's reads
+    with what the server sent, and delete only the row they created.
+
 * Audited the server wrappers against SeaTable's published OpenAPI
   specification (v6.2) and the server responses recorded in its test
   suite. The mocked tests could only prove that harbouR built the
@@ -43,8 +280,8 @@ First release.
   as the string `"NA"`; it is now `null`.
 
 * Geolocation and digital-signature cells keep their field names when
-  read and are written back as objects. Unnamed, a location read as
-  `list(50, 8.23)` and was written as `[50, 8.23]`.
+  read, and geolocation cells are written back as objects. Unnamed, a
+  location read as `list(50, 8.23)` and was written as `[50, 8.23]`.
 
 * An empty multiple-select cell read from a `.dtable` is `character(0)`,
   matching a populated one; it was `logical(0)`.
@@ -93,10 +330,12 @@ The notes below record what changed during development, against an
 
 * Errors now carry condition classes under a shared `harbour_error`, so
   they can be caught by kind rather than by message text. See
-  `?"harbouR-conditions"`. HTTP errors carry `status`, `url` and `body`.
+  `?"harbouR-conditions"`. HTTP errors carry `status`, `url` and
+  `response_body`.
 
 * A `403` response is no longer retried as though the base token had
-  expired. Only `401` triggers a refresh.
+  expired. A `401` triggers a refresh, and so does a `403` that says the
+  token itself is invalid.
 
 * `hb_ping()` and `hb_server_info()` no longer send an `Authorization`
   header. Both endpoints are unauthenticated, and demanding an API token
@@ -172,7 +411,8 @@ The notes below record what changed during development, against an
   the README and in `?harbouR`.
 
 * The explorer's server field no longer pre-fills a vendor-hosted
-  address; it starts empty with a neutral placeholder. The documented
+  address; it is empty, with a neutral placeholder, unless
+  `SEATABLE_SERVER` is set. The documented
   examples for `hb_client()` and for the live tests use a self-hosted
   URL.
 
@@ -237,7 +477,8 @@ The notes below record what changed during development, against an
 
 * `hb_duplicate_table()` sent an undocumented `new_table_name` and omitted
   the required `is_duplicate_records`. It gains `duplicate_records` and
-  documents that SeaTable always names the copy `<original> (copy)`.
+  documents that SeaTable always names the copy `<original>(copy)`,
+  with no space.
 
 * `hb_create_table()` documented column specs as `name`/`type` while the
   API wants `column_name`/`column_type`, so following the package's own
@@ -391,8 +632,8 @@ The notes below record what changed during development, against an
   the workspace id, base UUID and upload path.
 
 * `hb_delete_asset()` targeted `/api/v2.1/dtable/asset/` with an API token
-  and a `url` body. The endpoint is `/api/v2.1/dtable/app-asset/`, takes a
-  base token, and identifies the asset by a `path` query parameter.
+  and a `url` body. The endpoint is `/api/v2.1/dtable/app-asset/`, takes
+  the API token, and identifies the asset by a `path` query parameter.
 
 * **Writing a file, image or geolocation cell no longer corrupts it.** The
   write path flattened every list-valued cell with `unlist()`, which is
@@ -435,8 +676,9 @@ The notes below record what changed during development, against an
 * `hb_column_types()` is now genuinely the single source of truth for the
   coercion layer. It gains `is_list` and `read_only` logical columns, which
   the coercion functions derive their type sets from instead of repeating
-  hard-coded vectors, and it covers five types it previously omitted:
-  `percent`, `dollar`, `euro`, `duration` and `digital-sign`.
+  hard-coded vectors, and it covers five names it previously omitted:
+  the types `duration` and `digital-sign`, and the number formats
+  `percent`, `dollar` and `euro`.
 
 * **Breaking:** `hb_list_tables()` and `as_tibble()` on a `harbour_metadata`
   no longer return an `n_rows` column. The metadata endpoint carries no row
