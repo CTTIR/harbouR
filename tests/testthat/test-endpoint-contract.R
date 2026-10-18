@@ -29,6 +29,9 @@ contract_client <- function() {
 # path:    expected fully-resolved path
 # service: expected host selector
 # auth:    expected credential type
+# query:   expected query parameters (a subset; others may be present)
+# body:    expected body field names, exactly
+# no_body: TRUE when the call must send no body at all
 ENDPOINTS <- list(
   list(
     fn = "hb_metadata", method = "GET",
@@ -44,12 +47,16 @@ ENDPOINTS <- list(
   list(
     fn = "hb_read_table", method = "GET",
     path = paste0(GATEWAY, "rows/"), service = "gateway", auth = "base",
+    # convert_keys defaults to false, which keys cells by column key; the
+    # coercion layer looks them up by name.
+    query = list(table_name = "Samples", convert_keys = "true"),
     call = function(cl) hb_read_table(cl, "Samples")
   ),
   list(
     fn = "hb_get_row", method = "GET",
     path = paste0(GATEWAY, "rows/r0001/"),
     service = "gateway", auth = "base",
+    query = list(table_name = "Samples", convert_keys = "true"),
     call = function(cl) hb_get_row(cl, "Samples", "r0001")
   ),
   list(
@@ -235,6 +242,13 @@ test_that("every wrapper targets the documented path, verb, host and auth", {
     # garbage with the suite still green.
     if (!is.null(spec$body)) {
       expect_setequal(names(got$body), spec$body)
+    }
+    if (isTRUE(spec$no_body)) {
+      expect_null(got$body, info = spec$fn)
+    }
+    for (name in names(spec$query)) {
+      expect_identical(got$query[[name]], spec$query[[name]],
+                       info = paste(spec$fn, name))
     }
   }
 })

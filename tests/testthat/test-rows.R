@@ -335,3 +335,85 @@ test_that("both write verbs drop server-computed columns", {
   expect_false("Serial" %in% names(appended$calls[[1]]$body$rows[[1]]))
   expect_false("Serial" %in% names(updated$calls[[1]]$body$updates[[1]]$row))
 })
+
+test_that("appending a column the table lacks warns rather than vanishing", {
+  # A misspelt column used to disappear from every row without a word. It
+  # is still not written - scripts may rely on that - but it is reported.
+  cl <- mock_client()
+  rec <- new_request_recorder()
+  expect_warning(
+    with_mocked_request(
+      hb_append_rows(cl, "Samples", tibble::tibble(Name = "a", Nmae = "b")),
+      recorder = rec
+    ),
+    class = "harbour_warning_unknown_column"
+  )
+  expect_identical(names(rec$calls[[1]]$body$rows[[1]]), "Name")
+
+  # `_id` and the other system fields are let through, so a table read
+  # back with hb_read_table() appends as it is.
+  rec2 <- with_mocked_request(
+    hb_append_rows(
+      cl, "Samples",
+      tibble::tibble(`_id` = "r1", `_mtime` = "x", Name = "a")
+    ),
+    response = list()
+  )
+  expect_identical(names(rec2$calls[[1]]$body$rows[[1]]), "Name")
+})
+
+test_that("updates refuse rows without an id", {
+  cl <- mock_client()
+  rec <- new_request_recorder()
+  expect_error(
+    with_mocked_request(
+      hb_update_rows(cl, "Samples", tibble::tibble(`_id` = c("r1", NA), Name = "a")),
+      recorder = rec
+    ),
+    class = "harbour_error_bad_argument"
+  )
+  expect_length(rec$calls, 0L)
+})
+
+test_that("row-id verbs refuse missing and empty ids", {
+  cl <- mock_client()
+  for (ids in list(c("r1", NA), c("r1", ""))) {
+    expect_error(hb_delete_rows(cl, "Samples", ids),
+                 class = "harbour_error_bad_argument")
+    expect_error(hb_lock_rows(cl, "Samples", ids),
+                 class = "harbour_error_bad_argument")
+    expect_error(hb_unlock_rows(cl, "Samples", ids),
+                 class = "harbour_error_bad_argument")
+  }
+})
+
+test_that("convert_keys = FALSE reads cells keyed by column key", {
+  # The cells come back keyed by key, so looking them up by name - as the
+  # default path does - turned every value into NA.
+  cl <- mock_client()
+  with_mocked_request(
+    out <- hb_query(cl, "select n from Samples limit 5", convert_keys = FALSE),
+    response = list(
+      metadata = list(list(name = "n", type = "number", key = "a1")),
+      results = list(list(`_id` = "r1", a1 = 3))
+    )
+  )
+  expect_named(out, c("a1", "_id"))
+  expect_identical(out$a1, 3)
+})
+
+test_that("a schema entry for _id does not collide with the row id", {
+  cl <- mock_client()
+  with_mocked_request(
+    out <- hb_query(cl, "select * from Samples limit 5"),
+    response = list(
+      metadata = list(
+        list(name = "_id", type = "text", key = "_id"),
+        list(name = "Name", type = "text", key = "0000")
+      ),
+      results = list(list(`_id` = "r1", Name = "a"))
+    )
+  )
+  expect_named(out, c("Name", "_id"))
+  expect_identical(out[["_id"]], "r1")
+})

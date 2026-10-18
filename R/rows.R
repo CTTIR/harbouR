@@ -58,7 +58,12 @@ hb_read_table.harbour_client <- function(x,
   for (page in seq_len(max_pages)) {
     want <- min(page_size, n_max - length(rows))
     if (want <= 0L) break
-    q <- list(table_name = table, start = start, limit = as.integer(want))
+    # convert_keys defaults to false, which keys every cell by the column's
+    # four-character key; the coercion layer looks cells up by name.
+    q <- list(
+      table_name = table, start = start, limit = as.integer(want),
+      convert_keys = "true"
+    )
     if (!is.null(view)) q$view_name <- view
     body <- .hb_request(x, .hb_base_path(x, "rows", ""),
       service = "gateway", auth = "base",
@@ -175,6 +180,16 @@ hb_query <- function(client, sql, ..., parameters = NULL,
   # values instead means an all-NULL column comes back logical, and one
   # stray string turns a numeric column into character.
   columns <- resp$metadata %||% resp$columns %||% list()
+  # The row identifier is appended from the rows themselves, so a schema
+  # entry for it would only collide with that.
+  columns <- Filter(function(col) !identical(col$name, "_id"), columns)
+  if (!convert_keys) {
+    # The cells are keyed by column key, so the columns must be too.
+    columns <- lapply(columns, function(col) {
+      col$name <- col$key %||% col$name
+      col
+    })
+  }
   if (length(columns) > 0L) {
     return(.hb_rows_to_tibble(rows, columns))
   }
@@ -237,7 +252,7 @@ hb_get_row <- function(client, table, row_id, ...) {
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   body <- .hb_request(client, .hb_base_path(client, "rows", row_id, ""),
     service = "gateway", auth = "base", method = "GET",
-    query = list(table_name = table)
+    query = list(table_name = table, convert_keys = "true")
   )
   if (is.null(body) || length(body) == 0L) {
     return(.hb_rows_to_tibble(list(), cols))
@@ -276,6 +291,14 @@ hb_append_rows <- function(client, table, data, ...,
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   chunk_size <- .hb_check_chunk_size(chunk_size)
+  # A misspelt column is dropped from every row. That has always been the
+  # behaviour, and scripts may rely on it, so it is reported rather than
+  # refused. `_id` and the other system fields pass without comment, so a
+  # table read with hb_read_table() can be appended as it is.
+  .hb_check_known_columns(
+    setdiff(names(data), .hb_dtable_row_system_fields), cols, table,
+    action = "warn"
+  )
   rows <- .hb_tibble_to_rows(data, cols)
   chunks <- .hb_chunk(rows, chunk_size)
   inserted <- 0L
@@ -298,6 +321,49 @@ hb_append_rows <- function(client, table, data, ...,
     n_rows = inserted,
     n_requests = length(chunks)
   ))
+}
+
+#' Report data columns the table does not have
+#'
+#' @param names Column names from the data being written, already stripped
+#'   of the ones the caller allows through.
+#' @param columns The table's column objects.
+#' @param table The table's name, for the message.
+#' @param action `"abort"` to refuse the write, `"warn"` to report that the
+#'   columns will not be written.
+#' @param call The frame to blame for any error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_known_columns <- function(names, columns, table,
+                                    action = c("abort", "warn"),
+                                    call = rlang::caller_env()) {
+  action <- rlang::arg_match(action)
+  known <- .hb_chr_field(columns, "name")
+  unknown <- setdiff(names, known)
+  if (length(unknown) == 0L) {
+    return(invisible(NULL))
+  }
+  details <- c(
+    "x" = "{.field {unknown}}",
+    "i" = "Known columns: {.field {known}}."
+  )
+  if (identical(action, "warn")) {
+    cli::cli_warn(
+      c("{length(unknown)} column{?s} in {.arg data} {?is/are} not in
+         {.val {table}} and will not be written.", details),
+      class = "harbour_warning_unknown_column",
+      call = call
+    )
+  } else {
+    hb_abort(
+      c("{length(unknown)} column{?s} in {.arg data} {?is/are} not in
+         {.val {table}}.", details),
+      class = "harbour_error_not_found",
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Validate a write chunk size against SeaTable's server maximum
@@ -364,22 +430,25 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
       class = "harbour_error_bad_argument"
     )
   }
+  ids <- as.character(data[[row_id_col]])
+  n_missing <- sum(is.na(ids) | !nzchar(ids))
+  if (n_missing > 0L) {
+    hb_abort(
+      c("Every row needs an id to be updated.",
+        "x" = "{.field {row_id_col}} is missing in {n_missing} row{?s}."),
+      class = "harbour_error_bad_argument"
+    )
+  }
   chunk_size <- .hb_check_chunk_size(chunk_size)
   if (is.null(client$.metadata)) hb_metadata(client)
   cols <- .hb_columns_from_metadata(client$.metadata, table)
   types <- .hb_chr_field(cols, "type", default = "text")
   names(types) <- .hb_chr_field(cols, "name")
   writable <- names(types)[!types %in% .hb_readonly_types()]
-  unknown <- setdiff(setdiff(names(data), row_id_col), names(types))
-  if (length(unknown) > 0L) {
-    hb_abort(
-      c("{length(unknown)} column{?s} in {.arg data} {?is/are} not in
-         {.val {table}}.",
-        "x" = "{.field {unknown}}",
-        "i" = "Known columns: {.field {names(types)}}."),
-      class = "harbour_error_not_found"
-    )
-  }
+  .hb_check_known_columns(
+    setdiff(names(data), c(row_id_col, .hb_dtable_row_system_fields)),
+    cols, table
+  )
   updates <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
     row <- list()
@@ -398,10 +467,7 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
         if (is.na(type)) "text" else type
       )
     }
-    updates[[r]] <- list(
-      row_id = as.character(data[[row_id_col]][[r]]),
-      row = row
-    )
+    updates[[r]] <- list(row_id = ids[[r]], row = row)
   }
   chunks <- .hb_chunk(updates, chunk_size)
   for (i in seq_along(chunks)) {
@@ -438,11 +504,7 @@ hb_delete_rows <- function(client, table, row_ids, ...,
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
-  if (!is.character(row_ids) || length(row_ids) == 0L) {
-    hb_abort("{.arg row_ids} must be a non-empty character vector.",
-      class = "harbour_error_bad_argument"
-    )
-  }
+  .hb_check_row_ids(row_ids)
   chunk_size <- .hb_check_chunk_size(chunk_size)
   chunks <- .hb_chunk(row_ids, chunk_size)
   for (i in seq_along(chunks)) {
@@ -456,6 +518,26 @@ hb_delete_rows <- function(client, table, row_ids, ...,
     n_rows = length(row_ids),
     n_requests = length(chunks)
   ))
+}
+
+#' Validate a vector of row ids
+#'
+#' @param row_ids The ids to check.
+#' @param call The frame to blame for any error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_row_ids <- function(row_ids, call = rlang::caller_env()) {
+  ok <- is.character(row_ids) && length(row_ids) > 0L &&
+    !anyNA(row_ids) && all(nzchar(row_ids))
+  if (!ok) {
+    hb_abort(
+      "{.arg row_ids} must be a non-empty character vector with no
+       missing or empty ids.",
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Lock rows
@@ -472,11 +554,7 @@ hb_lock_rows <- function(client, table, row_ids, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
-  if (!is.character(row_ids) || length(row_ids) == 0L) {
-    hb_abort("{.arg row_ids} must be a non-empty character vector.",
-      class = "harbour_error_bad_argument"
-    )
-  }
+  .hb_check_row_ids(row_ids)
   .hb_request(client, .hb_base_path(client, "lock-rows", ""),
     service = "gateway", auth = "base", method = "PUT",
     body = list(table_name = table, row_ids = as.list(row_ids))
@@ -497,11 +575,7 @@ hb_unlock_rows <- function(client, table, row_ids, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   .check_string(table)
-  if (!is.character(row_ids) || length(row_ids) == 0L) {
-    hb_abort("{.arg row_ids} must be a non-empty character vector.",
-      class = "harbour_error_bad_argument"
-    )
-  }
+  .hb_check_row_ids(row_ids)
   .hb_request(client, .hb_base_path(client, "unlock-rows", ""),
     service = "gateway", auth = "base", method = "PUT",
     body = list(table_name = table, row_ids = as.list(row_ids))
