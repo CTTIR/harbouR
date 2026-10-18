@@ -8,9 +8,11 @@ a_value_of_type <- function(type) {
   switch(type,
     "multiple-select" = , "collaborator" = , "image" = list("a", "b"),
     "file" = list(list(name = "a.pdf", size = 1L, type = "x", url = "/u")),
-    "geolocation" = list(list(lat = 1.5, lng = 2.5)),
+    # One object per cell, as the API sends it - not an array of objects.
+    "geolocation" = list(lat = 1.5, lng = 2.5),
+    "digital-sign" = list(username = "u"),
     "link" = , "link-formula" = list(list(row_id = "r1")),
-    "button" = , "digital-sign" = list(list(username = "u")),
+    "button" = list(list(username = "u")),
     "number" = , "percent" = , "dollar" = , "euro" = , "duration" = 12.5,
     "rate" = 3L,
     "checkbox" = TRUE,

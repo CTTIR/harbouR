@@ -99,15 +99,40 @@ test_that("structured cells are not flattened on write", {
 })
 
 test_that("writable structured cells keep their structure", {
-  for (type in c("geolocation", "image")) {
-    cell <- list(list(lat = 1.5, lng = 2.5))
-    out <- harbouR:::.hb_tibble_to_rows(
-      tibble::tibble(X = list(cell)),
-      list(list(name = "X", type = type))
-    )
-    expect_type(out[[1L]]$X, "list")
-    expect_type(out[[1L]]$X[[1L]], "list")
-  }
+  out <- harbouR:::.hb_tibble_to_rows(
+    tibble::tibble(X = list(list(list(name = "a.pdf", url = "/u")))),
+    list(list(name = "X", type = "file"))
+  )
+  expect_type(out[[1L]]$X, "list")
+  expect_named(out[[1L]]$X[[1L]], c("name", "url"))
+})
+
+test_that("a geolocation cell is one object, on the way in and out", {
+  # The API sends {"lat": 50, "lng": 8.23}. Unnaming it read back as
+  # list(50, 8.23) and wrote back as [50, 8.23] - an array the server
+  # cannot read as a location.
+  read <- harbouR:::.hb_coerce_cell(list(lat = 50, lng = 8.23), "geolocation")
+  expect_identical(read, list(lat = 50, lng = 8.23))
+
+  written <- harbouR:::.hb_serialise_cell(read, "geolocation")
+  expect_identical(
+    as.character(jsonlite::toJSON(written, auto_unbox = TRUE)),
+    '{"lat":50,"lng":8.23}'
+  )
+  # Wrapped in a one-element list, as a list-column cell easily is.
+  expect_identical(
+    harbouR:::.hb_serialise_cell(list(read), "geolocation"), read
+  )
+  # An empty cell clears the location rather than sending an array.
+  expect_identical(harbouR:::.hb_serialise_cell(list(), "geolocation"), NA)
+})
+
+test_that("a digital-sign cell keeps its fields", {
+  sign <- list(username = "u@x", sign_time = "2024-06-05T13:28:56+00:00")
+  expect_named(
+    harbouR:::.hb_coerce_cell(sign, "digital-sign"),
+    c("username", "sign_time")
+  )
 })
 
 test_that("read-only columns are dropped from the write payload", {

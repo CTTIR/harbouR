@@ -285,7 +285,10 @@ hb_column_types <- function() {
     return(as.character(unlist(value, use.names = FALSE)))
   }
   if (type %in% .hb_list_types()) {
-    return(if (is.list(value)) unname(value) else list(value))
+    # Names are kept: a geolocation or digital-sign cell is one JSON object,
+    # and stripping its names would leave c(50, 8.23) with no way to tell
+    # latitude from longitude.
+    return(if (is.list(value)) value else list(value))
   }
   switch(
     .hb_r_type(type),
@@ -440,9 +443,24 @@ hb_column_types <- function() {
   if (inherits(value, c("Date", "POSIXt"))) {
     return(format(value, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
   }
-  # Structured cells stay structured. Their elements are objects, and each
-  # one must reach the server as an object.
-  if (type %in% c("file", "image", "geolocation", "link", "digital-sign")) {
+  # A geolocation or digital-sign cell is a single object, not an array of
+  # them. Unnaming it would send {"lat": 50, "lng": 8.23} as [50, 8.23].
+  if (type %in% c("geolocation", "digital-sign")) {
+    # Tolerate the object arriving wrapped in a one-element list.
+    wrapped <- is.list(value) && is.null(names(value)) &&
+      length(value) == 1L && is.list(value[[1L]])
+    if (wrapped) {
+      value <- value[[1L]]
+    }
+    if (length(value) == 0L) {
+      # NA reaches the server as null, which clears the cell.
+      return(NA)
+    }
+    return(as.list(value))
+  }
+  # Array-valued cells stay arrays. A file or link cell's elements are
+  # objects, and each one must reach the server as an object.
+  if (type %in% c("file", "image", "link")) {
     if (is.null(value)) {
       return(list())
     }
