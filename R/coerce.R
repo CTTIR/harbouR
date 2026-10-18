@@ -1,26 +1,41 @@
 #' SeaTable column types and how harbouR maps them
 #'
-#' The single source of truth for the coercion layer. Every column type
-#' SeaTable supports appears here exactly once, together with the R type
-#' harbouR produces when reading, whether that R type is a list-column,
-#' and whether the column is computed server-side and therefore cannot be
-#' written. The coercion functions and the column-types vignette are both
+#' The single source of truth for the coercion layer: one row per type
+#' name, giving the R type harbouR produces when reading, whether that R
+#' type is a list-column, and whether harbouR leaves the column out of
+#' writes. The coercion functions and the column-types vignette are both
 #' derived from this table, so they cannot drift apart.
 #'
-#' @return A tibble with one row per SeaTable column type and columns:
+#' `percent`, `dollar` and `euro` are number formats rather than column
+#' types: SeaTable reports such a column as type `"number"`, with the
+#' format in its `data$format`. They are listed so that tables carrying
+#' them as a type still coerce.
+#'
+#' A `date` column reads as `POSIXct` in UTC. When the column's format has
+#' no time part, the cell holds a calendar date, and harbouR reads the date
+#' SeaTable shows as midnight UTC, whatever UTC offset the server sends
+#' with it, so [as.Date()] gives that date. A date-time read from a server
+#' is an instant and is converted to UTC; a date-time stored without an
+#' offset, as in a `.dtable` file, is read as UTC. A column that reports
+#' no format is read as a date-time.
+#'
+#' @return A tibble with one row per type and columns:
 #'   \describe{
-#'     \item{`seatable`}{chr. The type name as SeaTable reports it.}
+#'     \item{`seatable`}{chr. The type name as SeaTable reports it, or one
+#'       of the number formats above.}
 #'     \item{`r`}{chr. The R type harbouR reads it as.}
 #'     \item{`is_list`}{lgl. Whether the result is a list-column.}
-#'     \item{`read_only`}{lgl. Whether the value is computed server-side
-#'       and is dropped on write.}
+#'     \item{`read_only`}{lgl. Whether harbouR leaves the column out of
+#'       writes. Most of these are computed or maintained by SeaTable; a
+#'       `digital-sign` cell is left out because a signature should come
+#'       from the signer.}
 #'     \item{`notes`}{chr. Anything worth knowing.}
 #'   }
 #' @family metadata
 #' @examples
 #' hb_column_types()
 #'
-#' # the types you cannot write to
+#' # the types harbouR does not write
 #' subset(hb_column_types(), read_only)
 #' @export
 hb_column_types <- function() {
@@ -47,11 +62,11 @@ hb_column_types <- function() {
     "rate", "integer", FALSE, FALSE,
     "0..N stars",
     "checkbox", "logical", FALSE, FALSE,
-    "TRUE/FALSE",
+    "TRUE/FALSE; an unset box reads as FALSE",
     "date", "POSIXct", FALSE, FALSE,
     "UTC; date-only columns have a zero time component",
     "single-select", "character", FALSE, FALSE,
-    "validated against the column's options on write",
+    "not validated on write: SeaTable adds an unknown name as a new option",
     "multiple-select", "list<character>", TRUE, FALSE,
     "always a list-column",
     "collaborator", "list<character>", TRUE, FALSE,
@@ -73,7 +88,7 @@ hb_column_types <- function() {
     "button", "list", TRUE, TRUE,
     "carries no data",
     "digital-sign", "list", TRUE, TRUE,
-    "signature metadata",
+    "signature metadata; not written, since it should come from the signer",
     "creator", "character", FALSE, TRUE,
     "user email",
     "last-modifier", "character", FALSE, TRUE,
@@ -197,6 +212,48 @@ hb_column_types <- function() {
   .hb_prototype(type)
 }
 
+#' The display format a column reports, if any
+#'
+#' @param column A column object.
+#' @return A single string, or `NULL`.
+#' @keywords internal
+#' @noRd
+.hb_column_format <- function(column) {
+  data <- column[["data"]]
+  if (!is.list(data)) {
+    return(NULL)
+  }
+  format <- data[["format"]]
+  if (!is.character(format) || length(format) != 1L || is.na(format)) {
+    return(NULL)
+  }
+  format
+}
+
+#' Does a date format show a calendar date with no time?
+#'
+#' SeaTable's date formats are moment.js patterns - `YYYY-MM-DD`,
+#' `M/D/YYYY`, `DD/MM/YYYY` and `DD.MM.YYYY`, each optionally followed by
+#' ` HH:mm` - and only the time tokens use `H`, `h`, `k`, `m` or `s`. A
+#' missing or empty format says nothing either way, so it is not taken
+#' as date-only.
+#'
+#' @param format A single string, or `NULL`.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_date_only_format <- function(format) {
+  !is.null(format) && nzchar(format) && !grepl("[Hhkms]", format)
+}
+
+# A timestamp that carries a UTC offset, the shape the API sends:
+# 2030-06-20T00:00:00+02:00, or with a Z. A .dtable stores dates without
+# one.
+.hb_offset_timestamp <- paste0(
+  "^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}",
+  "(:[0-9]{2}([.,][0-9]+)?)? ?(Z|[+-][0-9]{2}(:?[0-9]{2})?)$"
+)
+
 #' Parse a SeaTable date value
 #'
 #' SeaTable writes dates in several shapes depending on the column's own
@@ -208,10 +265,14 @@ hb_column_types <- function() {
 #' @param x A scalar date value: string, number, or `POSIXt`.
 #' @param tz Time zone to interpret naive strings in. Values that carry an
 #'   offset are converted from it.
+#' @param date_only Whether the column shows a calendar date with no time.
+#'   The API sends such a cell as local midnight with the server's UTC
+#'   offset; converting that instant to UTC put it on the previous day
+#'   on any server east of UTC. The written date is kept instead.
 #' @return A length-1 `POSIXct`, possibly `NA`.
 #' @keywords internal
 #' @noRd
-.hb_parse_date_value <- function(x, tz = "UTC") {
+.hb_parse_date_value <- function(x, tz = "UTC", date_only = FALSE) {
   if (is.null(x) || length(x) == 0L) {
     return(.POSIXct(NA_real_, tz = tz))
   }
@@ -227,6 +288,15 @@ hb_column_types <- function() {
   s <- as.character(x)
   if (!nzchar(s) || is.na(s)) {
     return(.POSIXct(NA_real_, tz = tz))
+  }
+  if (date_only && grepl(.hb_offset_timestamp, s)) {
+    # The leading YYYY-MM-DD is the date SeaTable shows. It is read with
+    # the same call as a naive date-only string below: midnight in `tz`.
+    day <- suppressWarnings(
+      lubridate::ymd(substr(s, 1L, 10L), tz = tz, quiet = TRUE)
+    )
+    parsed <- if (is.na(day)) .POSIXct(NA_real_, tz = tz) else as.POSIXct(day)
+    return(as.POSIXct(parsed))
   }
   # ymd_hms handles the T separator, fractional seconds and offsets; the
   # fallbacks cover date-time without seconds and date-only columns.
@@ -246,11 +316,13 @@ hb_column_types <- function() {
 #' @param value The raw JSON value, or `NULL` when the cell is absent.
 #' @param type The SeaTable column type.
 #' @param tz Time zone for date parsing.
+#' @param date_only For a `date` column, whether its format has no time
+#'   part; see `.hb_parse_date_value()`.
 #' @return A length-1 vector, or a list for list-typed columns. Empty and
 #'   populated cells of the same column always agree in type.
 #' @keywords internal
 #' @noRd
-.hb_coerce_cell <- function(value, type, tz = "UTC") {
+.hb_coerce_cell <- function(value, type, tz = "UTC", date_only = FALSE) {
   type <- type %||% "text"
   # An absent cell yields the column's prototype, so the empty and
   # populated branches cannot disagree about the resulting type.
@@ -268,13 +340,19 @@ hb_column_types <- function() {
       .hb_r_type(type),
       double = NA_real_,
       integer = NA_integer_,
-      logical = NA,
+      # SeaTable shows a box that was never ticked as unticked, and a whole
+      # column has always read it as FALSE, so a single cell does too.
+      logical = FALSE,
       POSIXct = .POSIXct(NA_real_, tz = tz),
       NA_character_
     ))
   }
   if (type %in% c("date", "ctime", "mtime")) {
-    return(.hb_parse_date_value(value, tz = tz))
+    # Creation and modification times are instants, whatever their format.
+    return(.hb_parse_date_value(
+      value,
+      tz = tz, date_only = date_only && identical(type, "date")
+    ))
   }
   # long-text arrives either as a plain string or as an object carrying
   # the rendered text alongside its images, links and checklist.
@@ -341,7 +419,13 @@ hb_column_types <- function() {
     # A cell that was never filled in is absent from the row object
     # entirely, not present as null, so [[ ]] returning NULL is normal.
     raw <- lapply(rows, function(row) row[[field]])
-    coerced <- lapply(raw, .hb_coerce_cell, type = type, tz = tz)
+    coerced <- if (type %in% c("date", "ctime", "mtime")) {
+      date_only <- identical(type, "date") &&
+        .hb_date_only_format(.hb_column_format(columns[[i]]))
+      .hb_coerce_dates(raw, type, tz = tz, date_only = date_only)
+    } else {
+      lapply(raw, .hb_coerce_cell, type = type, tz = tz)
+    }
     out[[i]] <- .hb_collect_column(coerced, type, tz = tz)
   }
   if ("_id" %in% names(out)) {
@@ -367,6 +451,42 @@ hb_column_types <- function() {
   tibble::as_tibble(out, .name_repair = "minimal")
 }
 
+#' Coerce a column of date cells, parsing each distinct string once
+#'
+#' Date parsing is the slowest step of a read - up to three lubridate
+#' calls per cell - and a column's dates often repeat. Each distinct string
+#' is coerced once and the result is mapped back to every cell holding it,
+#' so a cell gets exactly what coercing it on its own gives.
+#'
+#' @param raw A list of raw cell values, one per row.
+#' @param type `"date"`, `"ctime"` or `"mtime"`.
+#' @param tz,date_only Passed to `.hb_coerce_cell()`.
+#' @return A list of coerced cells, as long as `raw`.
+#' @keywords internal
+#' @noRd
+.hb_coerce_dates <- function(raw, type, tz = "UTC", date_only = FALSE) {
+  plain <- vapply(
+    raw,
+    function(value) {
+      is.character(value) && length(value) == 1L && is.null(attributes(value))
+    },
+    logical(1)
+  )
+  out <- vector("list", length(raw))
+  out[!plain] <- lapply(
+    raw[!plain], .hb_coerce_cell,
+    type = type, tz = tz, date_only = date_only
+  )
+  strings <- as.character(unlist(raw[plain], use.names = FALSE))
+  distinct <- unique(strings)
+  parsed <- lapply(
+    distinct, .hb_coerce_cell,
+    type = type, tz = tz, date_only = date_only
+  )
+  out[plain] <- parsed[match(strings, distinct)]
+  out
+}
+
 #' Assemble coerced cells into one column of the right type
 #'
 #' @param coerced A list of coerced cell values, one per row.
@@ -383,7 +503,7 @@ hb_column_types <- function() {
     .hb_r_type(type),
     double = .hb_first(coerced, NA_real_, as.double, double(1)),
     integer = .hb_first(coerced, NA_integer_, as.integer, integer(1)),
-    logical = .hb_first(coerced, NA, isTRUE, logical(1)),
+    logical = .hb_first(coerced, FALSE, isTRUE, logical(1)),
     POSIXct = {
       # One vectorised construction rather than a closure per cell: the
       # real example base is 330 columns x 839 rows.
@@ -402,7 +522,7 @@ hb_column_types <- function() {
 
 #' @keywords internal
 #' @noRd
-.hb_tibble_to_rows <- function(data, columns) {
+.hb_tibble_to_rows <- function(data, columns, call = rlang::caller_env()) {
   if (!is.data.frame(data)) {
     hb_abort("{.arg data} must be a data frame or tibble.",
       class = "harbour_error_bad_argument"
@@ -410,20 +530,239 @@ hb_column_types <- function() {
   }
   col_names <- .hb_chr_field(columns, "name")
   col_types <- .hb_chr_field(columns, "type", default = "text")
-  read_only <- .hb_readonly_types()
+  write <- col_names %in% names(data) & !col_types %in% .hb_readonly_types()
+  .hb_serialise_rows(
+    data, stats::setNames(col_types[write], col_names[write]),
+    date_only = .hb_date_only_columns(columns),
+    call = call
+  )
+}
 
+#' The date columns whose format shows a calendar date with no time
+#'
+#' @param columns Column objects.
+#' @return A character vector of column names.
+#' @keywords internal
+#' @noRd
+.hb_date_only_columns <- function(columns) {
+  keep <- vapply(
+    columns,
+    function(col) {
+      identical(col[["type"]], "date") &&
+        .hb_date_only_format(.hb_column_format(col))
+    },
+    logical(1)
+  )
+  .hb_chr_field(columns[keep], "name")
+}
+
+#' Serialise the cells of a data frame, one named list per row
+#'
+#' A cell that cannot be sent as it is - a number JSON cannot represent,
+#' or a checkbox string that is neither TRUE nor FALSE - is reported once
+#' for the whole write, naming the columns, rather than once per cell.
+#'
+#' @param data A data frame.
+#' @param types The SeaTable type of each column to write, named by
+#'   column. Each row object lists its cells in this order.
+#' @param date_only The names of the date columns whose format has no
+#'   time part.
+#' @param call The frame to blame in a warning.
+#' @return A list with one named list per row of `data`.
+#' @keywords internal
+#' @noRd
+.hb_serialise_rows <- function(data, types, date_only = character(),
+                               call = rlang::caller_env()) {
+  names_ <- names(types)
+  # A difftime column is converted while it is whole: taking one cell out
+  # with [[ ]] drops its units.
+  vectors <- lapply(seq_along(types), function(j) {
+    values <- data[[names_[[j]]]]
+    if (inherits(values, "difftime")) {
+      values <- .hb_difftime_value(values, types[[j]])
+    }
+    # A date-only cell is sent as the calendar date, the form SeaTable
+    # documents for it. With a time and a zone attached, a server that
+    # converts the instant to its own zone would store the day before on
+    # any server west of UTC. The date is the one harbouR reads back.
+    if (names_[[j]] %in% date_only && inherits(values, c("Date", "POSIXt"))) {
+      values <- format(values, "%Y-%m-%d", tz = "UTC")
+    }
+    values
+  })
+  # An environment rather than <<-, as in hb_validate_dtable(): each cell
+  # reports into it, against the column being serialised.
+  state <- new.env(parent = emptyenv())
+  state$column <- NA_character_
+  state$non_finite <- character()
+  state$checkbox <- character()
+  state$checkbox_values <- character()
+  report <- function(problem, values) {
+    state[[problem]] <- union(state[[problem]], state$column)
+    if (identical(problem, "checkbox")) {
+      state$checkbox_values <- union(state$checkbox_values, values)
+    }
+  }
   rows <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
     row <- list()
-    for (i in seq_along(col_names)) {
-      cn <- col_names[[i]]
-      if (!cn %in% names(data)) next
-      if (col_types[[i]] %in% read_only) next
-      row[[cn]] <- .hb_serialise_cell(data[[cn]][[r]], col_types[[i]])
+    for (j in seq_along(types)) {
+      state$column <- names_[[j]]
+      row[[names_[[j]]]] <- .hb_serialise_cell(
+        vectors[[j]][[r]], types[[j]],
+        report = report
+      )
     }
     rows[[r]] <- row
   }
+  # Name the columns in the order they were written, not found.
+  state$non_finite <- intersect(names_, state$non_finite)
+  state$checkbox <- intersect(names_, state$checkbox)
+  .hb_warn_unsendable(state, call = call)
   rows
+}
+
+#' Warn, once per write, about cells that could not be sent as they were
+#'
+#' @param state The environment `.hb_serialise_rows()` collects into: the
+#'   columns by problem, and the checkbox values that were not understood.
+#' @param call The frame to blame.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_warn_unsendable <- function(state, call) {
+  non_finite <- state$non_finite
+  if (length(non_finite) > 0L) {
+    cli::cli_warn(
+      c("{length(non_finite)} column{?s} hold{?s/} Inf, -Inf or NaN, which
+         JSON cannot represent: {.field {non_finite}}.",
+        "i" = "Those cells are sent as {.code null} and will read back as
+               {.val {NA_real_}}."),
+      class = "harbour_warning_non_finite",
+      columns = non_finite,
+      call = call
+    )
+  }
+  checkbox <- state$checkbox
+  checkbox_values <- state$checkbox_values
+  if (length(checkbox) > 0L) {
+    cli::cli_warn(
+      c("{length(checkbox)} checkbox column{?s} hold{?s/} values that are
+         neither TRUE nor FALSE: {.field {checkbox}}.",
+        "i" = "{.val {checkbox_values}} {?is/are} sent as {.code null} and
+               will read back as {.code FALSE}."),
+      class = "harbour_warning_checkbox_value",
+      columns = checkbox,
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
+#' Warn about one cell that could not be sent as it was
+#'
+#' The default `report` of `.hb_serialise_cell()`.
+#' `.hb_serialise_rows()` reports for a whole write instead.
+#'
+#' @param problem `"non_finite"` or `"checkbox"`.
+#' @param values The values that could not be sent.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_report_cell <- function(problem, values) {
+  if (identical(problem, "non_finite")) {
+    # A number in a cli string is taken as the quantity to pluralise by,
+    # so the count is given explicitly.
+    n <- length(values)
+    cli::cli_warn(
+      c("{.val {values}} cannot be represented in JSON and
+         {cli::qty(n)}{?is/are} sent as {.code null}.",
+        "i" = "The cell will read back as {.val {NA_real_}}."),
+      class = "harbour_warning_non_finite"
+    )
+  } else {
+    cli::cli_warn(
+      c("{.val {values}} {?is/are} neither TRUE nor FALSE and {?is/are}
+         sent as {.code null}.",
+        "i" = "A checkbox takes {.code TRUE} or {.code FALSE}, or a number,
+               where 0 is unticked."),
+      class = "harbour_warning_checkbox_value"
+    )
+  }
+  invisible(NULL)
+}
+
+#' The number a difftime is sent as
+#'
+#' SeaTable stores a duration in seconds, while a difftime carries its own
+#' units, which subtracting two times in R picks automatically. In another
+#' numeric column it is a plain number in its own units; in any other
+#' column it is left as it is.
+#'
+#' @param value A difftime.
+#' @param type The SeaTable column type.
+#' @return A double vector, or `value` itself.
+#' @keywords internal
+#' @noRd
+.hb_difftime_value <- function(value, type) {
+  if (identical(type, "duration")) {
+    return(as.numeric(value, units = "secs"))
+  }
+  if (.hb_r_type(type) %in% c("double", "integer")) {
+    return(as.numeric(value))
+  }
+  value
+}
+
+#' Is a value a single file object rather than an array of them?
+#'
+#' [hb_upload_file()] returns one object - a named list of scalars with
+#' `name` and `url` among them - and a file cell holds an array of those.
+#'
+#' @param value A list.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_is_file_object <- function(value) {
+  all(c("name", "url") %in% names(value)) &&
+    !any(vapply(value, is.list, logical(1)))
+}
+
+#' Serialise a checkbox cell
+#'
+#' SeaTable honours only a JSON boolean: the number 1 is stored as an
+#' unticked box. Numbers are read as harbouR reads them, non-zero being
+#' ticked, and strings as [as.logical()] reads them. Anything else is sent
+#' as `null` rather than guessed.
+#'
+#' @param value One cell's value.
+#' @param report Called as `report("checkbox", values)` with the values
+#'   that were not understood.
+#' @return A logical vector, or `NULL` for an empty cell.
+#' @keywords internal
+#' @noRd
+.hb_serialise_checkbox <- function(value, report) {
+  if (is.list(value)) {
+    value <- unlist(value, use.names = FALSE)
+  }
+  if (length(value) == 0L) {
+    # Left out of the row, as an empty cell of any other scalar type is.
+    return(NULL)
+  }
+  if (is.logical(value)) {
+    return(value)
+  }
+  if (is.numeric(value)) {
+    return(value != 0)
+  }
+  text <- as.character(value)
+  out <- as.logical(text)
+  # An empty string is a blank cell, not a value to warn about.
+  unread <- is.na(out) & !is.na(text) & nzchar(text)
+  if (any(unread)) {
+    report("checkbox", unique(text[unread]))
+  }
+  out
 }
 
 #' Serialise one R value into the JSON shape SeaTable expects
@@ -436,12 +775,19 @@ hb_column_types <- function() {
 #'
 #' @param value One cell's value, taken from a data frame column.
 #' @param type The SeaTable column type.
+#' @param report Called as `report(problem, values)` when a cell cannot be
+#'   sent as it is. The default warns for this cell alone.
 #' @return A value ready to be passed to `jsonlite`.
 #' @keywords internal
 #' @noRd
-.hb_serialise_cell <- function(value, type) {
+.hb_serialise_cell <- function(value, type, report = .hb_report_cell) {
   if (inherits(value, c("Date", "POSIXt"))) {
     return(format(value, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
+  }
+  # A difftime that arrives whole - a list-column cell, say - still has
+  # its units.
+  if (inherits(value, "difftime")) {
+    value <- .hb_difftime_value(value, type)
   }
   # A geolocation or digital-sign cell is a single object, not an array of
   # them. Unnaming it would send {"lat": 50, "lng": 8.23} as [50, 8.23].
@@ -464,8 +810,14 @@ hb_column_types <- function() {
     if (is.null(value)) {
       return(list())
     }
+    # Names would turn a vector of image URLs into a JSON object.
     if (!is.list(value)) {
-      return(as.list(value))
+      return(as.list(unname(value)))
+    }
+    # The object hb_upload_file() returns, written as it is: unnaming it
+    # would send its fields as an array of scalars.
+    if (identical(type, "file") && .hb_is_file_object(value)) {
+      return(list(value))
     }
     return(unname(value))
   }
@@ -477,8 +829,20 @@ hb_column_types <- function() {
     }
     return(as.list(unlist(value, use.names = FALSE)))
   }
+  if (identical(type, "checkbox")) {
+    return(.hb_serialise_checkbox(value, report))
+  }
   if (is.list(value)) {
     value <- unlist(value, use.names = FALSE)
+  }
+  if (is.double(value)) {
+    # JSON has no Inf or NaN, so the cell is sent as null either way; the
+    # point is that a cell quietly emptied on the server gets reported.
+    non_finite <- is.infinite(value) | is.nan(value)
+    if (any(non_finite)) {
+      report("non_finite", unique(value[non_finite]))
+      value[non_finite] <- NA_real_
+    }
   }
   value
 }

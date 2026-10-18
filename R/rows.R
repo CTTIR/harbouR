@@ -614,26 +614,19 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
     setdiff(names(data), c(row_id_col, .hb_dtable_row_system_fields)),
     cols, table
   )
-  updates <- vector("list", nrow(data))
-  for (r in seq_len(nrow(data))) {
-    row <- list()
-    for (cn in names(data)) {
-      if (cn == row_id_col) next
-      # Server-computed columns are dropped, matching hb_append_rows().
-      if (!cn %in% writable) next
-      # Same type-aware serialisation the append path uses, so a file or
-      # geolocation cell is not flattened into a bare character vector.
-      # types[[cn]] would throw "subscript out of bounds" for a column the
-      # table does not have, so %||% could never fire. Single-bracket
-      # indexing gives NA, which the fallback can actually catch.
-      type <- unname(types[cn])
-      row[[cn]] <- .hb_serialise_cell(
-        data[[cn]][[r]],
-        if (is.na(type)) "text" else type
-      )
-    }
-    updates[[r]] <- list(row_id = ids[[r]], row = row)
-  }
+  # Server-computed columns are dropped, matching hb_append_rows(), and the
+  # cells go through the same serialiser: a file or geolocation cell keeps
+  # its structure, a difftime column its units, a date-only column its
+  # calendar date, and a cell that cannot be sent as it is is reported once
+  # for the whole write.
+  write <- setdiff(intersect(names(data), writable), row_id_col)
+  cells <- .hb_serialise_rows(
+    data, types[write],
+    date_only = .hb_date_only_columns(cols)
+  )
+  updates <- lapply(seq_len(nrow(data)), function(r) {
+    list(row_id = ids[[r]], row = cells[[r]])
+  })
   chunks <- .hb_chunk(updates, chunk_size)
   for (i in seq_along(chunks)) {
     .hb_request(client, .hb_base_path(client, "rows", ""),

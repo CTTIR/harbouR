@@ -7,28 +7,44 @@
 hb_column_types()
 }
 \value{
-A tibble with one row per SeaTable column type and columns:
+A tibble with one row per type and columns:
 \describe{
-\item{\code{seatable}}{chr. The type name as SeaTable reports it.}
+\item{\code{seatable}}{chr. The type name as SeaTable reports it, or one
+of the number formats above.}
 \item{\code{r}}{chr. The R type harbouR reads it as.}
 \item{\code{is_list}}{lgl. Whether the result is a list-column.}
-\item{\code{read_only}}{lgl. Whether the value is computed server-side
-and is dropped on write.}
+\item{\code{read_only}}{lgl. Whether harbouR leaves the column out of
+writes. Most of these are computed or maintained by SeaTable; a
+\code{digital-sign} cell is left out because a signature should come
+from the signer.}
 \item{\code{notes}}{chr. Anything worth knowing.}
 }
 }
 \description{
-The single source of truth for the coercion layer. Every column type
-SeaTable supports appears here exactly once, together with the R type
-harbouR produces when reading, whether that R type is a list-column,
-and whether the column is computed server-side and therefore cannot be
-written. The coercion functions and the column-types vignette are both
+The single source of truth for the coercion layer: one row per type
+name, giving the R type harbouR produces when reading, whether that R
+type is a list-column, and whether harbouR leaves the column out of
+writes. The coercion functions and the column-types vignette are both
 derived from this table, so they cannot drift apart.
+}
+\details{
+\code{percent}, \code{dollar} and \code{euro} are number formats rather than column
+types: SeaTable reports such a column as type \code{"number"}, with the
+format in its \code{data$format}. They are listed so that tables carrying
+them as a type still coerce.
+
+A \code{date} column reads as \code{POSIXct} in UTC. When the column's format has
+no time part, the cell holds a calendar date, and harbouR reads the date
+SeaTable shows as midnight UTC, whatever UTC offset the server sends
+with it, so \code{\link[=as.Date]{as.Date()}} gives that date. A date-time read from a server
+is an instant and is converted to UTC; a date-time stored without an
+offset, as in a \code{.dtable} file, is read as UTC. A column that reports
+no format is read as a date-time.
 }
 \examples{
 hb_column_types()
 
-# the types you cannot write to
+# the types harbouR does not write
 subset(hb_column_types(), read_only)
 }
 \seealso{

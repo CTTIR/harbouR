@@ -7,8 +7,11 @@ test_that("hb_column_types is non-empty and well-shaped", {
   expect_type(ct$read_only, "logical")
 })
 
-test_that("hb_column_types covers every type SeaTable documents", {
+test_that("hb_column_types covers SeaTable's types and three number formats", {
   # Anything missing here is a column harbouR would silently read as text.
+  # percent, dollar and euro are formats of a number column, which SeaTable
+  # reports as type "number"; they are listed so tables carrying them as a
+  # type still coerce.
   documented <- c(
     "text", "long-text", "email", "url", "number", "percent", "dollar",
     "euro", "duration", "rate", "checkbox", "date", "single-select",
@@ -136,8 +139,9 @@ test_that("a digital-sign cell keeps its fields", {
 })
 
 test_that("read-only columns are dropped from the write payload", {
-  # link, link-formula, button and digital-sign are maintained by SeaTable;
-  # sending them back would at best be ignored and at worst rejected.
+  # Computed columns, links (kept through the link endpoints) and buttons
+  # are SeaTable's to fill in. A digital signature is not written either:
+  # it should come from the signer, not from a script.
   for (type in .hb_readonly_types()) {
     out <- harbouR:::.hb_tibble_to_rows(
       tibble::tibble(X = list(list(a = 1))),

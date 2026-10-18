@@ -21,7 +21,8 @@ test_that(".hb_empty_vector_for_type returns the right empty type", {
 test_that(".hb_coerce_cell handles NULL across types", {
   expect_identical(harbouR:::.hb_coerce_cell(NULL, "number"), NA_real_)
   expect_identical(harbouR:::.hb_coerce_cell(NULL, "rate"), NA_integer_)
-  expect_identical(harbouR:::.hb_coerce_cell(NULL, "checkbox"), NA)
+  # An unset box reads as FALSE, as the assembled column always has.
+  expect_identical(harbouR:::.hb_coerce_cell(NULL, "checkbox"), FALSE)
   expect_true(is.na(harbouR:::.hb_coerce_cell(NULL, "date")))
   expect_identical(harbouR:::.hb_coerce_cell(NULL, "file"), list())
   expect_identical(harbouR:::.hb_coerce_cell(NULL, "text"), NA_character_)
