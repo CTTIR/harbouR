@@ -19,7 +19,9 @@ condition if the credentials are rejected.
 Exchanges the client's credentials for a token, which is the cheapest
 way to find out whether they work. For an API-token client this fetches
 a base token, and so also confirms the token is valid \emph{for that base};
-for a username/password client it fetches an account token.
+for a username/password client it fetches an account token and then
+drops any cached base token, so that the next base call fetches a new
+one.
 }
 \details{
 Unlike \code{\link[=hb_ping]{hb_ping()}}, which only proves the server is up, this proves the

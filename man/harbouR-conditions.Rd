@@ -4,9 +4,12 @@
 \alias{harbouR-conditions}
 \title{Conditions signalled by harbouR}
 \description{
-Every error harbouR raises carries the class \code{harbour_error}, plus a
-more specific subclass, so callers can react to \emph{what} went wrong
-rather than matching on message text.
+Every error harbouR raises itself, and every HTTP or transport failure,
+carries the class \code{harbour_error}, plus a more specific subclass, so
+callers can react to \emph{what} went wrong rather than matching on message
+text. Errors from rlang's argument matching - a value that is not one
+of an argument's choices, or an argument passed in \code{...} that the
+function does not have - keep rlang's own classes.
 }
 \section{Condition classes}{
 
@@ -14,18 +17,24 @@ rather than matching on message text.
 \describe{
 \item{\code{harbour_error_auth}}{Credentials are missing, malformed, or
 were rejected by the server. Fields: \code{status}, \code{url} and
-\code{response_body} when the server answered HTTP 401; none when the
-problem was caught before any request.}
+\code{response_body} when the server refused them; none when the
+problem was caught before any request. The token exchanges refuse
+credentials with whatever status their endpoint uses - a wrong
+password is HTTP 400, an unknown API token HTTP 403 - and such an
+error carries \code{harbour_error_http} or \code{harbour_error_permission}
+as well.}
 \item{\code{harbour_error_http}}{The server returned a non-2xx status that
-has no more specific subclass. Fields: \code{status}, \code{url} and
-\code{response_body} - the parsed JSON, or the text when the server did
-not send JSON.}
+has no more specific subclass, or could not be reached (status
+\code{NA}). Fields: \code{status}, \code{url} and \code{response_body} - the parsed
+JSON, or the text when the server did not send JSON. A server that
+could not be reached - a refused connection, a DNS or TLS failure,
+a timeout - also carries httr2's classes \code{httr2_failure} and
+\code{httr2_error}, and has no \code{response_body}.}
 \item{\code{harbour_error_not_found}}{HTTP 404, or a named table, view or
 column that does not exist in the base. Fields: \code{status}, \code{url},
 \code{response_body} for the HTTP case.}
-\item{\code{harbour_error_permission}}{HTTP 403. The token is valid but
-is not allowed to do this. Fields: \code{status}, \code{url},
-\code{response_body}.}
+\item{\code{harbour_error_permission}}{HTTP 403. The token is not allowed
+to do this. Fields: \code{status}, \code{url}, \code{response_body}.}
 \item{\code{harbour_error_rate_limit}}{HTTP 429. Fields: \code{status}, \code{url},
 \code{response_body}.}
 \item{\code{harbour_error_bad_argument}}{An argument failed validation

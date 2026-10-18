@@ -25,9 +25,12 @@
 #'   base-token exchange.
 #' @param workspace_id,base_name Which base to work on. Required for a
 #'   `username`/`password` client, because an account token is scoped to
-#'   the user rather than to a base. Ignored when `api_token` is used,
-#'   since an API token names its base implicitly.
-#' @param timeout Per-request timeout in seconds. Default `30`.
+#'   the user rather than to a base: `workspace_id` is a positive whole
+#'   number, or a string of its digits, and `base_name` a string. Ignored
+#'   when `api_token` is used, since an API token names its base
+#'   implicitly.
+#' @param timeout Per-request timeout in seconds, a positive number.
+#'   Default `30`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A `harbour_client` object.
@@ -55,7 +58,8 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
   # allowed here because Sys.getenv() returns "" for an unset variable,
   # which the next two lines turn into NULL.
   .check_string(server, allow_null = TRUE, allow_empty = TRUE)
-  .check_string(api_token, allow_null = TRUE, allow_empty = TRUE)
+  .check_string(api_token, allow_null = TRUE, allow_empty = TRUE,
+                secret = TRUE)
   server <- if (is.null(server) || !nzchar(server)) NULL else server
   api_token <- if (is.null(api_token) || !nzchar(api_token)) NULL else api_token
 
@@ -90,8 +94,22 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
   }
   if (has_acct) {
     .check_string(username)
-    .check_string(password)
+    .check_string(password, secret = TRUE)
+    # Only an account client names its base by workspace and name. An
+    # API-token client ignores both, so they are not checked for it. A
+    # factor reached the URL as its label, so it is taken as one.
+    if (is.factor(workspace_id)) workspace_id <- as.character(workspace_id)
+    if (is.factor(base_name)) base_name <- as.character(base_name)
+    .check_workspace_id(workspace_id)
+    # A base whose name is a number has always been reachable by passing
+    # that number, so it is taken as the digits rather than refused.
+    number <- is.numeric(base_name) && length(base_name) == 1L
+    if (number && is.finite(base_name)) {
+      base_name <- .hb_format_id(base_name)
+    }
+    .check_string(base_name, allow_null = TRUE)
   }
+  .check_positive_number(timeout, allow_null = TRUE)
 
   if (has_acct && (is.null(workspace_id) || is.null(base_name))) {
     cli::cli_warn(c(
@@ -177,7 +195,11 @@ is_harbour_client <- function(x) inherits(x, "harbour_client")
 print.harbour_client <- function(x, ...) {
   rlang::check_dots_empty()
   cli::cli_h1("<harbour_client>")
-  lines <- format(x)
+  # The lines carry the server URL and the base name, which whoever owns
+  # the base chooses. cli would run braces in them as code; doubled, they
+  # print as typed.
+  lines <- gsub("{", "{{", format(x), fixed = TRUE)
+  lines <- gsub("}", "}}", lines, fixed = TRUE)
   names(lines) <- rep("*", length(lines))
   cli::cli_bullets(lines)
   invisible(x)

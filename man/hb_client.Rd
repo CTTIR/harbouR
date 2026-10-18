@@ -41,10 +41,13 @@ base-token exchange.}
 
 \item{workspace_id, base_name}{Which base to work on. Required for a
 \code{username}/\code{password} client, because an account token is scoped to
-the user rather than to a base. Ignored when \code{api_token} is used,
-since an API token names its base implicitly.}
+the user rather than to a base: \code{workspace_id} is a positive whole
+number, or a string of its digits, and \code{base_name} a string. Ignored
+when \code{api_token} is used, since an API token names its base
+implicitly.}
 
-\item{timeout}{Per-request timeout in seconds. Default \code{30}.}
+\item{timeout}{Per-request timeout in seconds, a positive number.
+Default \code{30}.}
 
 \item{x}{A \code{harbour_client}.}
 }

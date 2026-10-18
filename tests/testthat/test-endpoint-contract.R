@@ -308,15 +308,29 @@ test_that("every base-scoped path carries the base UUID", {
 })
 
 test_that("no wrapper addresses a service SeaTable removed in 5.3", {
-  sources <- list.files("../../R", pattern = "[.]R$", full.names = TRUE)
-  if (!length(sources)) {
-    skip("package sources not available from the installed tree")
+  # Read the string constants of the loaded namespace, not the source
+  # files: R CMD check and covr test an installed copy, which has none.
+  # Comments, which legitimately mention the removed services, are not
+  # part of a function, so only code counts.
+  strings <- character()
+  collect <- function(x) {
+    if (is.character(x)) {
+      strings <<- c(strings, x)
+    } else if (is.function(x)) {
+      collect(formals(x))
+      collect(body(x))
+    } else if (is.call(x) || is.pairlist(x) || is.list(x) ||
+               is.expression(x)) {
+      lapply(as.list(x), function(part) if (!missing(part)) collect(part))
+    }
+    invisible()
   }
-  code <- unlist(lapply(sources, readLines, warn = FALSE))
-  # Comments legitimately mention the removed services; only code counts.
-  code <- code[!grepl("^\\s*#", code)]
-  expect_false(any(grepl("/dtable-server/", code, fixed = TRUE)))
-  expect_false(any(grepl("/dtable-db/", code, fixed = TRUE)))
+  ns <- asNamespace("harbouR")
+  for (name in ls(ns, all.names = TRUE)) collect(get(name, envir = ns))
+  # The walk reached the paths the wrappers do use.
+  expect_true(any(grepl("/api-gateway/api", strings, fixed = TRUE)))
+  expect_false(any(grepl("/dtable-server/", strings, fixed = TRUE)))
+  expect_false(any(grepl("/dtable-db/", strings, fixed = TRUE)))
 })
 
 test_that("the base UUID is resolved lazily rather than demanded upfront", {

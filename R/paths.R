@@ -99,6 +99,26 @@
   paste(out, collapse = "")
 }
 
+#' Write a numeric id as the digits a URL needs
+#'
+#' `as.character()` writes a round double in scientific notation, so a
+#' workspace id of `1e5` - or `100000` typed as a double - would reach the
+#' server as `1e+05`, which names no workspace.
+#'
+#' @param x A single id, or `NULL`.
+#' @return A single string, or `NULL` when `x` is `NULL`.
+#' @keywords internal
+#' @noRd
+.hb_format_id <- function(x) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  if (is.numeric(x)) {
+    return(format(x, scientific = FALSE, trim = TRUE))
+  }
+  as.character(x)
+}
+
 #' SeaTable's server-side row limits
 #'
 #' Reads return at most 1000 rows per request and batch writes accept at

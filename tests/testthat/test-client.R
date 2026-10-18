@@ -20,7 +20,9 @@ test_that("hb_client builds a valid client from env vars", {
 
 test_that("print.harbour_client masks the token", {
   cl <- mock_client(api_token = "supersecret-token-1234567890")
-  out <- capture.output(print(cl))
+  # print() writes through cli, which capture.output() does not see.
+  out <- cli::cli_fmt(print(cl))
+  expect_true(any(grepl("supe...7890", out, fixed = TRUE)))
   expect_false(any(grepl("supersecret-token-1234567890", out, fixed = TRUE)))
 })
 

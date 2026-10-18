@@ -94,14 +94,29 @@ test_that("no cli message interpolates an expression starting with a dot", {
   # `{.hb_max_page_size}` or `{.hb_safe_url(req)}` throws at format time -
   # only when the error path is actually taken. This has bitten the package
   # three times; a static check is cheaper than finding it again.
-  sources <- list.files("../../R", pattern = "[.]R$", full.names = TRUE)
-  if (!length(sources)) {
-    skip("package sources not available from the installed tree")
+  #
+  # The check reads the string constants of the loaded namespace, not the
+  # source files: R CMD check and covr test an installed copy, which has
+  # none. Comments are not part of a function, so they cannot match.
+  strings <- character()
+  collect <- function(x) {
+    if (is.character(x)) {
+      strings <<- c(strings, x)
+    } else if (is.function(x)) {
+      collect(formals(x))
+      collect(body(x))
+    } else if (is.call(x) || is.pairlist(x) || is.list(x) ||
+               is.expression(x)) {
+      lapply(as.list(x), function(part) if (!missing(part)) collect(part))
+    }
+    invisible()
   }
-  code <- unlist(lapply(sources, readLines, warn = FALSE))
-  code <- code[!grepl("^\\s*#", code)]
+  ns <- asNamespace("harbouR")
+  for (name in ls(ns, all.names = TRUE)) collect(get(name, envir = ns))
+  # The walk reached the package's cli messages.
+  expect_true(any(grepl("{.arg ", strings, fixed = TRUE)))
   # A known cli style is fine; a call or a dotted object name is not.
-  offenders <- grep("\\{\\.[a-zA-Z_]+[a-zA-Z0-9_.]*\\(", code, value = TRUE)
+  offenders <- grep("\\{\\.[a-zA-Z_]+[a-zA-Z0-9_.]*\\(", strings, value = TRUE)
   expect_identical(offenders, character())
 })
 

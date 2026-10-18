@@ -10,6 +10,7 @@
                           arg = rlang::caller_arg(x),
                           allow_null = FALSE,
                           allow_empty = FALSE,
+                          secret = FALSE,
                           call = rlang::caller_env()) {
   if (allow_null && is.null(x)) {
     return(invisible(NULL))
@@ -22,8 +23,100 @@
     } else {
       "{.arg {arg}} must be a single non-empty string."
     }
+    # A token or password in an error message ends up in consoles and
+    # logs, so for those only the kind of value is described.
+    supplied <- if (secret) {
+      shape <- .hb_describe_value(x)
+      "You supplied {shape}."
+    } else {
+      "You supplied {.val {x}}."
+    }
     hb_abort(
-      c(what, "x" = "You supplied {.val {x}}."),
+      c(what, "x" = supplied),
+      call = call,
+      class = "harbour_error_bad_argument"
+    )
+  }
+  invisible(NULL)
+}
+
+#' Describe a value without showing it
+#'
+#' @param x Any value.
+#' @return A single string such as `"a number"` or `"a character vector
+#'   of length 2"`.
+#' @keywords internal
+#' @noRd
+.hb_describe_value <- function(x) {
+  if (is.null(x)) {
+    return("`NULL`")
+  }
+  if (is.atomic(x) && length(x) == 1L) {
+    if (is.na(x)) {
+      return("`NA`")
+    }
+    if (is.character(x)) {
+      return(if (nzchar(x)) "a string" else "an empty string")
+    }
+    if (is.numeric(x)) {
+      return("a number")
+    }
+  }
+  kind <- if (is.character(x)) {
+    "character vector"
+  } else if (is.numeric(x)) {
+    "numeric vector"
+  } else if (is.logical(x)) {
+    "logical vector"
+  } else if (is.list(x)) {
+    "list"
+  }
+  if (is.null(kind)) {
+    return(paste0("an object of class <", class(x)[[1L]], ">"))
+  }
+  paste0("a ", kind, " of length ", length(x))
+}
+
+#' @keywords internal
+#' @noRd
+.check_workspace_id <- function(x,
+                                arg = rlang::caller_arg(x),
+                                call = rlang::caller_env()) {
+  if (is.null(x)) {
+    return(invisible(NULL))
+  }
+  ok <- length(x) == 1L && !is.na(x) && (
+    (is.numeric(x) && is.finite(x) && x > 0 && x == round(x)) ||
+      (is.character(x) && grepl("^[0-9]+$", x) && grepl("[1-9]", x))
+  )
+  if (!ok) {
+    hb_abort(
+      c("{.arg {arg}} must be a single positive whole number or a string of
+         digits.",
+        "x" = "You supplied {.val {x}}."
+      ),
+      call = call,
+      class = "harbour_error_bad_argument"
+    )
+  }
+  invisible(NULL)
+}
+
+#' @keywords internal
+#' @noRd
+.check_positive_number <- function(x,
+                                   arg = rlang::caller_arg(x),
+                                   allow_null = FALSE,
+                                   call = rlang::caller_env()) {
+  if (allow_null && is.null(x)) {
+    return(invisible(NULL))
+  }
+  # Inf passes: as a timeout it has always been handed on to curl as it is.
+  if (!is.numeric(x) || length(x) != 1L || is.na(x) || x <= 0) {
+    hb_abort(
+      c("{.arg {arg}} must be a single number greater than 0.",
+        "x" = "You supplied {.val {x}}."
+      ),
       call = call,
       class = "harbour_error_bad_argument"
     )

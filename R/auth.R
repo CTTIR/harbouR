@@ -25,6 +25,12 @@ hb_ping <- function(client, ...) {
       method = "GET"
     ),
     error = function(cnd) {
+      # A server that did not answer has already been reported as one by
+      # the request engine; chain httr2's own condition beneath that, so
+      # the cause is not told twice.
+      if (inherits(cnd, "harbour_error") && inherits(cnd, "httr2_failure")) {
+        cnd <- cnd$parent %||% cnd
+      }
       hb_abort(
         c("Could not reach {.url {client$server}}.",
           "i" = "Check the server URL and your network connection."
@@ -42,7 +48,9 @@ hb_ping <- function(client, ...) {
 #' Exchanges the client's credentials for a token, which is the cheapest
 #' way to find out whether they work. For an API-token client this fetches
 #' a base token, and so also confirms the token is valid *for that base*;
-#' for a username/password client it fetches an account token.
+#' for a username/password client it fetches an account token and then
+#' drops any cached base token, so that the next base call fetches a new
+#' one.
 #'
 #' Unlike [hb_ping()], which only proves the server is up, this proves the
 #' credentials are usable.
@@ -65,6 +73,10 @@ hb_check_credentials <- function(client, ...) {
   } else {
     client$.account_token <- NULL
     .hb_get_account_token(client)
+    # A base token fetched with the old login is dropped once the new one
+    # works, so this also recovers a client whose base token the server no
+    # longer accepts. The next base call fetches a new one.
+    client$.base_token <- NULL
   }
   invisible(client)
 }
