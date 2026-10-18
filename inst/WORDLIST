@@ -16,6 +16,7 @@ Codecov
 collaborator
 Collaborators
 colourblind
+copyediting
 covr
 CRAN
 CSVs
@@ -32,6 +33,7 @@ EULA's
 ggplot
 GitHub
 GmbH
+GWDG
 harbouR's
 harbouR’s
 headlessly
@@ -42,6 +44,7 @@ httr2
 int
 JetBrains
 JSON
+KISSKI
 lgl
 lifecycle
 lubridate
@@ -57,10 +60,12 @@ pkgdown
 POSIXct
 Programming
 purrr
+PyTorch
 Ralf
 reactable
 refetch
 roxygen
+RStudio
 scaffolded
 Scaffolded
 sdk
