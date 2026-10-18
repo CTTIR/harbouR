@@ -11,7 +11,10 @@ hb_add_columns(client, table, columns, ...)
 
 \item{table}{Table name.}
 
-\item{columns}{A list of column specs (each a named list).}
+\item{columns}{A list of column specs, each a named list with \code{name},
+\code{type} and optionally \code{data} - the same shape \code{\link[=hb_create_table]{hb_create_table()}}
+takes. SeaTable's own spelling, \code{column_name}, \code{column_type} and
+\code{column_data}, is accepted too.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
@@ -27,8 +30,8 @@ client <- hb_client()
 hb_add_columns(
   client, "Samples",
   list(
-    list(column_name = "a", column_type = "text"),
-    list(column_name = "b", column_type = "number")
+    list(name = "a", type = "text"),
+    list(name = "b", type = "number")
   )
 )
 \dontshow{\}) # examplesIf}

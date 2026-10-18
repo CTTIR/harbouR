@@ -116,3 +116,43 @@ test_that("updating an unknown select option lists the ones that exist", {
     class = "harbour_error_not_found"
   )
 })
+
+test_that("hb_add_columns takes the same specs as hb_create_table", {
+  # The specs used to be sent verbatim, so list(name =, type =) reached
+  # the server with field names it does not read.
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    hb_add_columns(cl, "Samples", list(
+      list(name = "a", type = "text"),
+      list(column_name = "b", column_type = "number", column_data = list(x = 1))
+    )),
+    response = list()
+  )
+  sent <- rec$calls[[1]]$body$columns
+  expect_identical(sent[[1]], list(column_name = "a", column_type = "text"))
+  expect_identical(sent[[2]]$column_name, "b")
+  expect_identical(sent[[2]]$column_data, list(x = 1))
+  expect_error(
+    hb_add_columns(cl, "Samples", list(list(name = "a"))),
+    class = "harbour_error_bad_argument"
+  )
+})
+
+test_that("column_data alone keeps the column's current type", {
+  # modify_column_type requires new_column_type; without it the request
+  # is rejected. harbouR names the current type for the caller.
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    hb_update_column(cl, "Samples", "Concentration",
+                     column_data = list(decimal = "dot")),
+    response = list()
+  )
+  body <- rec$calls[[1]]$body
+  expect_identical(body$op_type, "modify_column_type")
+  expect_identical(body$new_column_type, "number")
+  expect_identical(body$column_data, list(decimal = "dot"))
+  expect_error(
+    hb_update_column(cl, "Samples", "Nope", column_data = list(a = 1)),
+    class = "harbour_error_not_found"
+  )
+})

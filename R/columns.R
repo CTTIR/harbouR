@@ -104,7 +104,10 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 
 #' Add several columns at once
 #' @inheritParams hb_add_column
-#' @param columns A list of column specs (each a named list).
+#' @param columns A list of column specs, each a named list with `name`,
+#'   `type` and optionally `data` - the same shape [hb_create_table()]
+#'   takes. SeaTable's own spelling, `column_name`, `column_type` and
+#'   `column_data`, is accepted too.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
@@ -113,8 +116,8 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 #' hb_add_columns(
 #'   client, "Samples",
 #'   list(
-#'     list(column_name = "a", column_type = "text"),
-#'     list(column_name = "b", column_type = "number")
+#'     list(name = "a", type = "text"),
+#'     list(name = "b", type = "number")
 #'   )
 #' )
 #' @export
@@ -129,7 +132,7 @@ hb_add_columns <- function(client, table, columns, ...) {
   }
   .hb_request(client, .hb_base_path(client, "batch-append-columns", ""),
     service = "gateway", auth = "base", method = "POST",
-    body = list(table_name = table, columns = columns)
+    body = list(table_name = table, columns = .hb_column_specs(columns))
   )
   .hb_invalidate_metadata(client)
   invisible(client)
@@ -142,6 +145,10 @@ hb_add_columns <- function(client, table, columns, ...) {
 #' @param new_type Optional new SeaTable column type. Sends `op_type =
 #'   "modify_column_type"`. SeaTable performs one operation per request,
 #'   so this cannot be combined with `new_name`.
+#' @param column_data Optional list of column options, sent with the type
+#'   change. Given without `new_type`, it reconfigures the column under its
+#'   current type, which harbouR looks up for you - SeaTable requires the
+#'   type to be named.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
@@ -182,6 +189,9 @@ hb_update_column <- function(client, table, name, ..., new_name = NULL,
   }
 
   op_type <- names(wanted)[wanted]
+  if (identical(op_type, "modify_column_type") && is.null(new_type)) {
+    new_type <- .hb_column_type(client, table, name)
+  }
   body <- list(table_name = table, column = name, op_type = op_type)
   if (!is.null(new_name)) body$new_column_name <- new_name
   if (!is.null(new_type)) body$new_column_type <- new_type
@@ -303,6 +313,29 @@ hb_delete_select_option <- function(client, table, name, option, ...) {
   )
   .hb_invalidate_metadata(client)
   invisible(client)
+}
+
+#' Look up a column's current type
+#'
+#' @param client A `harbour_client`.
+#' @param table Table name.
+#' @param column Column name.
+#' @param call The frame to blame for any error.
+#' @return A single string.
+#' @keywords internal
+#' @noRd
+.hb_column_type <- function(client, table, column,
+                            call = rlang::caller_env()) {
+  cols <- .hb_fetch_columns(client, table, call = call)
+  idx <- match(column, .hb_chr_field(cols, "name"))
+  if (is.na(idx)) {
+    hb_abort(
+      "Column {.val {column}} not found in table {.val {table}}.",
+      class = "harbour_error_not_found",
+      call = call
+    )
+  }
+  as.character(cols[[idx]]$type)
 }
 
 #' Resolve a select option's name to its SeaTable id

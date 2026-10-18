@@ -28,9 +28,10 @@ hb_update_column(
 \item{new_type}{Optional new SeaTable column type. Sends \code{op_type = "modify_column_type"}. SeaTable performs one operation per request,
 so this cannot be combined with \code{new_name}.}
 
-\item{column_data}{Optional list of column options, e.g. the choices
-for a select column. Named \code{column_data} rather than \code{data} because
-\code{data} means "the rows you are writing" everywhere else in harbouR.}
+\item{column_data}{Optional list of column options, sent with the type
+change. Given without \code{new_type}, it reconfigures the column under its
+current type, which harbouR looks up for you - SeaTable requires the
+type to be named.}
 }
 \value{
 Invisibly returns the client.
