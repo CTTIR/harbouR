@@ -640,9 +640,13 @@ hb_column_types <- function() {
 #' @noRd
 .hb_calendar_date <- function(values) {
   out <- format(values, "%Y-%m-%d")
-  if (inherits(values, "POSIXct")) {
-    midnight <- !is.na(values) & unclass(values) %% 86400 == 0
-    out[midnight] <- format(values[midnight], "%Y-%m-%d", tz = "UTC")
+  if (inherits(values, "POSIXt")) {
+    # The instant, whatever the class, so that a POSIXlt and a POSIXct of
+    # the same moment get the same day; an infinite one is no midnight.
+    instants <- as.POSIXct(values)
+    seconds <- unclass(instants)
+    midnight <- is.finite(seconds) & seconds %% 86400 == 0
+    out[midnight] <- format(instants[midnight], "%Y-%m-%d", tz = "UTC")
   }
   out
 }
@@ -807,9 +811,11 @@ hb_column_types <- function() {
 #' @noRd
 .hb_serialise_cell <- function(value, type, report = .hb_report_cell) {
   if (inherits(value, c("Date", "POSIXt"))) {
-    # Through POSIXct: format() of a POSIXlt ignores `tz`, and would label
-    # its own wall-clock time as UTC.
-    return(format(as.POSIXct(value), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
+    # format() of a POSIXlt ignores `tz`, and would label its own
+    # wall-clock time as UTC, so it goes through POSIXct. A Date does not:
+    # that would turn a fraction of a day into a time.
+    if (inherits(value, "POSIXlt")) value <- as.POSIXct(value)
+    return(format(value, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"))
   }
   # A difftime that arrives whole - a list-column cell, say - still has
   # its units.

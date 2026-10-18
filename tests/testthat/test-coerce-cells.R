@@ -623,3 +623,28 @@ test_that("a POSIXlt in a date-time column is sent as its instant", {
     "2030-06-20T00:00:00Z"
   )
 })
+
+test_that("a POSIXlt at midnight UTC keeps its UTC date, as a POSIXct does", {
+  column <- date_column("YYYY-MM-DD")
+  written <- function(value) {
+    rows <- harbouR:::.hb_tibble_to_rows(
+      tibble::tibble(Due = value), list(column)
+    )
+    vapply(rows, function(row) row$Due %||% NA_character_, "")
+  }
+  read <- read_column(list("2030-06-20T00:00:00-04:00"), column)
+  expect_identical(written(as.POSIXlt(read, tz = "America/New_York")),
+                   "2030-06-20")
+  # An infinite date-time is no midnight, and does not stop the write.
+  expect_identical(written(c(read, .POSIXct(-Inf, tz = "UTC"))),
+                   c("2030-06-20", "-Inf"))
+})
+
+test_that("a Date with a fraction of a day is still sent as its midnight", {
+  # mean() of two dates has one; a date-time column is sent the instant
+  # of the date, as format() shows it, not a time of day.
+  half <- mean(as.Date(c("2030-06-20", "2030-06-21")))
+  expect_identical(
+    harbouR:::.hb_serialise_cell(half, "date"), "2030-06-20T00:00:00Z"
+  )
+})

@@ -511,10 +511,14 @@ test_that("a request that timed out is not reported as never sent", {
   shown <- conditionMessage(err)
   expect_false(grepl("Could not reach", shown, fixed = TRUE))
   expect_match(shown, "did not complete", fixed = TRUE)
-  expect_match(shown, "may have applied this change", fixed = TRUE)
+  expect_match(shown, "may have applied it", fixed = TRUE)
   expect_match(shown, "timeout", fixed = TRUE)
-  # A read changes nothing, so it carries no such warning.
+  # A read changes nothing, so it carries no such warning, and nor does a
+  # login, though it goes out as a POST.
   err <- expect_error(hb_server_info(cl), class = "harbour_error_http")
+  expect_false(grepl("may have applied", conditionMessage(err), fixed = TRUE))
+  err <- expect_error(hb_check_credentials(account_client()),
+                      class = "harbour_error_http")
   expect_false(grepl("may have applied", conditionMessage(err), fixed = TRUE))
 })
 

@@ -440,9 +440,11 @@
       if (inherits(cause, "curl_error_operation_timedout")) {
         c("i" = "It took longer than the client's {.arg timeout} allows.")
       },
-      if (!method %in% c("GET", "HEAD")) {
-        c("!" = "The server may have applied this change; check before
-                 sending it again.")
+      # Logging in changes nothing, and a POST may not either: SQL goes
+      # out as one, a SELECT included.
+      if (!method %in% c("GET", "HEAD") && !login) {
+        c("!" = "If this request changes data, the server may have
+                 applied it; check before sending it again.")
       })
   }
   hb_abort(

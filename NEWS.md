@@ -69,7 +69,8 @@ First release.
     `hb_ping()` included. It escaped as httr2's bare `httr2_failure`;
     that class is kept, so handlers written for it still match. The
     message says the server could not be reached only when nothing was
-    sent; after a timeout, a write says to check before sending it again,
+    sent - `hb_ping()` keeps its own words - and after a timeout, a
+    request that can change data says to check before sending it again,
     since the server may have applied it.
   * `?"harbouR-conditions"` now lists the warning classes, and says that
     argument-matching errors from rlang keep the classes rlang gives
@@ -113,8 +114,9 @@ First release.
     in `hb_query()` all went out as JSON objects or strings rather than
     arrays.
   * `Inf`, `-Inf` and `NaN`, which JSON cannot hold, are still sent as
-    `null`, but now with one warning per write naming the columns; in a
-    checkbox column `Inf` is a number other than 0, and ticks. A
+    `null`, but now with one warning per write naming the columns. In a
+    checkbox column a number ticks the box unless it is 0, so `Inf` and
+    `-Inf` tick it, and `NaN` is sent empty without a warning. A
     `difftime` written to a duration column is sent in seconds, the unit
     SeaTable stores; 90 minutes went out as 90. `hb_update_rows()` now
     serialises through the same path as `hb_append_rows()`.

@@ -481,6 +481,15 @@ test_that("a server that repeats a page is stopped at the repeat", {
     ),
     class = "harbour_error_http"
   )
+  # A server that ignores limit as well sends more than the short page
+  # asked for, starting with the same rows.
+  expect_error(
+    with_mocked_request(
+      hb_read_table(cl, "T", page_size = 10L, n_max = 15),
+      response = same_page
+    ),
+    class = "harbour_error_http"
+  )
 })
 
 # --- hb_get_row() -----------------------------------------------------------
