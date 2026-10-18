@@ -175,6 +175,10 @@ test_that("a byte-order mark, embedded nuls and compression still read", {
   writeBin(c(charToRaw("a,b\n1,2\n3,"), as.raw(0L), charToRaw("4\n")), nul)
   expect_no_error(suppressWarnings(hb_read_csv(c(T = nul))))
 
+  # A multibyte session that is not UTF-8 holds the text in its own
+  # encoding, which may lack the character below.
+  multibyte <- isTRUE(l10n_info()[["MBCS"]]) && !isTRUE(l10n_info()[["UTF-8"]])
+  skip_if(multibyte, "the session's encoding may lack the character")
   gz <- file.path(dir, "packed.csv.gz")
   con <- gzfile(gz, "wb")
   writeLines(c("Name,Value", "M\u00fcller,1"), con, useBytes = TRUE)
@@ -250,6 +254,50 @@ test_that("a CSV that may be a pipe is copied before it is read", {
   writeBin(as.raw(c(0x41, 0xb0, 0x0a)), path)
   expect_error(harbouR:::.hb_read_csv_file(path), basename(path),
                fixed = TRUE, class = "harbour_error_bad_argument")
+})
+
+test_that("UTF-8 files still read and write in a multibyte session", {
+  # A multibyte session that is not UTF-8 checks text against its own
+  # encoding, so there the text is converted, as it always was. The file
+  # has a header and a value in kanji, which each such encoding holds.
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeBin(charToRaw(paste0(
+    "\xe5\x90\x8d\xe5\x89\x8d,n\n",
+    "\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e,30\n"
+  )), path)
+  check_in <- function(locale) {
+    withr::with_locale(c(LC_CTYPE = locale), {
+      if (!isTRUE(l10n_info()[["MBCS"]]) || isTRUE(l10n_info()[["UTF-8"]])) {
+        return(FALSE)
+      }
+      base <- hb_read_csv(c(T = path))
+      data <- hb_read_table(base, "T")
+      expect_identical(names(data)[[1L]], "\u540d\u524d", label = locale)
+      expect_identical(data[[1L]], "\u65e5\u672c\u8a9e", label = locale)
+      expect_no_error(hb_write_csv(base, withr::local_tempdir()))
+      TRUE
+    })
+  }
+  # A locale the system lacks only warns, and is then passed over.
+  tried <- vapply(
+    c("ja_JP.SJIS", "zh_TW.Big5", "zh_CN.GBK"),
+    function(locale) suppressWarnings(check_in(locale)),
+    logical(1)
+  )
+  skip_if_not(any(tried), "no multibyte locale that is not UTF-8")
+})
+
+test_that("a CSV of blank lines that read.csv() gives up on is refused", {
+  for (text in c("   \n", "\t\n")) {
+    path <- withr::local_tempfile(fileext = ".csv")
+    writeBin(charToRaw(text), path)
+    expect_error(hb_read_csv(path), basename(path), fixed = TRUE,
+                 class = "harbour_error_bad_argument")
+  }
+  # Two such lines are a header and a row to read.csv(), and still read.
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeBin(charToRaw("  \n  \n"), path)
+  expect_no_error(hb_read_csv(path))
 })
 
 test_that("a byte-order mark alone is empty in any locale", {
@@ -495,6 +543,19 @@ test_that("hb_write_xlsx refuses table names that differ only in case", {
   err <- expect_error(hb_write_xlsx(base, path),
                       class = "harbour_error_bad_argument")
   expect_match(conditionMessage(err), "Samples.*samples.*Notes.*NOTES")
+  expect_false(file.exists(path))
+})
+
+test_that("names that clash once Excel's rules apply are refused", {
+  skip_if_not_installed("writexl")
+  # writexl replaces "/" and "?" and keeps case, and libxlsxwriter then
+  # refuses "a-b" beside "A-b" with an error that names neither table.
+  path <- withr::local_tempfile(fileext = ".xlsx")
+  base <- hb_dtable(`a/b` = data.frame(x = 1), `A?b` = data.frame(x = 2))
+  expect_error(
+    suppressWarnings(suppressMessages(hb_write_xlsx(base, path))),
+    class = "harbour_error_bad_argument"
+  )
   expect_false(file.exists(path))
 })
 

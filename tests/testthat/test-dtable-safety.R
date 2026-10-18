@@ -559,6 +559,17 @@ test_that("a temporary archive that cannot be removed is emptied", {
   expect_identical(file.size(file.path(dir, left)), 0)
 })
 
+test_that("an empty destination is written into without opening it first", {
+  # Opening a pipe to test it would end its reader's input and leave the
+  # write waiting for ever, so an empty destination is not tested.
+  local_mocked_bindings(.hb_can_write = function(path) stop("probed"),
+                        .package = "harbouR")
+  out <- withr::local_tempfile(fileext = ".dtable")
+  file.create(out)
+  expect_no_error(hb_write_dtable(hb_dtable(A = data.frame(x = 1)), out))
+  expect_identical(names(hb_read_dtable(out)), "A")
+})
+
 test_that("a file in a folder that takes no new files is written into", {
   skip_on_os("windows")
   dir <- withr::local_tempdir()

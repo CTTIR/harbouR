@@ -198,7 +198,9 @@ First release.
     not UTF-8, a valid UTF-8 file was cut off at the first character the
     session could not hold, and one with a byte-order mark failed;
     `hb_write_csv()` there wrote such characters as text like
-    `<U+00B0>`. Both now read and write UTF-8 in any session. An empty
+    `<U+00B0>`. Both now read and write UTF-8 in a single-byte session
+    such as C or Latin-1; a multibyte one, such as Shift-JIS, converts
+    the text into its own encoding as before. An empty
     file is refused, naming it, and an empty column is text rather than a
     checkbox reading `FALSE` in every row.
   * `hb_read_xlsx()` judges a column's type by every row of the sheet.

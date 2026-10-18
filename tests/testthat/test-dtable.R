@@ -73,7 +73,9 @@ test_that("a long-text cell reads whether it is a string or an object", {
 
 test_that("non-ASCII column names survive", {
   data <- hb_read_table(hb_read_dtable(fixture()), "Samples")
-  expect_true("Temperatur (°C)" %in% names(data))
+  # As an escape: a session in a multibyte locale that is not UTF-8 parses
+  # this file in its own encoding, and would misread the character.
+  expect_true("Temperatur (\u00b0C)" %in% names(data))
 })
 
 test_that("n_max bounds a local read", {

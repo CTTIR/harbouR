@@ -169,7 +169,10 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #'
 #' The files must be UTF-8, with or without a byte-order mark. A file in
 #' another encoding is refused, naming the first line that is not valid
-#' UTF-8. A column named `_id`, such as the one [hb_write_csv()] writes,
+#' UTF-8. In a multibyte session that is not UTF-8, such as Shift-JIS or
+#' GBK, the text goes through that session's encoding, so characters it
+#' lacks are lost; read such files in a UTF-8 session. A column named
+#' `_id`, such as the one [hb_write_csv()] writes,
 #' is dropped: SeaTable keeps that name for the row identifier, and the new
 #' base has identifiers of its own. One that holds anything but SeaTable
 #' row ids, such as a database's keys, is dropped with a warning.
@@ -319,12 +322,14 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' Read checked UTF-8 bytes as a CSV
 #'
 #' In a UTF-8 session this is `read.csv(fileEncoding = "UTF-8")`, as it
-#' always was. In any other session that connection would re-encode the
-#' text into the session's encoding and stop at the first character the
-#' encoding lacks, with only a generic warning. The bytes are known to be
-#' UTF-8, so they are read as they are and declared UTF-8 instead, and a
-#' byte-order mark, which `scan()` drops only in a UTF-8 session, is
-#' dropped here.
+#' always was. In a single-byte session, such as C or Latin-1, that
+#' connection would re-encode the text into the session's encoding and
+#' stop at the first character the encoding lacks, with only a generic
+#' warning. The bytes are known to be UTF-8, so they are read as they are
+#' and declared UTF-8 instead, and a byte-order mark, which `scan()` drops
+#' only in a UTF-8 session, is dropped here. A multibyte session checks
+#' text against its own encoding, so there the text is converted, as it
+#' always was.
 #'
 #' @param path Path to a `.csv` file whose bytes are UTF-8.
 #' @param bom Whether its first line starts with a byte-order mark.
@@ -335,6 +340,11 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
   if (isTRUE(l10n_info()[["UTF-8"]])) {
     return(utils::read.csv(path, colClasses = "character",
                            check.names = FALSE, fileEncoding = "UTF-8"))
+  }
+  if (isTRUE(l10n_info()[["MBCS"]])) {
+    return(utils::read.csv(path, colClasses = "character",
+                           check.names = FALSE,
+                           fileEncoding = if (bom) "UTF-8-BOM" else "UTF-8"))
   }
   con <- file(path, open = "rt", encoding = "native.enc")
   on.exit(close(con), add = TRUE)
@@ -350,10 +360,12 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' Write a data frame as a UTF-8 CSV file
 #'
 #' In a UTF-8 session this is `write.csv(fileEncoding = "UTF-8")`, as it
-#' always was. In any other session `write.csv()` first translates every
-#' string into the session's encoding, writing a character it lacks as
-#' the literal text `<U+00B0>`, so the strings are handed over as their
-#' UTF-8 bytes, which it then writes unchanged.
+#' always was. In a single-byte session, such as C or Latin-1,
+#' `write.csv()` first translates every string into the session's
+#' encoding, writing a character it lacks as the literal text
+#' `<U+00B0>`, so the strings are handed over as their UTF-8 bytes, which
+#' it then writes unchanged. A multibyte session checks text against its
+#' own encoding, so there it is written as it always was.
 #'
 #' @param frame A data frame.
 #' @param file The path to write.
@@ -361,7 +373,7 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' @keywords internal
 #' @noRd
 .hb_write_csv_file <- function(frame, file) {
-  if (isTRUE(l10n_info()[["UTF-8"]])) {
+  if (isTRUE(l10n_info()[["UTF-8"]]) || isTRUE(l10n_info()[["MBCS"]])) {
     utils::write.csv(frame, file, row.names = FALSE, fileEncoding = "UTF-8")
     return(invisible(file))
   }
@@ -461,7 +473,9 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
       call = call
     )
   }
-  list(bom = bom, blank = !any(nzchar(trimws(lines))))
+  # On the bytes: in a multibyte session trimws() would check the text
+  # against the session's encoding.
+  list(bom = bom, blank = !any(grepl("[^ \t\r\n]", lines, useBytes = TRUE)))
 }
 
 #' Build a new base from imported data frames

@@ -41,7 +41,10 @@ would read \code{FALSE} in every row.
 
 The files must be UTF-8, with or without a byte-order mark. A file in
 another encoding is refused, naming the first line that is not valid
-UTF-8. A column named \verb{_id}, such as the one \code{\link[=hb_write_csv]{hb_write_csv()}} writes,
+UTF-8. In a multibyte session that is not UTF-8, such as Shift-JIS or
+GBK, the text goes through that session's encoding, so characters it
+lacks are lost; read such files in a UTF-8 session. A column named
+\verb{_id}, such as the one \code{\link[=hb_write_csv]{hb_write_csv()}} writes,
 is dropped: SeaTable keeps that name for the row identifier, and the new
 base has identifiers of its own. One that holds anything but SeaTable
 row ids, such as a database's keys, is dropped with a warning.
