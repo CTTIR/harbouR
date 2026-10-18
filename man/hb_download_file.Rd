@@ -22,12 +22,20 @@ Invisibly returns \code{dest}.
 }
 \description{
 A URL in a file or image cell is not directly downloadable: the asset
-sits behind SeaTable's login. When \code{url} points at an asset on the
-client's server, harbouR first exchanges it, with the client's API
-token, for a short-lived download link. Any other URL is fetched as it
-is.
+sits behind SeaTable's login. harbouR recognises such a URL by its
+path, \verb{/workspace/<id>/asset/<base uuid>/...}, whether it is absolute
+or relative to the server, and exchanges it, with the client's API
+token, for a short-lived download link. The URL must name the client's
+server - the host is compared ignoring case, the scheme and a default
+port - and the client's base: an asset of another server or another
+base raises a \code{harbour_error_bad_argument} condition instead of being
+fetched. A URL that is not an asset URL is fetched as it is.
 }
 \details{
+Should SeaTable answer an asset download with its login page, the
+download fails with a \code{harbour_error_http} condition rather than saving
+the page in place of the file.
+
 The file is written to a temporary name beside \code{dest} and moved into
 place only once complete, so a failed download never leaves a partial
 file and never destroys the file \code{overwrite = TRUE} would replace.

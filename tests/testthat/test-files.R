@@ -1,13 +1,3 @@
-test_that(".hb_guess_mime maps known extensions and defaults otherwise", {
-  expect_identical(harbouR:::.hb_guess_mime("a.pdf"), "application/pdf")
-  expect_identical(harbouR:::.hb_guess_mime("a.PNG"), "image/png")
-  expect_identical(harbouR:::.hb_guess_mime("a.jpg"), "image/jpeg")
-  expect_identical(harbouR:::.hb_guess_mime("a.jpeg"), "image/jpeg")
-  expect_identical(harbouR:::.hb_guess_mime("a.csv"), "text/csv")
-  expect_identical(harbouR:::.hb_guess_mime("a.json"), "application/json")
-  expect_identical(harbouR:::.hb_guess_mime("a.zzz"), "application/octet-stream")
-})
-
 test_that("hb_upload_file errors when the file is missing", {
   cl <- mock_client()
   expect_error(hb_upload_file(cl, "no-such-file.pdf"), "File not found")
@@ -60,7 +50,7 @@ test_that("hb_delete_asset routes a DELETE through the request engine", {
   cl <- mock_client()
   expect_error(hb_delete_asset(cl, 1L), regexp = "`url` must be a single non-empty string\\.")
   rec <- with_mocked_request(
-    res <- hb_delete_asset(cl, "https://server/path/file.pdf"),
+    res <- hb_delete_asset(cl, "https://demo.example.org/path/file.pdf"),
     response = list()
   )
   expect_identical(res, cl)
@@ -157,11 +147,15 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
   testthat::local_mocked_bindings(
     req_perform = function(req, ...) {
       captured <<- req
-      structure(list(), class = "httr2_response")
+      # The reply as the endpoint sends it: name, id and size, no type.
+      httr2::response(
+        200L,
+        headers = list(`Content-Type` = "application/json"),
+        body = charToRaw(
+          '[{"name": "doc.pdf", "id": "b4356e3000d01a37", "size": 99}]'
+        )
+      )
     },
-    resp_body_json = function(resp, ...) list(list(
-      name = "doc.pdf", size = 99, type = "application/pdf"
-    )),
     .package = "httr2"
   )
   cl$.workspace_id <- 42L
@@ -172,7 +166,7 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
     "Token TOKENSECRET1234"
   )
   expect_identical(obj$name, "doc.pdf")
-  expect_identical(obj$type, "application/pdf")
+  expect_identical(obj$type, "file")
   # The upload response carries no URL; harbouR builds it from the
   # workspace id, the base uuid and the path the file went to.
   expect_identical(
@@ -200,8 +194,13 @@ test_that("hb_upload_file takes the workspace from the upload link", {
     .package = "harbouR"
   )
   testthat::local_mocked_bindings(
-    req_perform = function(req, ...) structure(list(), class = "httr2_response"),
-    resp_body_json = function(resp, ...) list(list(name = "doc.txt", size = 8)),
+    req_perform = function(req, ...) {
+      httr2::response(
+        200L,
+        headers = list(`Content-Type` = "application/json"),
+        body = charToRaw('[{"name": "doc.txt", "id": "5d1c", "size": 8}]')
+      )
+    },
     .package = "httr2"
   )
   obj <- hb_upload_file(cl, src)

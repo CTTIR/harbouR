@@ -13,8 +13,12 @@ hb_upload_file(client, path, ..., relative_path = "files")
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{relative_path}{Optional path on the SeaTable side; defaults to
-\code{"files"}.}
+\item{relative_path}{Folder under the base's asset root. The default,
+\code{"files"}, stands for the folder the upload link names:
+\verb{files/<YYYY-MM>} for the current month, or \verb{images/<YYYY-MM>} when
+\code{path} has an image extension (\code{.png}, \code{.jpg}, \code{.jpeg}, \code{.gif},
+\code{.bmp}, \code{.webp} or \code{.svg}). Passing \code{"files"} yourself does the same.
+Any other value is used as given.}
 }
 \value{
 A named list describing the uploaded asset.

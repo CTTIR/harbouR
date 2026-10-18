@@ -21,10 +21,19 @@ Removes a file or image from the base's assets. Like the other file
 endpoints this authenticates with the API token. Cells that still point
 at the asset are not changed.
 }
+\details{
+\code{url} is the URL from a file or image cell, absolute or relative to the
+server, or a path below the base's asset root such as
+\verb{/files/2026-07/report.pdf}. The endpoint acts on the client's base
+whatever the URL names, so a URL on another server, or an asset URL of
+another base, raises a \code{harbour_error_bad_argument} condition rather
+than deleting this base's file at the same path.
+}
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()
-hb_delete_asset(client, "https://server/path/to/file.pdf")
+# A path below the asset root, or the URL from a file or image cell
+hb_delete_asset(client, "/files/2026-07/report.pdf")
 \dontshow{\}) # examplesIf}
 }
 \seealso{
