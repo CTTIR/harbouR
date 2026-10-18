@@ -24,6 +24,11 @@ Uploads \code{path} to the active base and returns the SeaTable file object
 (a named list with \code{name}, \code{size}, \code{type} and \code{url}) ready to be written
 into a \code{file}-typed cell via \code{\link[=hb_update_rows]{hb_update_rows()}} or \code{\link[=hb_attach_file]{hb_attach_file()}}.
 }
+\details{
+SeaTable's file endpoints authenticate with the base's API token, so
+this needs a client created with \code{api_token}; a username/password
+client gets a \code{harbour_error_auth} condition.
+}
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()

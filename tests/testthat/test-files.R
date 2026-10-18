@@ -66,10 +66,79 @@ test_that("hb_delete_asset routes a DELETE through the request engine", {
   expect_identical(res, cl)
   expect_identical(rec$calls[[1]]$method, "DELETE")
   expect_identical(rec$calls[[1]]$path, "/api/v2.1/dtable/app-asset/")
-  expect_identical(rec$calls[[1]]$auth, "base")
+  # SeaTable's file endpoints take the API token, not a base token.
+  expect_identical(rec$calls[[1]]$auth, "api")
   # The endpoint takes the path below the base's asset root as a query
   # parameter, not the whole URL in the body.
   expect_identical(rec$calls[[1]]$query$path, "/path/file.pdf")
+})
+
+test_that("asset paths are decoded, as the endpoints expect", {
+  expect_identical(
+    harbouR:::.hb_asset_path(paste0(
+      "https://s.example.org/workspace/4/asset/uu/files/2026-07/my%20report.pdf"
+    )),
+    "/files/2026-07/my report.pdf"
+  )
+  expect_identical(
+    harbouR:::.hb_asset_path(
+      "https://s.example.org/workspace/4/asset-preview/uu/images/2026-07/p.png"
+    ),
+    "/images/2026-07/p.png"
+  )
+})
+
+test_that("an asset URL is exchanged for a download link first", {
+  # A cell's URL sits behind SeaTable's login; fetching it directly saves
+  # the login page. The download link is what can actually be fetched.
+  cl <- mock_client()
+  dest <- withr::local_tempfile(fileext = ".pdf")
+  fetched <- NULL
+  rec <- new_request_recorder(
+    list(download_link = "https://demo.example.org/seafhttp/files/t/a.pdf")
+  )
+  testthat::local_mocked_bindings(
+    req_perform = function(req, path = NULL, ...) {
+      fetched <<- req$url
+      writeLines("payload", path)
+      structure(list(status_code = 200L), class = "httr2_response")
+    },
+    resp_status = function(resp) 200L,
+    .package = "httr2"
+  )
+  with_mocked_request(
+    hb_download_file(
+      cl, "https://demo.example.org/workspace/42/asset/demo-uuid/files/2026-07/a%20b.pdf",
+      dest
+    ),
+    recorder = rec
+  )
+  expect_identical(rec$calls[[1]]$path, "/api/v2.1/dtable/app-download-link/")
+  expect_identical(rec$calls[[1]]$auth, "api")
+  expect_identical(rec$calls[[1]]$query$path, "/files/2026-07/a b.pdf")
+  expect_identical(fetched, "https://demo.example.org/seafhttp/files/t/a.pdf")
+  expect_identical(readLines(dest), "payload")
+})
+
+test_that("a failed download leaves no partial file and keeps the old one", {
+  cl <- mock_client()
+  dir <- withr::local_tempdir()
+  dest <- file.path(dir, "keep.bin")
+  writeLines("original", dest)
+  testthat::local_mocked_bindings(
+    req_perform = function(req, path = NULL, ...) {
+      writeLines("half", path)
+      structure(list(status_code = 500L), class = "httr2_response")
+    },
+    resp_status = function(resp) 500L,
+    .package = "httr2"
+  )
+  expect_error(
+    hb_download_file(cl, "https://x/file", dest, overwrite = TRUE),
+    class = "harbour_error_http"
+  )
+  expect_identical(readLines(dest), "original")
+  expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), "keep.bin")
 })
 
 test_that("hb_upload_file requests a link then uploads and returns a file object", {
@@ -97,6 +166,11 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
   )
   cl$.workspace_id <- 42L
   obj <- hb_upload_file(cl, src)
+  # The upload goes out with the API token, as SeaTable's own tests send it.
+  expect_identical(
+    httr2::req_get_headers(captured, "reveal")$Authorization,
+    "Token TOKENSECRET1234"
+  )
   expect_identical(obj$name, "doc.pdf")
   expect_identical(obj$type, "application/pdf")
   # The upload response carries no URL; harbouR builds it from the
@@ -107,6 +181,42 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
   )
   # Without ret-json the endpoint answers in plain text, not JSON.
   expect_match(captured$url, "ret-json=1", fixed = TRUE)
+})
+
+test_that("hb_upload_file takes the workspace from the upload link", {
+  # An API-token client that has not fetched a base token yet knows no
+  # workspace id; the upload link reports it.
+  cl <- mock_client()
+  cl$.workspace_id <- NULL
+  src <- withr::local_tempfile(fileext = ".txt")
+  writeLines("content", src)
+  testthat::local_mocked_bindings(
+    .hb_request = function(client, path, ...) list(
+      upload_link = "https://demo.example.org/seafhttp/upload-api/t",
+      workspace_id = 7L,
+      parent_path = "/asset/demo-uuid",
+      file_relative_path = "files/2026-07"
+    ),
+    .package = "harbouR"
+  )
+  testthat::local_mocked_bindings(
+    req_perform = function(req, ...) structure(list(), class = "httr2_response"),
+    resp_body_json = function(resp, ...) list(list(name = "doc.txt", size = 8)),
+    .package = "httr2"
+  )
+  obj <- hb_upload_file(cl, src)
+  expect_identical(
+    obj$url,
+    "https://demo.example.org/workspace/7/asset/demo-uuid/files/2026-07/doc.txt"
+  )
+})
+
+test_that("hb_upload_file needs an API token", {
+  cl <- mock_client()
+  cl$api_token <- NULL
+  src <- withr::local_tempfile(fileext = ".txt")
+  writeLines("content", src)
+  expect_error(hb_upload_file(cl, src), class = "harbour_error_auth")
 })
 
 test_that("hb_upload_file errors when no upload URL is returned", {
@@ -138,6 +248,38 @@ test_that("hb_attach_file uploads then updates the target cell", {
   expect_identical(res, cl)
   expect_identical(calls$update$table, "Samples")
   expect_true("Reports" %in% names(calls$update$data))
+  # A file cell is an array of file objects, so the object is wrapped once
+  # more - otherwise its fields would be sent as the array's elements.
+  cell <- calls$update$data$Reports[[1L]]
+  expect_length(cell, 1L)
+  expect_identical(cell[[1L]]$name, "doc.pdf")
+})
+
+test_that("hb_attach_file writes a URL into an image column", {
+  cl <- mock_client()
+  cl$.metadata <- new_harbour_metadata(
+    list(tables = list(list(name = "T", columns = list(
+      list(name = "Photo", type = "image", key = "k1"),
+      list(name = "Note", type = "text", key = "k2")
+    ), views = list()))),
+    base_name = "b"
+  )
+  calls <- new.env(); calls$update <- NULL
+  testthat::local_mocked_bindings(
+    hb_upload_file = function(client, path, ...) list(
+      name = "p.png", size = 1, type = "image/png", url = "https://u/p.png"),
+    hb_update_rows = function(client, table, data, ...) {
+      calls$update <- data
+      invisible(client)
+    },
+    .package = "harbouR"
+  )
+  hb_attach_file(cl, "T", "r1", "Photo", "p.png")
+  expect_identical(calls$update$Photo[[1L]], list("https://u/p.png"))
+  expect_error(
+    hb_attach_file(cl, "T", "r1", "Note", "p.png"),
+    class = "harbour_error_bad_argument"
+  )
 })
 
 test_that("hb_attach_file validates row/column args", {

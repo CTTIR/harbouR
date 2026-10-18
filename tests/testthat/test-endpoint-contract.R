@@ -213,6 +213,40 @@ ENDPOINTS <- list(
     service = "gateway", auth = "base",
     call = function(cl) hb_duplicate_table(cl, "Samples")
   ),
+  # The file endpoints live on the web API and take the API token.
+  list(
+    fn = "hb_upload_file", method = "GET",
+    path = "/api/v2.1/dtable/app-upload-link/", service = "web",
+    auth = "api",
+    call = function(cl) {
+      src <- withr::local_tempfile(fileext = ".txt")
+      writeLines("x", src)
+      hb_upload_file(cl, src)
+    }
+  ),
+  list(
+    fn = "hb_download_file", method = "GET",
+    path = "/api/v2.1/dtable/app-download-link/", service = "web",
+    auth = "api",
+    query = list(path = "/files/2026-07/a.pdf"),
+    call = function(cl) {
+      hb_download_file(
+        cl,
+        paste0(cl$server, "/workspace/1/asset/", UUID, "/files/2026-07/a.pdf"),
+        withr::local_tempfile()
+      )
+    }
+  ),
+  list(
+    fn = "hb_delete_asset", method = "DELETE",
+    path = "/api/v2.1/dtable/app-asset/", service = "web", auth = "api",
+    query = list(path = "/files/2026-07/a.pdf"),
+    call = function(cl) {
+      hb_delete_asset(
+        cl, paste0(cl$server, "/workspace/1/asset/", UUID, "/files/2026-07/a.pdf")
+      )
+    }
+  ),
   list(
     fn = "hb_ping", method = "GET",
     path = "/api2/ping/", service = "web", auth = "none",

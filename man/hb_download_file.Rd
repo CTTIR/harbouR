@@ -21,7 +21,16 @@ hb_download_file(client, url, dest, ..., overwrite = FALSE)
 Invisibly returns \code{dest}.
 }
 \description{
-Download an asset
+A URL in a file or image cell is not directly downloadable: the asset
+sits behind SeaTable's login. When \code{url} points at an asset on the
+client's server, harbouR first exchanges it, with the client's API
+token, for a short-lived download link. Any other URL is fetched as it
+is.
+}
+\details{
+The file is written to a temporary name beside \code{dest} and moved into
+place only once complete, so a failed download never leaves a partial
+file and never destroys the file \code{overwrite = TRUE} would replace.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}

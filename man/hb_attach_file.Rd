@@ -23,8 +23,16 @@ hb_attach_file(client, table, row_id, column, path, ...)
 Invisibly returns the client.
 }
 \description{
-Convenience: uploads \code{path} then writes the resulting file object into
-the given file/image column of the chosen row.
+Convenience: uploads \code{path} then writes it into the given file or image
+column of the chosen row. A file column receives the file object; an
+image column, which holds URLs, receives the image's URL.
+}
+\details{
+The cell is \strong{replaced}, not appended to: whatever it held before is
+no longer referenced by the row, although the earlier upload stays in
+the base's assets. To keep several attachments, read the cell, add the
+new object from \code{\link[=hb_upload_file]{hb_upload_file()}} and write it back with
+\code{\link[=hb_update_rows]{hb_update_rows()}}.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}

@@ -17,7 +17,9 @@ hb_delete_asset(client, url, ...)
 Invisibly returns the client.
 }
 \description{
-Delete an asset
+Removes a file or image from the base's assets. Like the other file
+endpoints this authenticates with the API token. Cells that still point
+at the asset are not changed.
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
