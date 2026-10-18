@@ -907,27 +907,27 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Samples: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 28"]
+          "value": ["table: Samples: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 27"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: name", "class: character", "Name", "Notes", "Concentration", "Share", "Cost", "Preis", "Runtime", "Rating", "Consented", "Collected", "Status", "Tags", "Collaborators", "Photos", "Reports", "Where", "Homepage", "Contact", "Temperatur (°C)", "Doubled", "Ref", "Created by", "Changed by", "Created", "Changed", "Action", "Signature", "_id"]
+          "value": ["column: name", "class: character", "Name", "Notes", "Concentration", "Share", "Cost", "Preis", "Runtime", "Rating", "Consented", "Collected", "Status", "Tags", "Collaborators", "Photos", "Reports", "Where", "Homepage", "Contact", "Temperatur (°C)", "Doubled", "Ref", "Created by", "Changed by", "Created", "Changed", "Action", "Signature"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: type", "class: character", "text", "text", "number", "number", "number", "number", "number", "number", "checkbox", "text", "text", "text", "text", "text", "text", "text", "text", "text", "number", "number", "number", "text", "text", "text", "text", "checkbox", "text", "text"]
+          "value": ["column: type", "class: character", "text", "text", "number", "number", "number", "number", "number", "number", "checkbox", "text", "text", "text", "text", "text", "text", "text", "text", "text", "number", "number", "text", "text", "text", "text", "text", "text", "text"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: editable", "class: logical", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE"]
+          "value": ["column: editable", "class: logical", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: data", "class: list", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"]
+          "value": ["column: data", "class: list", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"]
         },
         {
           "type": "character",
@@ -1032,7 +1032,7 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: Ref", "{\"double\":\"1\"}", null]
+          "value": ["stored: Ref", "{\"character\":\"0001\"}", null]
         },
         {
           "type": "character",
@@ -1067,37 +1067,172 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: _id", "{\"character\":\"S6zTWoOyQBeUyxsMzhAmWA\"}", "{\"character\":\"CwD7tBAETtSXLQKQXhaR6A\"}"]
+          "value": ["table: Samples: hb_read_table()", "class: tbl_df tbl data.frame", "rows: 2"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Samples: hb_read_table()", "error: harbour_error_column_collision", "A column in this table is named _id.\nx harbouR uses _id for the SeaTable row identifier.\ni Rename the column in SeaTable, or read it with `hb_query()` and alias it."]
+          "value": ["column: Name", "class: character", "S-001", "S-002"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Reference: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 3"]
+          "value": ["column: Notes", "class: character", "A plain **markdown** string.", "Rendered elsewhere."]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: name", "class: character", "Genus", "Toxin former", "_id"]
+          "value": ["column: Concentration", "class: numeric", "0.000587474747474748", "8.1"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: type", "class: character", "text", "text", "text"]
+          "value": ["column: Share", "class: numeric", "0.42", null]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: editable", "class: logical", "TRUE", "TRUE", "TRUE"]
+          "value": ["column: Cost", "class: numeric", "19.99", null]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: data", "class: list", "[]", "[]", "[]"]
+          "value": ["column: Preis", "class: numeric", "17.5", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Runtime", "class: numeric", "3661", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Rating", "class: numeric", "4", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Consented", "class: logical", "TRUE", "FALSE"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Collected", "class: character", "2026-04-01", "2026-04-03"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Status", "class: character", "ready", "draft"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Tags", "class: character", "urgent, blood", "urgent"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Collaborators", "class: character", "demo@auth.local", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Photos", "class: character", "file://dtable-bundle/asset/images/2026-07/plot.png", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Reports", "class: character", "readme.txt", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Where", "class: character", "11.5761, 48.1371", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Homepage", "class: character", "https://example.org", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Contact", "class: character", "demo@example.org", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Temperatur (°C)", "class: numeric", "20.7", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Doubled", "class: numeric", "0.0011749494949495", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Ref", "class: character", "0001", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Created by", "class: character", "demo@auth.local", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Changed by", "class: character", "demo@auth.local", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Created", "class: character", "2026-07-27 12:00:00", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Changed", "class: character", "2026-07-27 12:00:00", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Action", "class: character", null, null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Signature", "class: character", "<object>", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: _id", "class: character", "<new 22-character row id>", "<new 22-character row id>"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["table: Reference: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 2"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: name", "class: character", "Genus", "Toxin former"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: type", "class: character", "text", "text"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: editable", "class: logical", "TRUE", "TRUE"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: data", "class: list", "[]", "[]"]
         },
         {
           "type": "character",
@@ -1112,12 +1247,22 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: _id", "{\"character\":\"NK6Qu-77Qbqc7Q0lnPrBkw\"}", "{\"character\":\"PL8Ru-88Rcrd8R1moQsClx\"}"]
+          "value": ["table: Reference: hb_read_table()", "class: tbl_df tbl data.frame", "rows: 2"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Reference: hb_read_table()", "error: harbour_error_column_collision", "A column in this table is named _id.\nx harbouR uses _id for the SeaTable row identifier.\ni Rename the column in SeaTable, or read it with `hb_query()` and alias it."]
+          "value": ["column: Genus", "class: character", "Aspergillus", "Penicillium"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Toxin former", "class: character", "yes", "no"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: _id", "class: character", "<new 22-character row id>", "<new 22-character row id>"]
         }
       ]
     }
@@ -1151,27 +1296,27 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Samples: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 28"]
+          "value": ["table: Samples: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 27"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: name", "class: character", "Name", "Notes", "Concentration", "Share", "Cost", "Preis", "Runtime", "Rating", "Consented", "Collected", "Status", "Tags", "Collaborators", "Photos", "Reports", "Where", "Homepage", "Contact", "Temperatur (°C)", "Doubled", "Ref", "Created by", "Changed by", "Created", "Changed", "Action", "Signature", "_id"]
+          "value": ["column: name", "class: character", "Name", "Notes", "Concentration", "Share", "Cost", "Preis", "Runtime", "Rating", "Consented", "Collected", "Status", "Tags", "Collaborators", "Photos", "Reports", "Where", "Homepage", "Contact", "Temperatur (°C)", "Doubled", "Ref", "Created by", "Changed by", "Created", "Changed", "Action", "Signature"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: type", "class: character", "text", "text", "number", "number", "number", "number", "number", "number", "checkbox", "date", "text", "text", "text", "text", "text", "text", "text", "text", "number", "text", "text", "text", "text", "date", "date", "checkbox", "text", "text"]
+          "value": ["column: type", "class: character", "text", "text", "number", "number", "number", "number", "number", "number", "checkbox", "date", "text", "text", "text", "text", "text", "text", "text", "text", "number", "text", "text", "text", "text", "date", "date", "text", "text"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: editable", "class: logical", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE"]
+          "value": ["column: editable", "class: logical", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: data", "class: list", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]", "[]"]
+          "value": ["column: data", "class: list", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]"]
         },
         {
           "type": "character",
@@ -1311,37 +1456,172 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: _id", "{\"character\":\"S6zTWoOyQBeUyxsMzhAmWA\"}", "{\"character\":\"CwD7tBAETtSXLQKQXhaR6A\"}"]
+          "value": ["table: Samples: hb_read_table()", "class: tbl_df tbl data.frame", "rows: 2"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Samples: hb_read_table()", "error: harbour_error_column_collision", "A column in this table is named _id.\nx harbouR uses _id for the SeaTable row identifier.\ni Rename the column in SeaTable, or read it with `hb_query()` and alias it."]
+          "value": ["column: Name", "class: character", "S-001", "S-002"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Reference: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 3"]
+          "value": ["column: Notes", "class: character", "A plain **markdown** string.", "Rendered elsewhere."]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: name", "class: character", "Genus", "Toxin former", "_id"]
+          "value": ["column: Concentration", "class: numeric", "0.0005874747474747475", "8.1"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: type", "class: character", "text", "text", "text"]
+          "value": ["column: Share", "class: numeric", "0.42", null]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: editable", "class: logical", "TRUE", "TRUE", "TRUE"]
+          "value": ["column: Cost", "class: numeric", "19.99", null]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: data", "class: list", "[]", "[]", "[]"]
+          "value": ["column: Preis", "class: numeric", "17.5", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Runtime", "class: numeric", "3661", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Rating", "class: numeric", "4", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Consented", "class: logical", "TRUE", "FALSE"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Collected", "class: POSIXct POSIXt, tzone: UTC", "2026-04-01 00:00:00 UTC (1775001600)", "2026-04-03 00:00:00 UTC (1775174400)"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Status", "class: character", "ready", "draft"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Tags", "class: character", "urgent, blood", "urgent"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Collaborators", "class: character", "demo@auth.local", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Photos", "class: character", "file://dtable-bundle/asset/images/2026-07/plot.png", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Reports", "class: character", "readme.txt", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Where", "class: character", "11.5761, 48.1371", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Homepage", "class: character", "https://example.org", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Contact", "class: character", "demo@example.org", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Temperatur (°C)", "class: numeric", "20.7", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Doubled", "class: character", "0.0011749494949495", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Ref", "class: character", "0001", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Created by", "class: character", "demo@auth.local", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Changed by", "class: character", "demo@auth.local", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Created", "class: POSIXct POSIXt, tzone: UTC", "2026-07-27 12:00:00 UTC (1785153600)", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Changed", "class: POSIXct POSIXt, tzone: UTC", "2026-07-27 12:00:00 UTC (1785153600)", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Action", "class: character", null, null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Signature", "class: character", "<object>", null]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: _id", "class: character", "<new 22-character row id>", "<new 22-character row id>"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["table: Reference: hb_list_columns()", "class: tbl_df tbl data.frame", "rows: 2"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: name", "class: character", "Genus", "Toxin former"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: type", "class: character", "text", "text"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: editable", "class: logical", "TRUE", "TRUE"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: data", "class: list", "[]", "[]"]
         },
         {
           "type": "character",
@@ -1356,12 +1636,22 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: _id", "{\"character\":\"NK6Qu-77Qbqc7Q0lnPrBkw\"}", "{\"character\":\"PL8Ru-88Rcrd8R1moQsClx\"}"]
+          "value": ["table: Reference: hb_read_table()", "class: tbl_df tbl data.frame", "rows: 2"]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["table: Reference: hb_read_table()", "error: harbour_error_column_collision", "A column in this table is named _id.\nx harbouR uses _id for the SeaTable row identifier.\ni Rename the column in SeaTable, or read it with `hb_query()` and alias it."]
+          "value": ["column: Genus", "class: character", "Aspergillus", "Penicillium"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: Toxin former", "class: character", "yes", "no"]
+        },
+        {
+          "type": "character",
+          "attributes": {},
+          "value": ["column: _id", "class: character", "<new 22-character row id>", "<new 22-character row id>"]
         }
       ]
     }

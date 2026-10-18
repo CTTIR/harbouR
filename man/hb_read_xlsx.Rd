@@ -22,6 +22,11 @@ A \code{harbour_dtable}.
 One table per worksheet. Like \code{\link[=hb_read_csv]{hb_read_csv()}}, this produces a \emph{new}
 base rather than restoring one.
 }
+\details{
+A column's type follows its cells, judged over every row of the sheet.
+A column with no values at all is text, and the \verb{_id} column that
+\code{\link[=hb_write_xlsx]{hb_write_xlsx()}} writes is dropped.
+}
 \examples{
 \dontshow{if (rlang::is_installed(c("writexl", "readxl"))) withAutoprint(\{ # examplesIf}
 path <- tempfile(fileext = ".xlsx")

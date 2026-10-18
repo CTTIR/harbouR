@@ -23,6 +23,14 @@ Writes one worksheet per table. This is deliberately \strong{one-way}: a
 spreadsheet cell holds a single value, so several SeaTable column types
 have no faithful representation.
 }
+\details{
+Each sheet is named after its table. \code{writexl} may adjust a name to fit
+Excel's rules for sheet names: at most 31 characters, and none of
+\code{/}, \verb{\\}, \verb{?}, \code{*}, \code{:} or a square bracket. Excel compares sheet names
+ignoring case, so table names that differ only in the case of the
+letters A to Z, such as \code{Samples} and \code{samples}, are rejected before
+anything is written.
+}
 \section{What is lost}{
 
 \itemize{
@@ -32,6 +40,18 @@ have no faithful representation.
 \item \code{link} and \code{link-formula} cells reference rows in other tables and
 are exported as their display values.
 \item \code{formula} columns export their computed value, not the formula.
+\item \code{geolocation} cells are written as their values, in the order the
+source stores them, without the field names: \code{"11.5761, 48.1371"}
+does not say which number is the latitude.
+\item \code{digital-sign} cells are written as a placeholder, \code{"<object>"}, or
+as their bare values, depending on how the source stores them; the
+signature itself is not exported. \code{button} columns hold no value and
+are written as missing.
+\item A CSV stores numbers with 15 significant digits and a workbook with
+16, so a double that needs more, such as \code{0.1 + 0.2}, reads back very
+slightly different. In a CSV, date-times are written by
+\code{as.character()}, whose layout depends on the version of R. Use
+\code{\link[=hb_write_dtable]{hb_write_dtable()}} for full precision.
 \item Views, filters, colours, column widths and every other piece of base
 configuration have no cell to live in.
 }

@@ -20,8 +20,29 @@ A \code{harbour_dtable}.
 \description{
 Builds a fresh \code{harbour_dtable} from CSV files, one table per file.
 This is \strong{not} the inverse of \code{\link[=hb_write_csv]{hb_write_csv()}}: it produces a new base
-with new identifiers, and only text, number, date and checkbox columns.
+with new identifiers, and only text, number and checkbox columns.
 Nothing that a CSV cannot carry is recovered.
+}
+\details{
+Columns are typed the way \code{\link[utils:read.csv]{utils::read.csv()}} types them, and quoting a
+value does not change that:
+\itemize{
+\item A column of numbers becomes \code{number}, and one holding only \code{T}, \code{F},
+\code{TRUE} or \code{FALSE} becomes \code{checkbox}.
+\item A value written \code{NA} is read as missing.
+\item Dates and date-times arrive as text.
+}
+
+Two exceptions avoid losing data. A column holding an integer with a
+leading zero, such as \code{"0001"}, or an integer of more than 15 digits
+stays text, rather than losing the zeros or having its digits rounded.
+A column with no values at all is text, not a checkbox column that
+would read \code{FALSE} in every row.
+
+The files must be UTF-8, with or without a byte-order mark. A file in
+another encoding is refused, naming the first line that is not valid
+UTF-8. The \verb{_id} column that \code{\link[=hb_write_csv]{hb_write_csv()}} writes is dropped: the
+new base has row identifiers of its own.
 }
 \examples{
 csv <- tempfile(fileext = ".csv")
