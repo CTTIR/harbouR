@@ -2,6 +2,63 @@
 
 First release.
 
+* Audited the server wrappers against SeaTable's published OpenAPI
+  specification (v6.2) and the server responses recorded in its test
+  suite. The mocked tests could only prove that harbouR built the
+  request it intended; several of those requests were not the ones the
+  server expects:
+
+  * `hb_read_table()` and `hb_get_row()` now send `convert_keys=true`.
+    The server's default keys every cell by column key, so a live read
+    came back with every column `NA`.
+  * `hb_create_view()`, `hb_get_view()`, `hb_update_view()` and
+    `hb_delete_view()` name the table in the query string, where the
+    server reads it, rather than in the body. `hb_list_views()` and
+    `hb_get_view()` recognise the default view by its id, because the
+    server reports no `is_default`.
+  * `hb_upload_file()`, `hb_delete_asset()` and `hb_download_file()`
+    authenticate with the API token, as SeaTable's file endpoints
+    require, instead of a base token. `hb_download_file()` exchanges an
+    asset URL for a download link first - fetching a cell's URL
+    directly saved SeaTable's login page - and writes through a
+    temporary file, so a failed download leaves nothing behind and does
+    not destroy the file it was asked to replace.
+  * `hb_attach_file()` writes the shape each column holds: a file
+    object, wrapped in the array a file cell is, or the URL for an
+    image column. It refuses other column types.
+  * `hb_add_columns()` accepts `name`/`type` specs like
+    `hb_create_table()`; they were sent verbatim, with field names the
+    server does not read. `hb_update_column()` with only `column_data`
+    names the column's current type, which the server requires.
+
+* Every HTTP error whose body parsed as JSON - most of them - crashed
+  with "Can't supply conflicting bodies" from `rlang::abort()` instead of
+  raising a `harbour_error`, because the body was stored in the field
+  `abort()` reserves for its own use. It is now `response_body`. The server's
+  message is shown whether it arrives as `error_msg`, `error_message`
+  or plain text. The test fixture could not be parsed, which is how this
+  went unnoticed.
+
+* A missing number in `hb_append_rows()` or `hb_update_rows()` was sent
+  as the string `"NA"`; it is now `null`.
+
+* Geolocation and digital-signature cells keep their field names when
+  read and are written back as objects. Unnamed, a location read as
+  `list(50, 8.23)` and was written as `[50, 8.23]`.
+
+* An empty multiple-select cell read from a `.dtable` is `character(0)`,
+  matching a populated one; it was `logical(0)`.
+
+* `hb_dtable()` stores select cells as option ids, as SeaTable's own
+  files do, and creates options for multiple-select columns. Cells held
+  option names, which harbouR read back correctly but SeaTable showed
+  as empty. List-columns of objects are flattened to text rather than
+  becoming nonsense select options.
+
+* `hb_append_rows()` warns about columns the table does not have, which
+  it drops; it used to drop them silently. Row-id verbs refuse missing
+  or empty ids, and `hb_query(convert_keys = FALSE)` reads cells by key.
+
 * Final minor refinements: constrain bundled asset paths to their extraction
   directory and reject colliding CSV filenames before writing files.
 * Exclude local administration and repository citation metadata from source
