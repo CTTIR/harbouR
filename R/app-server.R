@@ -700,7 +700,9 @@
 .hb_notify_flattening <- function(session, expr) {
   withCallingHandlers(
     expr,
-    message = function(cnd) {
+    # Only the flattening report: anything else said during the export,
+    # such as a request waiting to be retried, is not about flattening.
+    harbour_message_flattened = function(cnd) {
       shiny::showNotification(
         shiny::tags$div(
           shiny::tags$strong("Some columns were flattened"),

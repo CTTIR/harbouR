@@ -3,9 +3,9 @@
 #' Every error harbouR raises itself, and every HTTP or transport failure,
 #' carries the class `harbour_error`, plus a more specific subclass, so
 #' callers can react to *what* went wrong rather than matching on message
-#' text. Errors from rlang's argument matching - a value that is not one
+#' text. Errors from argument matching in rlang - a value that is not one
 #' of an argument's choices, or an argument passed in `...` that the
-#' function does not have - keep rlang's own classes.
+#' function does not have - keep the classes rlang gives them.
 #'
 #' @section Condition classes:
 #'
@@ -41,6 +41,30 @@
 #' }
 #'
 #' All of them also inherit from `harbour_error` and from `rlang_error`.
+#'
+#' @section Warning classes:
+#'
+#' The warnings a script may want to check for, or to silence, carry a
+#' class of their own, and inherit from `rlang_warning`:
+#'
+#' \describe{
+#'   \item{`harbour_warning_unknown_column`}{[hb_append_rows()] was given
+#'     columns the table does not have, and drops them.}
+#'   \item{`harbour_warning_hidden_columns`}{[hb_read_table()] read
+#'     through a view on a server, which leaves the columns the view hides
+#'     out of its rows, so they are `NA`.}
+#'   \item{`harbour_warning_view_filters`}{[hb_read_table()] read through
+#'     a filtered view of a `.dtable` file that records no rows for it, so
+#'     every row was returned.}
+#'   \item{`harbour_warning_query_limit`}{[hb_query()] ran SQL without a
+#'     `LIMIT` clause, so SeaTable returned at most 100 rows.}
+#'   \item{`harbour_warning_non_finite`}{A write sent `Inf`, `-Inf` or
+#'     `NaN`, which JSON cannot hold, as `null`. Field: `columns`.}
+#'   \item{`harbour_warning_checkbox_value`}{A write sent a checkbox value
+#'     that is neither `TRUE` nor `FALSE` as `null`. Field: `columns`.}
+#'   \item{`harbour_warning_asset_link`}{[hb_write_dtable()] left symbolic
+#'     links in the asset tree out of the archive.}
+#' }
 #'
 #' @examples
 #' res <- tryCatch(

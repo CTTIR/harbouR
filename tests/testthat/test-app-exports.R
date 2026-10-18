@@ -111,6 +111,16 @@ test_that("the zipped CSV download still reports what it flattened", {
   expect_match(seen$text, "Some columns were flattened", fixed = TRUE)
 })
 
+test_that("only the flattening report is shown as one", {
+  skip_if_no_ui()
+  seen <- local_notifications()
+  expect_message(
+    harbouR:::.hb_notify_flattening(NULL, message("Waiting to retry")),
+    "Waiting to retry"
+  )
+  expect_length(seen$text, 0L)
+})
+
 test_that("the Export panel promises a lossless .dtable only for a file", {
   skip_if_no_ui()
   whole <- export_note(hb_read_dtable(example_path(), assets = "extract"))

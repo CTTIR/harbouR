@@ -7,9 +7,9 @@
 Every error harbouR raises itself, and every HTTP or transport failure,
 carries the class \code{harbour_error}, plus a more specific subclass, so
 callers can react to \emph{what} went wrong rather than matching on message
-text. Errors from rlang's argument matching - a value that is not one
+text. Errors from argument matching in rlang - a value that is not one
 of an argument's choices, or an argument passed in \code{...} that the
-function does not have - keep rlang's own classes.
+function does not have - keep the classes rlang gives them.
 }
 \section{Condition classes}{
 
@@ -46,6 +46,32 @@ collide with a reserved SeaTable field name.}
 }
 
 All of them also inherit from \code{harbour_error} and from \code{rlang_error}.
+}
+
+\section{Warning classes}{
+
+
+The warnings a script may want to check for, or to silence, carry a
+class of their own, and inherit from \code{rlang_warning}:
+
+\describe{
+\item{\code{harbour_warning_unknown_column}}{\code{\link[=hb_append_rows]{hb_append_rows()}} was given
+columns the table does not have, and drops them.}
+\item{\code{harbour_warning_hidden_columns}}{\code{\link[=hb_read_table]{hb_read_table()}} read
+through a view on a server, which leaves the columns the view hides
+out of its rows, so they are \code{NA}.}
+\item{\code{harbour_warning_view_filters}}{\code{\link[=hb_read_table]{hb_read_table()}} read through
+a filtered view of a \code{.dtable} file that records no rows for it, so
+every row was returned.}
+\item{\code{harbour_warning_query_limit}}{\code{\link[=hb_query]{hb_query()}} ran SQL without a
+\code{LIMIT} clause, so SeaTable returned at most 100 rows.}
+\item{\code{harbour_warning_non_finite}}{A write sent \code{Inf}, \code{-Inf} or
+\code{NaN}, which JSON cannot hold, as \code{null}. Field: \code{columns}.}
+\item{\code{harbour_warning_checkbox_value}}{A write sent a checkbox value
+that is neither \code{TRUE} nor \code{FALSE} as \code{null}. Field: \code{columns}.}
+\item{\code{harbour_warning_asset_link}}{\code{\link[=hb_write_dtable]{hb_write_dtable()}} left symbolic
+links in the asset tree out of the archive.}
+}
 }
 
 \examples{

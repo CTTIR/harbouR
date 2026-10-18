@@ -432,12 +432,17 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
     # cli shortens an interpolated vector to 20 items, and a wide base can
     # flatten more; each one is a column the file no longer holds intact.
     shown <- cli::cli_vec(flattened, list("vec-trunc" = Inf))
-    cli::cli_inform(c(
-      "!" = "{length(flattened)} column{?s} {?was/were} flattened to text.",
-      "*" = "{.field {shown}}",
-      "i" = "A spreadsheet cell holds one value. Use
-             {.fn hb_write_dtable} to keep the structure."
-    ))
+    # The class lets the explorer show this report without taking every
+    # other message for one.
+    cli::cli_inform(
+      c(
+        "!" = "{length(flattened)} column{?s} {?was/were} flattened to text.",
+        "*" = "{.field {shown}}",
+        "i" = "A spreadsheet cell holds one value. Use
+               {.fn hb_write_dtable} to keep the structure."
+      ),
+      class = "harbour_message_flattened"
+    )
   }
   out
 }
