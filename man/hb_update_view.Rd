@@ -15,7 +15,9 @@ hb_update_view(client, table, view, settings, ...)
 
 \item{settings}{Named list of the fields to change: \code{name} to rename
 the view, \code{is_locked}, \code{filters}, \code{filter_conjunction}, \code{sorts},
-\code{groupbys} or \code{hidden_columns}. Fields you leave out are unchanged.}
+\code{groupbys} or \code{hidden_columns}. Fields you leave out are unchanged.
+\code{hidden_columns} takes column keys - the \code{key} column of
+\code{\link[=hb_list_columns]{hb_list_columns()}} - not names.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }

@@ -24,16 +24,17 @@ Duplicate a table
 }
 \section{Naming}{
 
-SeaTable names the copy after the original with \code{(copy)} appended, and
-offers no way to set the name in the same request. Follow with
-\code{\link[=hb_rename_table]{hb_rename_table()}} if you need a particular name.
+SeaTable names the copy after the original with \code{(copy)} appended, with
+no space - a copy of \code{Samples} is \code{Samples(copy)} - and offers no way to
+set the name in the same request. Follow with \code{\link[=hb_rename_table]{hb_rename_table()}} if you
+need a particular name.
 }
 
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 client <- hb_client()
 hb_duplicate_table(client, "Samples")
-hb_rename_table(client, "Samples (copy)", "Samples_backup")
+hb_rename_table(client, "Samples(copy)", "Samples_backup")
 \dontshow{\}) # examplesIf}
 }
 \seealso{

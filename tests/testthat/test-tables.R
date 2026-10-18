@@ -42,7 +42,8 @@ test_that("hb_duplicate_table sends the documented body", {
   expect_identical(res, cl)
   expect_match(rec$calls[[1]]$path, "tables/duplicate-table/$")
   # SeaTable's model has table_name and is_duplicate_records, and no
-  # new_table_name: the copy is always named "<original> (copy)".
+  # new_table_name: the copy is always named "<original>(copy)", with no
+  # space.
   expect_setequal(names(rec$calls[[1]]$body),
                   c("table_name", "is_duplicate_records"))
   expect_true(rec$calls[[1]]$body$is_duplicate_records)

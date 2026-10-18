@@ -126,6 +126,8 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
 #' @param settings Named list of the fields to change: `name` to rename
 #'   the view, `is_locked`, `filters`, `filter_conjunction`, `sorts`,
 #'   `groupbys` or `hidden_columns`. Fields you leave out are unchanged.
+#'   `hidden_columns` takes column keys - the `key` column of
+#'   [hb_list_columns()] - not names.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family views
@@ -139,6 +141,13 @@ hb_update_view <- function(client, table, view, settings, ...) {
   .check_string(table)
   .check_string(view)
   .hb_check_settings(settings, allow_empty = FALSE)
+  if (!is.null(settings[["hidden_columns"]])) {
+    # The server reads an array of keys. One key on its own would be
+    # unboxed to a bare string, and a named vector written as an object.
+    settings[["hidden_columns"]] <- as.list(as.character(
+      unlist(settings[["hidden_columns"]], use.names = FALSE)
+    ))
+  }
   .hb_request(client, .hb_base_path(client, "views", view, ""),
     service = "gateway", auth = "base", method = "PUT",
     query = list(table_name = table), body = settings

@@ -21,8 +21,8 @@ hb_append_rows(client, table, data, ..., chunk_size = 1000L)
 \value{
 Invisibly, a one-row tibble with columns \code{table} (chr),
 \code{n_rows} (int) - the count the server confirmed - and
-\code{n_requests} (int). SeaTable does not return the created rows, so
-neither does harbouR; read the table back if you need their \verb{_id}s.
+\code{n_requests} (int). The server's reply also lists the new rows'
+\verb{_id}s; harbouR's summary does not include them.
 }
 \description{
 Append rows to a table

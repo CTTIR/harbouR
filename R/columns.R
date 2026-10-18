@@ -147,8 +147,8 @@ hb_add_columns <- function(client, table, columns, ...) {
 #'   so this cannot be combined with `new_name`.
 #' @param column_data Optional list of column options, sent with the type
 #'   change. Given without `new_type`, it reconfigures the column under its
-#'   current type, which harbouR looks up for you - SeaTable requires the
-#'   type to be named.
+#'   current type, which harbouR asks the server for - SeaTable requires
+#'   the type to be named.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
@@ -190,7 +190,9 @@ hb_update_column <- function(client, table, name, ..., new_name = NULL,
 
   op_type <- names(wanted)[wanted]
   if (identical(op_type, "modify_column_type") && is.null(new_type)) {
-    new_type <- .hb_column_type(client, table, name)
+    # From the server, not the cache: naming a type the column no longer
+    # has would convert it back, which nobody asked for.
+    new_type <- .hb_column_type(client, table, name, refresh = TRUE)
   }
   body <- list(table_name = table, column = name, op_type = op_type)
   if (!is.null(new_name)) body$new_column_name <- new_name
@@ -320,13 +322,14 @@ hb_delete_select_option <- function(client, table, name, option, ...) {
 #' @param client A `harbour_client`.
 #' @param table Table name.
 #' @param column Column name.
+#' @param refresh Whether to ask the server rather than the cache.
 #' @param call The frame to blame for any error.
 #' @return A single string.
 #' @keywords internal
 #' @noRd
-.hb_column_type <- function(client, table, column,
+.hb_column_type <- function(client, table, column, refresh = FALSE,
                             call = rlang::caller_env()) {
-  cols <- .hb_fetch_columns(client, table, call = call)
+  cols <- .hb_fetch_columns(client, table, refresh = refresh, call = call)
   idx <- match(column, .hb_chr_field(cols, "name"))
   if (is.na(idx)) {
     hb_abort(

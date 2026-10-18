@@ -8,7 +8,10 @@
 #' @param x A `harbour_client` connected to a base, or a
 #'   `harbour_dtable` read from a local file.
 #' @param table Name of the table.
-#' @param view Optional view name.
+#' @param view Optional view name. A server returns only the columns a
+#'   view shows, so a read through a view gives `NA` for the columns it
+#'   hides, and harbouR warns naming them. A `.dtable` read keeps their
+#'   values.
 #' @param page_size Rows fetched per request. SeaTable caps this at 1000
 #'   and harbouR clamps it, warning if you asked for more.
 #' @param n_max Maximum number of rows to return. `Inf`, the default,
@@ -51,12 +54,17 @@ hb_read_table.harbour_client <- function(x,
   cols <- .hb_columns_from_metadata(x$.metadata, table)
 
   start <- 0L
-  rows <- list()
+  n_read <- 0L
+  # Pages are combined once at the end: growing one list a page at a time
+  # copies it on every request.
+  pages <- list()
+  previous <- NULL
   # A server that keeps returning full pages must produce an error, not an
-  # infinite loop. 1000 pages is 1e6 rows - far past any real base.
-  max_pages <- 1000L
-  for (page in seq_len(max_pages)) {
-    want <- min(page_size, n_max - length(rows))
+  # infinite loop. One request past the cap tells a table that ends exactly
+  # there from a server that does not stop.
+  max_pages <- .hb_max_pages(page_size)
+  for (page in seq_len(max_pages + 1L)) {
+    want <- min(page_size, n_max - n_read)
     if (want <= 0L) break
     # convert_keys defaults to false, which keys every cell by the column's
     # four-character key; the coercion layer looks cells up by name.
@@ -70,19 +78,111 @@ hb_read_table.harbour_client <- function(x,
       method = "GET", query = q
     )
     chunk <- body$rows %||% list()
-    rows <- c(rows, chunk)
-    if (length(chunk) < want) break
-    start <- start + length(chunk)
-    if (page == max_pages) {
+    if (page > max_pages && length(chunk) > 0L) {
       hb_abort(
-        c("Gave up after {max_pages} pages ({length(rows)} rows).",
+        c("Gave up after {max_pages} pages ({n_read} rows).",
+          "i" = "A read stops there in case the server never stops paging.",
           "i" = "Set {.arg n_max} to bound the read."),
         class = "harbour_error_http"
       )
     }
+    # A cursor that does not advance hands back the same page for ever.
+    # Stop at the first repeat rather than collect duplicates up to the cap,
+    # or return them as rows when n_max ends the read first.
+    ids <- .hb_chr_field(chunk, "_id")
+    if (length(chunk) == want && !anyNA(ids) && identical(ids, previous)) {
+      hb_abort(
+        c("The server returned the same {length(ids)} rows for two pages
+           in a row.",
+          "x" = "Paging is not advancing, so the read was stopped."),
+        class = "harbour_error_http"
+      )
+    }
+    previous <- ids
+    pages[[page]] <- chunk
+    n_read <- n_read + length(chunk)
+    if (length(chunk) < want) break
+    start <- start + length(chunk)
   }
+  rows <- do.call(c, c(list(list()), pages))
   if (length(rows) > n_max) rows <- rows[seq_len(n_max)]
+  if (!is.null(view)) {
+    .hb_warn_hidden_columns(x$.metadata, table, view, cols, rows)
+  }
   .hb_rows_to_tibble(rows, cols)
+}
+
+#' How many pages a read may take before harbouR gives up
+#'
+#' The cap is set in rows - about ten million, far past any real base -
+#' so that a small `page_size` does not cut a large table short. It only
+#' has to stop a server that keeps returning new rows.
+#'
+#' @param page_size The page size in use.
+#' @return A single integer.
+#' @keywords internal
+#' @noRd
+.hb_max_pages <- function(page_size) {
+  as.integer(max(1000, ceiling(1e7 / page_size)))
+}
+
+#' Warn about the columns a view leaves out of its rows
+#'
+#' SeaTable returns only a view's visible columns, but the tibble keeps the
+#' table's full schema, so a hidden column reads as all `NA` - which looks
+#' exactly like a column with no data in it. The view's hidden columns are
+#' listed, by key, in the cached metadata. A view the cache does not know
+#' is passed over: the read itself has succeeded.
+#'
+#' @param metadata The client's cached `harbour_metadata`.
+#' @param table The table's name.
+#' @param view The view's name.
+#' @param columns The table's column objects.
+#' @param rows The rows the server returned.
+#' @param call The frame to report the warning from.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_warn_hidden_columns <- function(metadata, table, view, columns, rows,
+                                    call = rlang::caller_env()) {
+  if (length(rows) == 0L) {
+    return(invisible(NULL))
+  }
+  tbls <- metadata$tables %||% list()
+  views <- tbls[[match(table, .hb_chr_field(tbls, "name"))]]$views %||%
+    list()
+  idx <- match(view, .hb_chr_field(views, "name"))
+  if (is.na(idx)) {
+    return(invisible(NULL))
+  }
+  keys <- as.character(
+    unlist(views[[idx]]$hidden_columns %||% list(), use.names = FALSE)
+  )
+  hidden <- .hb_chr_field(columns, "name")[
+    .hb_chr_field(columns, "key") %in% keys
+  ]
+  # Only the columns that really did come back empty: a server that sends
+  # a hidden column's values has nothing to warn about.
+  empty <- vapply(
+    hidden,
+    function(name) {
+      !any(vapply(rows, function(row) !is.null(row[[name]]), logical(1)))
+    },
+    logical(1)
+  )
+  hidden <- hidden[empty]
+  if (length(hidden) > 0L) {
+    cli::cli_warn(
+      c("View {.val {view}} hides {length(hidden)} column{?s}, so
+         {?it is/they are} {.code NA} in the result: {.field {hidden}}.",
+        "i" = "SeaTable leaves a view's hidden columns out of its rows. Show
+               them in the view, or read without {.arg view}, to get their
+               values."),
+      class = "harbour_warning_hidden_columns",
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Validate and clamp a page size against SeaTable's server maximum
@@ -136,8 +236,11 @@ hb_read_table.harbour_client <- function(x,
 #' @inheritParams hb_metadata
 #' @param sql SeaTable SQL query string. SeaTable applies an implicit
 #'   `LIMIT 100` when the query has none, and caps results at 10000 rows.
-#'   harbouR warns if there is no `LIMIT` clause.
-#' @param parameters Optional list of values for `?` placeholders in `sql`.
+#'   harbouR warns if there is no `LIMIT` clause - the word inside a quoted
+#'   string or a back-ticked name does not count - at most once every
+#'   eight hours for the same query, so a loop does not repeat it.
+#' @param parameters Optional list of values for `?` placeholders in `sql`,
+#'   in order. Names are ignored.
 #' @param convert_keys Return column names rather than column keys.
 #'   Default `TRUE`.
 #'
@@ -157,19 +260,25 @@ hb_query <- function(client, sql, ..., parameters = NULL,
   .check_client(client)
   .check_string(sql)
   .check_flag(convert_keys)
-  if (!grepl("\\blimit\\b", sql, ignore.case = TRUE)) {
+  if (.hb_sql_lacks_limit(sql)) {
     # SeaTable applies an implicit LIMIT 100. A query that looks like it
     # wants everything but silently gets a hundred rows is a wrong answer.
+    # The rate limit is per query: a loop does not repeat the warning, but
+    # one query does not silence the next. The query is hashed because
+    # rlang stores the id as a variable name, which R caps at 10000 bytes.
     cli::cli_warn(
       c("This query has no {.code LIMIT} clause.",
         "i" = "SeaTable applies an implicit {.code LIMIT 100}.",
         "i" = "Add one explicitly, up to the 10000-row ceiling."),
+      class = "harbour_warning_query_limit",
       .frequency = "regularly",
-      .frequency_id = "harbour_query_limit"
+      .frequency_id = paste0("harbour_query_limit:", rlang::hash(sql))
     )
   }
   body <- list(sql = sql, convert_keys = convert_keys)
-  if (!is.null(parameters)) body$parameters <- as.list(parameters)
+  # Placeholders are filled by position, and named values would be written
+  # as a JSON object rather than the array the server reads.
+  if (!is.null(parameters)) body$parameters <- as.list(unname(parameters))
   resp <- .hb_request(client, .hb_base_path(client, "sql", ""),
     service = "gateway", auth = "base",
     method = "POST", body = body
@@ -183,20 +292,76 @@ hb_query <- function(client, sql, ..., parameters = NULL,
   # The row identifier is appended from the rows themselves, so a schema
   # entry for it would only collide with that.
   columns <- Filter(function(col) !identical(col$name, "_id"), columns)
+  by <- "name"
   if (!convert_keys) {
     # The cells are keyed by column key, so the columns must be too.
     columns <- lapply(columns, function(col) {
       col$name <- col$key %||% col$name
       col
     })
+  } else if (.hb_cells_keyed_by_key(rows, columns, resp$is_join_stmt)) {
+    # Reading by key keeps the reported names as the column names. A
+    # column with no key is looked up by its name.
+    columns <- lapply(columns, function(col) {
+      col$key <- col$key %||% col$name
+      col
+    })
+    by <- "key"
   }
   if (length(columns) > 0L) {
-    return(.hb_rows_to_tibble(rows, columns))
+    return(.hb_rows_to_tibble(rows, columns, by = by))
   }
   if (length(rows) == 0L) {
     return(tibble::tibble())
   }
   .hb_untyped_rows_to_tibble(rows)
+}
+
+#' Does a query lack a LIMIT clause?
+#'
+#' Quoted strings and back-ticked names are blanked out first, so a column
+#' called `Upper limit` or a value such as `'no limit'` is not taken for
+#' the clause. A quote inside a string is written twice, as in SQL.
+#'
+#' @param sql A single SQL string.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_sql_lacks_limit <- function(sql) {
+  # Byte by byte: everything the patterns look for is ASCII, and a string
+  # that is not valid in its encoding must not make the check fail.
+  bare <- gsub(
+    "'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|`[^`]*`", " ", sql,
+    perl = TRUE, useBytes = TRUE
+  )
+  !grepl(
+    "\\blimit\\b", bare,
+    ignore.case = TRUE, perl = TRUE, useBytes = TRUE
+  )
+}
+
+#' Are a query's result cells keyed by column key?
+#'
+#' SeaTable ignores `convert_keys` for a join - the only kind it supports,
+#' `FROM a, b WHERE ...` - and keys every cell by the column's key, with
+#' the names only in the metadata. It flags such a reply with
+#' `is_join_stmt`. A join whose cells do carry the names, as they would
+#' from a server that applied `convert_keys`, is still read by name. A
+#' reply without the flag is read by key only when its cells carry none of
+#' the reported names and some of the keys, so an ordinary result is never
+#' affected.
+#'
+#' @param rows The result rows.
+#' @param columns The result schema.
+#' @param is_join The reply's `is_join_stmt` field.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_cells_keyed_by_key <- function(rows, columns, is_join) {
+  fields <- unique(unlist(lapply(rows, names), use.names = FALSE))
+  by_name <- any(.hb_chr_field(columns, "name") %in% fields)
+  by_key <- any(.hb_chr_field(columns, "key") %in% fields)
+  if (isTRUE(is_join)) by_key || !by_name else by_key && !by_name
 }
 
 #' Build a tibble from rows whose schema the server did not report
@@ -271,8 +436,8 @@ hb_get_row <- function(client, table, row_id, ...) {
 #'   1000 and harbouR clamps it, warning if you asked for more.
 #' @return Invisibly, a one-row tibble with columns `table` (chr),
 #'   `n_rows` (int) - the count the server confirmed - and
-#'   `n_requests` (int). SeaTable does not return the created rows, so
-#'   neither does harbouR; read the table back if you need their `_id`s.
+#'   `n_requests` (int). The server's reply also lists the new rows'
+#'   `_id`s; harbouR's summary does not include them.
 #' @family rows
 #' @examplesIf interactive()
 #' client <- hb_client()
@@ -555,9 +720,11 @@ hb_lock_rows <- function(client, table, row_ids, ...) {
   .check_client(client)
   .check_string(table)
   .hb_check_row_ids(row_ids)
+  # Unnamed, as hb_delete_rows() sends them: named ids would be written as
+  # a JSON object rather than an array.
   .hb_request(client, .hb_base_path(client, "lock-rows", ""),
     service = "gateway", auth = "base", method = "PUT",
-    body = list(table_name = table, row_ids = as.list(row_ids))
+    body = list(table_name = table, row_ids = as.list(unname(row_ids)))
   )
   invisible(client)
 }
@@ -578,7 +745,7 @@ hb_unlock_rows <- function(client, table, row_ids, ...) {
   .hb_check_row_ids(row_ids)
   .hb_request(client, .hb_base_path(client, "unlock-rows", ""),
     service = "gateway", auth = "base", method = "PUT",
-    body = list(table_name = table, row_ids = as.list(row_ids))
+    body = list(table_name = table, row_ids = as.list(unname(row_ids)))
   )
   invisible(client)
 }

@@ -232,7 +232,28 @@
 
     shiny::observeEvent(input$run_sql, {
       .hb_try(session, "The query failed", {
-        state$query <- hb_query(state$source, input$sql)
+        sql <- input$sql
+        # hb_query() warns about a missing LIMIT in the console, which the
+        # user cannot see, and only now and then. The panel says it here,
+        # on every query it applies to, and keeps it out of the console.
+        state$query <- withCallingHandlers(
+          hb_query(state$source, sql),
+          harbour_warning_query_limit = function(cnd) {
+            invokeRestart("muffleWarning")
+          }
+        )
+        if (.hb_sql_lacks_limit(sql)) {
+          shiny::showNotification(
+            shiny::tags$div(
+              shiny::tags$strong("No LIMIT clause"),
+              shiny::tags$div(
+                class = "small",
+                "SeaTable returned at most 100 rows; add LIMIT n for more."
+              )
+            ),
+            type = "warning", duration = 12
+          )
+        }
       })
     })
 

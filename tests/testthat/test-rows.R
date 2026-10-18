@@ -69,15 +69,21 @@ test_that("hb_query rejects non-string sql", {
   expect_error(hb_query(cl, 1L), regexp = "`sql` must be a single non-empty string\\.")
 })
 
-test_that("hb_get_row returns a 1-row or 0-row tibble", {
+test_that("hb_get_row returns a 1-row tibble", {
   cl <- mock_client()
   with_mocked_request(
     one <- hb_get_row(cl, "Samples", "r1"),
     response = list(Name = "A", `_id` = "r1")
   )
   expect_identical(nrow(one), 1L)
+})
+
+test_that("hb_get_row returns a 0-row tibble for an empty 200 body", {
+  # A guard for a degenerate reply. An unknown row is answered with an
+  # error status, and is a not_found error (see test-rows-queries.R).
+  cl <- mock_client()
   with_mocked_request(
-    none <- hb_get_row(cl, "Samples", "missing"),
+    none <- hb_get_row(cl, "Samples", "r2"),
     response = list()
   )
   expect_identical(nrow(none), 0L)

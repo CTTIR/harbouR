@@ -83,14 +83,15 @@ hb_delete_table <- function(client, table, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @section Naming:
-#' SeaTable names the copy after the original with `(copy)` appended, and
-#' offers no way to set the name in the same request. Follow with
-#' [hb_rename_table()] if you need a particular name.
+#' SeaTable names the copy after the original with `(copy)` appended, with
+#' no space - a copy of `Samples` is `Samples(copy)` - and offers no way to
+#' set the name in the same request. Follow with [hb_rename_table()] if you
+#' need a particular name.
 #' @family tables
 #' @examplesIf interactive()
 #' client <- hb_client()
 #' hb_duplicate_table(client, "Samples")
-#' hb_rename_table(client, "Samples (copy)", "Samples_backup")
+#' hb_rename_table(client, "Samples(copy)", "Samples_backup")
 #' @export
 hb_duplicate_table <- function(client, table, ..., duplicate_records = TRUE) {
   rlang::check_dots_empty()

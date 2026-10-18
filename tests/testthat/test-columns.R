@@ -140,14 +140,25 @@ test_that("hb_add_columns takes the same specs as hb_create_table", {
 
 test_that("column_data alone keeps the column's current type", {
   # modify_column_type requires new_column_type; without it the request
-  # is rejected. harbouR names the current type for the caller.
+  # is rejected. harbouR names the current type for the caller, asking the
+  # server for it first.
   cl <- mock_client()
+  server <- function(path, method, query, body) {
+    if (identical(method, "GET")) {
+      list(columns = list(
+        list(name = "Concentration", type = "number", key = "k2")
+      ))
+    } else {
+      list()
+    }
+  }
   rec <- with_mocked_request(
     hb_update_column(cl, "Samples", "Concentration",
                      column_data = list(decimal = "dot")),
-    response = list()
+    response = server
   )
-  body <- rec$calls[[1]]$body
+  expect_identical(rec$calls[[1]]$method, "GET")
+  body <- rec$calls[[2]]$body
   expect_identical(body$op_type, "modify_column_type")
   expect_identical(body$new_column_type, "number")
   expect_identical(body$column_data, list(decimal = "dot"))

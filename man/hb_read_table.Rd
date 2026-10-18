@@ -23,7 +23,10 @@ hb_read_table(x, table, ...)
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{view}{Optional view name.}
+\item{view}{Optional view name. A server returns only the columns a
+view shows, so a read through a view gives \code{NA} for the columns it
+hides, and harbouR warns naming them. A \code{.dtable} read keeps their
+values.}
 
 \item{n_max}{Maximum number of rows to return. \code{Inf}, the default,
 reads the whole table.}

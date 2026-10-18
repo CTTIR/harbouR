@@ -30,8 +30,8 @@ so this cannot be combined with \code{new_name}.}
 
 \item{column_data}{Optional list of column options, sent with the type
 change. Given without \code{new_type}, it reconfigures the column under its
-current type, which harbouR looks up for you - SeaTable requires the
-type to be named.}
+current type, which harbouR asks the server for - SeaTable requires
+the type to be named.}
 }
 \value{
 Invisibly returns the client.
