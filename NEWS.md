@@ -160,10 +160,10 @@ First release.
 * `.dtable` files:
 
   * `hb_read_dtable(assets = "extract")` extracted only one of two
-    attachments whose names differ only in case, and writing the base
-    back lost the other without a word: `zip::unzip()` finds an entry
-    without regard to case, and a macOS or Windows folder cannot hold
-    both. It now warns, naming them.
+    attachments whose names differ only in case, on any system, since
+    `zip::unzip()` finds an entry without regard to case; writing the
+    base back then lost the other without a word. It now warns, naming
+    them, and the explorer shows that warning when it opens such a file.
   * In R 4.1 and 4.2, the `_ctime` and `_mtime` of a base built by
     `hb_dtable()`, `hb_read_csv()`, `hb_read_xlsx()` or the explorer were
     the local time labelled as UTC. They are now UTC there as well.
@@ -192,6 +192,10 @@ First release.
   * In R before 4.4.1, `hb_read_csv()` read a code such as `12E` as the
     number 12, as `read.csv()` does there. A column holding one now
     stays text, as it does in later versions of R.
+  * In a UTF-8 session, a zero-padded or long integer followed by a
+    full-width or other Unicode space, which `read.csv()` ignores after a
+    number, became a number: `"0001"` padded that way read as 1. Such a
+    column now stays text, like one padded with an ordinary space.
   * Re-importing an export gave a base none of whose tables could be
     read: the exported `_id` became an ordinary column. `hb_read_csv()`
     and `hb_read_xlsx()` now drop a column of that name, which SeaTable
@@ -230,7 +234,11 @@ First release.
 * The explorer:
 
   * `hb_run_explorer()` needs `bslib` 0.6.0 or later, now the minimum
-    that `DESCRIPTION` lists.
+    that `DESCRIPTION` lists. An older one gets the same informative
+    error as a missing one, instead of a stack trace.
+  * What opening a file warns about - attachments that cannot all be
+    extracted, a newer `.dtable` format - is shown in the app; it
+    reached only the R console.
   * "This table as CSV" held only the rows the Data panel had loaded,
     1000 by default; it now holds the whole table. The zipped CSV left
     out any table whose name starts with a dot.
@@ -253,12 +261,12 @@ First release.
   * The examples that need a server are wrapped in `\dontrun{}`. They
     ran whenever R was interactive, so `example()` sent their writes and
     deletes to the base that `SEATABLE_SERVER` and `SEATABLE_API_TOKEN`
-    name. `hb_read_table()`, the `hb_list_*()` verbs, `hb_client()`, the
-    `is_harbour_*()` predicates and the `harbour_metadata` methods gain
-    examples that run offline. The `hb_create_table()` example names
-    `columns`, which it passed into `...`; the `hb_metadata()` example
-    calls `tibble::as_tibble()`; and the conditions example no longer
-    depends on the caller's token.
+    name. `hb_read_table()`, `hb_list_tables()`, `hb_list_columns()`,
+    `hb_list_views()`, `hb_client()`, the `is_harbour_*()` predicates and
+    the `harbour_metadata` methods gain examples that run offline. The
+    `hb_create_table()` example names `columns`, which it passed into
+    `...`; the `hb_metadata()` example calls `tibble::as_tibble()`; and
+    the conditions example no longer depends on the caller's token.
   * The help pages of `hb_read_table()`, `hb_list_tables()` and
     `hb_list_views()` are named after the function rather than its
     `.dtable` method. `?harbouR` no longer shows stray backslashes, the

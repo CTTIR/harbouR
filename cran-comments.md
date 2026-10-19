@@ -4,10 +4,14 @@
 
 * This is a new submission.
 * Possibly misspelled words in DESCRIPTION: GmbH and SeaTable. Both
-  belong to SeaTable GmbH, the company that makes the 'SeaTable'
+  belong to SeaTable GmbH, the German company behind the 'SeaTable'
   software; GmbH is the German abbreviation for a limited company. The
   software name is in single quotes throughout the Description; the
   company name is not, because it is not software.
+
+The note comes from CRAN's incoming checks. The local runs below had
+their remote part turned off and no spell checker installed, and gave
+Status OK.
 
 ## Test environments
 
@@ -19,10 +23,9 @@
     The remote incoming checks were turned off because this machine's
     network timed out on them; the URL check, run on its own, found no
     problems;
-  * every example runs in well under 1 s, and the tests in about 30 s;
-  * R 4.6.1 with only the strong dependencies, testthat and withr
-    installed, as in the noSuggests check: Status OK, and the tests that
-    need the missing packages skip.
+  * every example runs in well under 1 s, and the tests in about 20 s;
+  * R 4.6.1 with `_R_CHECK_DEPENDS_ONLY_=true`, as in CRAN's noSuggests
+    check: Status OK, and the tests that need the missing packages skip.
 * The test suite also passes in C, Shift-JIS, Big5 and GBK sessions and
   under several time zones.
 
