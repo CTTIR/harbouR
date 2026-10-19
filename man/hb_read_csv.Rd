@@ -15,7 +15,8 @@ names unless \code{files} is named.}
 \item{base_name}{Name recorded for the new base.}
 }
 \value{
-A \code{harbour_dtable}.
+A \code{harbour_dtable}, with the components \code{\link[=hb_read_dtable]{hb_read_dtable()}}
+describes, holding one table per file.
 }
 \description{
 Builds a fresh \code{harbour_dtable} from CSV files, one table per file.

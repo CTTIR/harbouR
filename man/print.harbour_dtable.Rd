@@ -15,9 +15,9 @@
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-Invisibly returns \code{x}.
+\code{print()} returns \code{x}, invisibly.
 
-A character vector, one element per table.
+\code{format()} returns a character vector, one element per table.
 }
 \description{
 Print a harbour dtable

@@ -45,7 +45,10 @@ hb_example_metadata <- function() {
 #'
 #' @param table One of `"Samples"` or `"Patients"`.
 #'
-#' @return A tibble.
+#' @return A tibble with one row per example record: a column for each
+#'   column of `table` in [hb_example_metadata()], and the row id `_id`.
+#'   Multiple-select, collaborator and file columns are list-columns, and
+#'   dates are date-times in UTC.
 #' @family example data
 #' @examples
 #' hb_example_rows("Samples")

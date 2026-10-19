@@ -143,7 +143,7 @@ hb_list_collaborators <- function(client, ...) {
 #' Print method for harbour metadata
 #' @param x A `harbour_metadata` object.
 #' @param ... These dots are for future extensions and must be empty.
-#' @return Invisibly returns `x`.
+#' @return `print()` returns `x`, invisibly.
 #' @family metadata
 #' @examples
 #' meta <- hb_example_metadata()
@@ -172,7 +172,7 @@ print.harbour_metadata <- function(x, ...) {
 
 #' @param x A `harbour_metadata` object.
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A character vector, one element per table.
+#' @return `format()` returns a character vector, one element per table.
 #' @rdname print.harbour_metadata
 #' @export
 format.harbour_metadata <- function(x, ...) {

@@ -329,7 +329,8 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
 #' @param base_name Name recorded for the base.
 #' @param collaborators Optional list of collaborator records.
 #'
-#' @return A `harbour_dtable`.
+#' @return A `harbour_dtable`, with the components [hb_read_dtable()]
+#'   describes, holding one table per data frame.
 #'
 #' @family dtable
 #' @examples

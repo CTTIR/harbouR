@@ -10,7 +10,10 @@ hb_example_rows(table = c("Samples", "Patients"))
 \item{table}{One of \code{"Samples"} or \code{"Patients"}.}
 }
 \value{
-A tibble.
+A tibble with one row per example record: a column for each
+column of \code{table} in \code{\link[=hb_example_metadata]{hb_example_metadata()}}, and the row id \verb{_id}.
+Multiple-select, collaborator and file columns are list-columns, and
+dates are date-times in UTC.
 }
 \description{
 Returns a tibble of example rows for one of the tables provided by

@@ -184,7 +184,8 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @param base_name Name recorded for the new base.
 #'
-#' @return A `harbour_dtable`.
+#' @return A `harbour_dtable`, with the components [hb_read_dtable()]
+#'   describes, holding one table per file.
 #'
 #' @family dtable
 #' @examples
@@ -230,7 +231,8 @@ hb_read_csv <- function(files, ..., base_name = "harbouR base") {
 #' @param sheets Worksheet names to read. Default: all of them.
 #' @param base_name Name recorded for the new base.
 #'
-#' @return A `harbour_dtable`.
+#' @return A `harbour_dtable`, with the components [hb_read_dtable()]
+#'   describes, holding one table per sheet read.
 #'
 #' @family dtable
 #' @examplesIf rlang::is_installed(c("writexl", "readxl"))

@@ -14,7 +14,8 @@ hb_dtable(..., base_name = "harbouR base", collaborators = NULL)
 \item{collaborators}{Optional list of collaborator records.}
 }
 \value{
-A \code{harbour_dtable}.
+A \code{harbour_dtable}, with the components \code{\link[=hb_read_dtable]{hb_read_dtable()}}
+describes, holding one table per data frame.
 }
 \description{
 Creates a \code{harbour_dtable} from scratch, so a set of R data frames can

@@ -16,7 +16,8 @@ hb_read_xlsx(path, ..., sheets = NULL, base_name = "harbouR base")
 \item{base_name}{Name recorded for the new base.}
 }
 \value{
-A \code{harbour_dtable}.
+A \code{harbour_dtable}, with the components \code{\link[=hb_read_dtable]{hb_read_dtable()}}
+describes, holding one table per sheet read.
 }
 \description{
 One table per worksheet. Like \code{\link[=hb_read_csv]{hb_read_csv()}}, this produces a \emph{new}

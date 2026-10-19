@@ -2,7 +2,7 @@
 #'
 #' @param x A `harbour_dtable`.
 #' @param ... These dots are for future extensions and must be empty.
-#' @return Invisibly returns `x`.
+#' @return `print()` returns `x`, invisibly.
 #' @family dtable
 #' @examples
 #' print(hb_dtable(Samples = data.frame(x = 1)))
@@ -33,7 +33,7 @@ print.harbour_dtable <- function(x, ...) {
 
 #' @param x A `harbour_dtable`.
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A character vector, one element per table.
+#' @return `format()` returns a character vector, one element per table.
 #' @rdname print.harbour_dtable
 #' @export
 format.harbour_dtable <- function(x, ...) {
