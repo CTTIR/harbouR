@@ -6,6 +6,7 @@ skip_if_no_ui <- function() {
   needed <- c("shiny", "bslib", "reactable")
   present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
   testthat::skip_if_not(all(present), "UI packages not installed")
+  testthat::skip_if_not_installed("bslib", "0.6.0")
 }
 
 # testServer()'s mock session drops notifications, so without a record of
@@ -188,6 +189,43 @@ test_that("a .dtable of an opened file comes back unchanged, with no notice", {
     expect_identical(hb_read_dtable(out)$content, base$content)
   })
   expect_length(seen$text, 0L)
+})
+
+test_that("what opening a file warns about is shown in the app", {
+  # Of two attachments whose names differ only in case only one is
+  # extracted, so a .dtable download lacks the other. hb_read_dtable()
+  # warns, but at the console, where the explorer's user is not looking.
+  skip_if_no_ui()
+  skip_if_not("keys" %in% names(formals(zip::zip)), "zip is older than 3.0.0")
+  src <- withr::local_tempdir()
+  zip::unzip(example_path(), "content.json", exdir = src)
+  writeLines("lower", file.path(src, "1"))
+  writeLines("upper", file.path(src, "2"))
+  archive <- withr::local_tempfile(fileext = ".dtable")
+  zip::zip(
+    archive, files = c("content.json", "1", "2"),
+    keys = c("content.json", "asset/files/report.txt",
+             "asset/files/Report.txt"),
+    root = src, mode = "mirror"
+  )
+  upload <- function(path, name) {
+    data.frame(name = name, datapath = path, size = file.size(path),
+               type = "", stringsAsFactors = FALSE)
+  }
+  seen <- local_notifications()
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    session$setInputs(dtable_file = upload(example_path(), "example.dtable"))
+    expect_length(seen$text, 0L)
+    expect_no_warning(
+      session$setInputs(dtable_file = upload(archive, "clash.dtable"))
+    )
+    expect_true(is_harbour_dtable(session$env$state$source))
+    expect_identical(session$env$state$source$base_name, "clash")
+  })
+  expect_length(seen$text, 1L)
+  expect_match(seen$text, "While opening clash.dtable", fixed = TRUE)
+  expect_match(seen$text, "differ only in case", fixed = TRUE)
+  expect_match(seen$text, "asset/files/Report.txt", fixed = TRUE)
 })
 
 test_that("a failed download is reported in the app and serves no file", {

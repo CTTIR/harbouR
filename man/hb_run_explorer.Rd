@@ -31,9 +31,10 @@ which offers a bundled example base that needs no credentials and no
 network.
 
 The UI packages (\code{shiny}, \code{bslib}, \code{reactable}) are in \code{Suggests}, so
-the client itself stays headless. A missing one produces a single
-informative error rather than a stack trace. The Excel download also
-needs \code{writexl}; without it the app says so when you ask for one.
+the client itself stays headless. A missing one, or a \code{bslib} older
+than 0.6.0, produces a single informative error rather than a stack
+trace. The Excel download also needs \code{writexl}; without it the app
+says so when you ask for one.
 
 Shiny refuses uploads over 5 MB by default, and a \code{.dtable} with
 attachments is often larger, so while the app runs it accepts files up
@@ -48,7 +49,8 @@ hb_run_explorer()
 
 # or start from a file, with its attachments, so that a .dtable
 # download keeps them
-hb_run_explorer(hb_read_dtable("my-base.dtable", assets = "extract"))
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+hb_run_explorer(hb_read_dtable(path, assets = "extract"))
 \dontshow{\}) # examplesIf}
 }
 \concept{shiny}

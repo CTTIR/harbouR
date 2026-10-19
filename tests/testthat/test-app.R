@@ -7,6 +7,7 @@ skip_if_no_ui <- function() {
   needed <- c("shiny", "bslib", "reactable")
   present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
   testthat::skip_if_not(all(present), "UI packages not installed")
+  testthat::skip_if_not_installed("bslib", "0.6.0")
 }
 
 test_that("hb_run_explorer rejects a source it cannot open", {
@@ -21,6 +22,19 @@ test_that("hb_run_explorer names the packages it is missing", {
     .package = "base"
   )
   expect_error(hb_run_explorer(), class = "harbour_error_unsupported")
+})
+
+test_that("hb_run_explorer names a bslib older than 0.6.0", {
+  skip_if_no_ui()
+  real <- getNamespaceVersion
+  testthat::local_mocked_bindings(
+    getNamespaceVersion = function(ns) {
+      if (identical(ns, "bslib")) c(version = "0.5.1") else real(ns)
+    },
+    .package = "base"
+  )
+  expect_error(hb_run_explorer(), "bslib (>= 0.6.0)", fixed = TRUE,
+               class = "harbour_error_unsupported")
 })
 
 test_that("the UI builds and declares a page language", {

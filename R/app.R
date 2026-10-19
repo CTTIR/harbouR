@@ -11,9 +11,10 @@
 #' network.
 #'
 #' The UI packages (`shiny`, `bslib`, `reactable`) are in `Suggests`, so
-#' the client itself stays headless. A missing one produces a single
-#' informative error rather than a stack trace. The Excel download also
-#' needs `writexl`; without it the app says so when you ask for one.
+#' the client itself stays headless. A missing one, or a `bslib` older
+#' than 0.6.0, produces a single informative error rather than a stack
+#' trace. The Excel download also needs `writexl`; without it the app
+#' says so when you ask for one.
 #'
 #' Shiny refuses uploads over 5 MB by default, and a `.dtable` with
 #' attachments is often larger, so while the app runs it accepts files up
@@ -34,12 +35,21 @@
 #'
 #' # or start from a file, with its attachments, so that a .dtable
 #' # download keeps them
-#' hb_run_explorer(hb_read_dtable("my-base.dtable", assets = "extract"))
+#' path <- system.file("extdata", "example.dtable", package = "harbouR")
+#' hb_run_explorer(hb_read_dtable(path, assets = "extract"))
 #' @export
 hb_run_explorer <- function(x = NULL, ..., host = "127.0.0.1", port = NULL) {
   rlang::check_dots_used()
   needed <- c("shiny", "bslib", "reactable")
   present <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
+  # requireNamespace() ignores the minimum version DESCRIPTION gives, and
+  # a bslib before 0.6.0 has no navset_card_underline().
+  old_bslib <- present[["bslib"]] &&
+    package_version(getNamespaceVersion("bslib")) < "0.6.0"
+  if (old_bslib) {
+    present[["bslib"]] <- FALSE
+    needed[[2L]] <- "bslib (>= 0.6.0)"
+  }
   if (!all(present)) {
     absent <- needed[!present]
     hb_abort(

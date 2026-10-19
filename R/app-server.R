@@ -31,7 +31,23 @@
       .hb_try(session, sprintf("Could not open %s", file$name), {
         # Extract the assets: without them a download would write an
         # archive whose attachment cells point at files it does not carry.
-        open_source(hb_read_dtable(file$datapath, assets = "extract"), "file")
+        # What the read warns about - attachments it could not all
+        # extract, a newer format - would reach only the console, which
+        # the app's user cannot see, so it is shown here instead.
+        base <- withCallingHandlers(
+          hb_read_dtable(file$datapath, assets = "extract"),
+          warning = function(cnd) {
+            shiny::showNotification(
+              shiny::tags$div(
+                shiny::tags$strong(sprintf("While opening %s", file$name)),
+                shiny::tags$div(class = "small", .hb_plain_message(cnd))
+              ),
+              type = "warning", duration = NULL
+            )
+            invokeRestart("muffleWarning")
+          }
+        )
+        open_source(base, "file")
         # datapath is a temporary upload name; keep the real one for the
         # download filename.
         state$source$base_name <- tools::file_path_sans_ext(file$name)
