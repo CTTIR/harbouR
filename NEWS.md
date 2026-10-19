@@ -159,6 +159,14 @@ First release.
 
 * `.dtable` files:
 
+  * `hb_read_dtable(assets = "extract")` extracted only one of two
+    attachments whose names differ only in case, and writing the base
+    back lost the other without a word: `zip::unzip()` finds an entry
+    without regard to case, and a macOS or Windows folder cannot hold
+    both. It now warns, naming them.
+  * In R 4.1 and 4.2, the `_ctime` and `_mtime` of a base built by
+    `hb_dtable()`, `hb_read_csv()`, `hb_read_xlsx()` or the explorer were
+    the local time labelled as UTC. They are now UTC there as well.
   * `hb_write_dtable()` builds the archive beside its destination and
     moves it into place once complete, so a failed write cannot destroy
     the file it replaces, even the one the base was read from. The bytes
@@ -181,6 +189,9 @@ First release.
 
 * CSV and Excel:
 
+  * In R before 4.4.1, `hb_read_csv()` read a code such as `12E` as the
+    number 12, as `read.csv()` does there. A column holding one now
+    stays text, as it does in later versions of R.
   * Re-importing an export gave a base none of whose tables could be
     read: the exported `_id` became an ordinary column. `hb_read_csv()`
     and `hb_read_xlsx()` now drop a column of that name, which SeaTable
@@ -218,6 +229,8 @@ First release.
 
 * The explorer:
 
+  * `hb_run_explorer()` needs `bslib` 0.6.0 or later, now the minimum
+    that `DESCRIPTION` lists.
   * "This table as CSV" held only the rows the Data panel had loaded,
     1000 by default; it now holds the whole table. The zipped CSV left
     out any table whose name starts with a dot.
@@ -237,6 +250,29 @@ First release.
 
 * Documentation and tests:
 
+  * The examples that need a server are wrapped in `\dontrun{}`. They
+    ran whenever R was interactive, so `example()` sent their writes and
+    deletes to the base that `SEATABLE_SERVER` and `SEATABLE_API_TOKEN`
+    name. `hb_read_table()`, the `hb_list_*()` verbs, `hb_client()`, the
+    `is_harbour_*()` predicates and the `harbour_metadata` methods gain
+    examples that run offline. The `hb_create_table()` example names
+    `columns`, which it passed into `...`; the `hb_metadata()` example
+    calls `tibble::as_tibble()`; and the conditions example no longer
+    depends on the caller's token.
+  * The help pages of `hb_read_table()`, `hb_list_tables()` and
+    `hb_list_views()` are named after the function rather than its
+    `.dtable` method. `?harbouR` no longer shows stray backslashes, the
+    Get-started vignette no longer refers to a `NOTICE.md` the package
+    does not ship, and the arguments of `hb_update_select_option()`,
+    `hb_delete_select_option()`, `hb_lock_rows()`, `hb_unlock_rows()`
+    and `hb_update_view()` say what those functions do with them. The
+    help of the `print()`, `format()`, `summary()` and `as_tibble()`
+    methods no longer calls their `...` unused: it must be empty.
+  * The explorer's tests no longer leave `sass`'s cache of compiled CSS
+    in the home directory, and the test that renders a request with
+    `httr2::req_dry_run()` skips on CRAN and without `httpuv`.
+  * The tests need `testthat` 3.2.0 or later, now the minimum that
+    `DESCRIPTION` lists.
   * The API lock pins the signatures of the registered S3 methods as
     well as the exports: the arguments users pass to `hb_read_table()`
     and the `hb_list_*()` verbs belong to the methods, not the generics,
@@ -400,12 +436,13 @@ The notes below record what changed during development, against an
 
 ## Legal position
 
-* `NOTICE.md`, the README, the vignette and `?harbouR` now cite the basis
-  on which harbouR uses SeaTable's interface, rather than implying it
-  rests on a licence grant. Endpoint paths, HTTP verbs and JSON field
-  names are the ideas and principles underlying an interface, excluded
-  from copyright protection by Article 1(2) of Directive 2009/24/EC and
-  by the CJEU in *SAS Institute v World Programming* (C-406/10) - which
+* [`NOTICE.md`](https://github.com/CTTIR/harbouR/blob/main/NOTICE.md),
+  the README, the vignette and `?harbouR` now cite the basis on which
+  harbouR uses SeaTable's interface, rather than implying it rests on a
+  licence grant. Endpoint paths, HTTP verbs and JSON field names are
+  the ideas and principles underlying an interface, excluded from
+  copyright protection by Article 1(2) of Directive 2009/24/EC and by
+  the CJEU in *SAS Institute v World Programming* (C-406/10) - which
   was referred, on these facts, the question whether a program may be
   written to read and write another's data file format.
 
