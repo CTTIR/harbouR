@@ -35,10 +35,10 @@ new object from \code{\link[=hb_upload_file]{hb_upload_file()}} and write it bac
 \code{\link[=hb_update_rows]{hb_update_rows()}}.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
-hb_attach_file(client, "Samples", "abc", "Report", "report.pdf")
-\dontshow{\}) # examplesIf}
+hb_attach_file(client, "Samples", "abc", "Reports", "report.pdf")
+}
 }
 \seealso{
 Other files:

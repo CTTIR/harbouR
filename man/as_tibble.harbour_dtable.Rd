@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{A \code{harbour_dtable}.}
 
-\item{...}{Unused.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble with one row per table and columns \code{name} (chr),

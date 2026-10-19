@@ -34,10 +34,10 @@ this needs a client created with \code{api_token}; a username/password
 client gets a \code{harbour_error_auth} condition.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_upload_file(client, "report.pdf")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other files:

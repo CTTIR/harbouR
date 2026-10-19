@@ -36,12 +36,22 @@
 #' @return A `harbour_client` object.
 #'
 #' @family client
-#' @examplesIf interactive()
+#' @examples
+#' # creating a client does not contact the server
+#' client <- hb_client(
+#'   server = "https://seatable.example.org",
+#'   api_token = "your-api-token"
+#' )
+#' client
+#'
+#' # a live base needs a SeaTable server and an API token
+#' \dontrun{
 #' client <- hb_client(
 #'   server = Sys.getenv("SEATABLE_SERVER"),
 #'   api_token = Sys.getenv("SEATABLE_API_TOKEN")
 #' )
 #' print(client)
+#' }
 #' @export
 hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
                       api_token = Sys.getenv("SEATABLE_API_TOKEN"),
@@ -191,11 +201,20 @@ validate_harbour_client <- function(x, call = rlang::caller_env()) {
 #' @param x Object to test.
 #' @return A single `TRUE` or `FALSE`.
 #' @family client
+#' @examples
+#' # creating a client does not contact the server
+#' client <- hb_client(
+#'   server = "https://seatable.example.org",
+#'   api_token = "your-api-token"
+#' )
+#' is_harbour_client(client)
+#' is_harbour_client(list())
 #' @export
 is_harbour_client <- function(x) inherits(x, "harbour_client")
 
 #' @param x A `harbour_client`.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
+#' @return `print()` returns `x`, invisibly.
 #' @rdname hb_client
 #' @export
 print.harbour_client <- function(x, ...) {
@@ -212,7 +231,8 @@ print.harbour_client <- function(x, ...) {
 }
 
 #' @param x A `harbour_client`.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
+#' @return `format()` returns a character vector, one element per field.
 #' @rdname hb_client
 #' @export
 format.harbour_client <- function(x, ...) {

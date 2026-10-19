@@ -12,9 +12,16 @@
 #'   `data` list-column holds the column's type-specific configuration -
 #'   for a select column, its options.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' # a .dtable file needs no server
+#' path <- system.file("extdata", "example.dtable", package = "harbouR")
+#' hb_list_columns(hb_read_dtable(path), "Samples")
+#'
+#' # a live base needs a SeaTable server and an API token
+#' \dontrun{
 #' client <- hb_client()
 #' hb_list_columns(client, "Samples")
+#' }
 #' @export
 hb_list_columns <- function(x, table, ...) {
   UseMethod("hb_list_columns")
@@ -82,9 +89,11 @@ hb_list_columns.harbour_client <- function(x, table, ...,
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_add_column(client, "Samples", "Notes", "text")
+#' }
 #' @export
 hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
   rlang::check_dots_empty()
@@ -111,7 +120,8 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_add_columns(
 #'   client, "Samples",
@@ -120,6 +130,7 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 #'     list(name = "b", type = "number")
 #'   )
 #' )
+#' }
 #' @export
 hb_add_columns <- function(client, table, columns, ...) {
   rlang::check_dots_empty()
@@ -152,9 +163,11 @@ hb_add_columns <- function(client, table, columns, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_update_column(client, "Samples", "Notes", new_name = "Comments")
+#' }
 #' @export
 hb_update_column <- function(client, table, name, ..., new_name = NULL,
                              new_type = NULL, column_data = NULL) {
@@ -211,9 +224,11 @@ hb_update_column <- function(client, table, name, ..., new_name = NULL,
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_delete_column(client, "Samples", "Old")
+#' }
 #' @export
 hb_delete_column <- function(client, table, name, ...) {
   rlang::check_dots_empty()
@@ -234,9 +249,11 @@ hb_delete_column <- function(client, table, name, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_add_select_option(client, "Samples", "Status", "Done")
+#' }
 #' @export
 hb_add_select_option <- function(client, table, name, option, ...) {
   rlang::check_dots_empty()
@@ -257,13 +274,16 @@ hb_add_select_option <- function(client, table, name, option, ...) {
 
 #' Update a single-select option
 #' @inheritParams hb_add_select_option
+#' @param option Name of the option to rename.
 #' @param new_option New option name.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_update_select_option(client, "Samples", "Status", "Done", "Complete")
+#' }
 #' @export
 hb_update_select_option <- function(client,
                                     table,
@@ -293,12 +313,15 @@ hb_update_select_option <- function(client,
 
 #' Delete a single-select option
 #' @inheritParams hb_add_select_option
+#' @param option Name of the option to delete.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family columns
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_delete_select_option(client, "Samples", "Status", "Old")
+#' }
 #' @export
 hb_delete_select_option <- function(client, table, name, option, ...) {
   rlang::check_dots_empty()

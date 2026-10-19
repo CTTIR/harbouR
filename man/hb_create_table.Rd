@@ -23,10 +23,11 @@ Invisibly returns the client.
 Create a table
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
-hb_create_table(client, "NewTable", list(list(name = "Name", type = "text")))
-\dontshow{\}) # examplesIf}
+hb_create_table(client, "NewTable",
+  columns = list(list(name = "Name", type = "text")))
+}
 }
 \seealso{
 Other tables:

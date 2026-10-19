@@ -12,9 +12,11 @@
 #' @return The `client`, invisibly. Errors if the server is unreachable.
 #' @family client
 #' @seealso [hb_check_credentials()]
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_ping(client)
+#' }
 #' @export
 hb_ping <- function(client, ...) {
   rlang::check_dots_empty()
@@ -69,9 +71,11 @@ hb_ping <- function(client, ...) {
 #'   condition if the credentials are rejected.
 #' @family client
 #' @seealso [hb_ping()]
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_check_credentials(client)
+#' }
 #' @export
 hb_check_credentials <- function(client, ...) {
   rlang::check_dots_empty()
@@ -99,9 +103,11 @@ hb_check_credentials <- function(client, ...) {
 #' @return A one-row tibble with columns `server` (chr), `version` (chr) and
 #'   `edition` (chr) where reported.
 #' @family client
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_server_info(client)
+#' }
 #' @export
 hb_server_info <- function(client, ...) {
   rlang::check_dots_empty()

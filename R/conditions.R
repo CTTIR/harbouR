@@ -76,7 +76,7 @@
 #'
 #' @examples
 #' res <- tryCatch(
-#'   hb_client(server = "https://example.org"),
+#'   hb_client(server = "https://example.org", api_token = NULL),
 #'   harbour_error_auth = function(cnd) "no credentials"
 #' )
 #' res

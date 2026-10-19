@@ -15,6 +15,15 @@ A single \code{TRUE} or \code{FALSE}.
 \description{
 Test whether an object is a harbour client
 }
+\examples{
+# creating a client does not contact the server
+client <- hb_client(
+  server = "https://seatable.example.org",
+  api_token = "your-api-token"
+)
+is_harbour_client(client)
+is_harbour_client(list())
+}
 \seealso{
 Other client:
 \code{\link[=hb_check_credentials]{hb_check_credentials()}},

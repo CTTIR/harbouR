@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{A \code{harbour_metadata} object.}
 
-\item{...}{Unused.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble with one row per column across all tables, suitable for
@@ -19,12 +19,15 @@ inspecting the SeaTable schema. Columns: \code{table} (chr), \code{column} (chr)
 \description{
 Summary of harbour metadata
 }
+\examples{
+summary(hb_example_metadata())
+}
 \seealso{
 Other metadata:
 \code{\link[=as_tibble.harbour_metadata]{as_tibble.harbour_metadata()}},
 \code{\link[=hb_column_types]{hb_column_types()}},
 \code{\link[=hb_list_collaborators]{hb_list_collaborators()}},
-\code{\link[=hb_list_tables.harbour_dtable]{hb_list_tables.harbour_dtable()}},
+\code{\link[=hb_list_tables]{hb_list_tables()}},
 \code{\link[=hb_metadata]{hb_metadata()}},
 \code{\link[=is_harbour_metadata]{is_harbour_metadata()}},
 \code{\link[=print.harbour_metadata]{print.harbour_metadata()}}

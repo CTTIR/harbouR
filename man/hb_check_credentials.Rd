@@ -28,10 +28,10 @@ Unlike \code{\link[=hb_ping]{hb_ping()}}, which only proves the server is up, th
 credentials are usable.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_check_credentials(client)
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 \code{\link[=hb_ping]{hb_ping()}}

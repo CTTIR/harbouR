@@ -26,10 +26,10 @@ surfacing.
 Get a single row by ID
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_get_row(client, "Samples", "abc123")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other rows:
@@ -37,7 +37,7 @@ Other rows:
 \code{\link[=hb_delete_rows]{hb_delete_rows()}},
 \code{\link[=hb_lock_rows]{hb_lock_rows()}},
 \code{\link[=hb_query]{hb_query()}},
-\code{\link[=hb_read_table.harbour_dtable]{hb_read_table.harbour_dtable()}},
+\code{\link[=hb_read_table]{hb_read_table()}},
 \code{\link[=hb_unlock_rows]{hb_unlock_rows()}},
 \code{\link[=hb_update_rows]{hb_update_rows()}}
 }

@@ -31,7 +31,7 @@ environment variable.}
 \code{SEATABLE_API_TOKEN} env var. Mutually exclusive with
 \code{username}/\code{password}.}
 
-\item{...}{Unused.}
+\item{...}{These dots are for future extensions and must be empty.}
 
 \item{username, password}{Account credentials. Used to acquire an account
 token. Mutually exclusive with \code{api_token}.}
@@ -53,6 +53,10 @@ Default \code{30}.}
 }
 \value{
 A \code{harbour_client} object.
+
+\code{print()} returns \code{x}, invisibly.
+
+\code{format()} returns a character vector, one element per field.
 }
 \description{
 Builds a \code{harbour_client} object that holds the server URL, the user's
@@ -70,13 +74,21 @@ Defaults for \code{server} and \code{api_token} are read from the environment
 variables \code{SEATABLE_SERVER} and \code{SEATABLE_API_TOKEN}.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# creating a client does not contact the server
+client <- hb_client(
+  server = "https://seatable.example.org",
+  api_token = "your-api-token"
+)
+client
+
+# a live base needs a SeaTable server and an API token
+\dontrun{
 client <- hb_client(
   server = Sys.getenv("SEATABLE_SERVER"),
   api_token = Sys.getenv("SEATABLE_API_TOKEN")
 )
 print(client)
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other client:

@@ -19,16 +19,16 @@ A tibble with columns \code{email} (chr), \code{name} (chr) and
 List collaborators of the active base
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_list_collaborators(client)
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other metadata:
 \code{\link[=as_tibble.harbour_metadata]{as_tibble.harbour_metadata()}},
 \code{\link[=hb_column_types]{hb_column_types()}},
-\code{\link[=hb_list_tables.harbour_dtable]{hb_list_tables.harbour_dtable()}},
+\code{\link[=hb_list_tables]{hb_list_tables()}},
 \code{\link[=hb_metadata]{hb_metadata()}},
 \code{\link[=is_harbour_metadata]{is_harbour_metadata()}},
 \code{\link[=print.harbour_metadata]{print.harbour_metadata()}},

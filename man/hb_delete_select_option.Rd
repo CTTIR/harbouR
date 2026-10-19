@@ -13,7 +13,7 @@ hb_delete_select_option(client, table, name, option, ...)
 
 \item{name}{Column name.}
 
-\item{option}{Option name to add.}
+\item{option}{Name of the option to delete.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
@@ -24,10 +24,10 @@ Invisibly returns the client.
 Delete a single-select option
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_delete_select_option(client, "Samples", "Status", "Old")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

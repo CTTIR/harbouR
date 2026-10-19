@@ -12,7 +12,7 @@
 \arguments{
 \item{x}{A \code{harbour_dtable}.}
 
-\item{...}{Unused.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 Invisibly returns \code{x}.

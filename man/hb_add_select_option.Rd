@@ -24,10 +24,10 @@ Invisibly returns the client.
 Add a single-select option
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_add_select_option(client, "Samples", "Status", "Done")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

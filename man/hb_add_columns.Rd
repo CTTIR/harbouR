@@ -25,7 +25,7 @@ Invisibly returns the client.
 Add several columns at once
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_add_columns(
   client, "Samples",
@@ -34,7 +34,7 @@ hb_add_columns(
     list(name = "b", type = "number")
   )
 )
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

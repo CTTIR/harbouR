@@ -22,10 +22,10 @@ Invisibly returns the client.
 Rename a table
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_rename_table(client, "Old", "New")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other tables:

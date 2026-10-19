@@ -36,10 +36,15 @@ for a select column, its options.
 List columns of a table
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# a .dtable file needs no server
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+hb_list_columns(hb_read_dtable(path), "Samples")
+
+# a live base needs a SeaTable server and an API token
+\dontrun{
 client <- hb_client()
 hb_list_columns(client, "Samples")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

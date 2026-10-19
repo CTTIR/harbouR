@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{A \code{harbour_dtable}.}
 
-\item{...}{Unused.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A tibble with one row per column across all tables: \code{table}

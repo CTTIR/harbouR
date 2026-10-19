@@ -22,10 +22,10 @@ Invisibly returns the client.
 Delete a column
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_delete_column(client, "Samples", "Old")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

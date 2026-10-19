@@ -11,10 +11,12 @@
 #'   `base_name` (chr), `tables` (list), `version` (chr).
 #'
 #' @family metadata
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' meta <- hb_metadata(client)
-#' as_tibble(meta)
+#' tibble::as_tibble(meta)
+#' }
 #' @export
 hb_metadata <- function(client, ...) {
   rlang::check_dots_empty()
@@ -46,6 +48,9 @@ new_harbour_metadata <- function(x, base_name = NULL) {
 #' @param x Object to test.
 #' @return A single `TRUE` or `FALSE`.
 #' @family metadata
+#' @examples
+#' is_harbour_metadata(hb_example_metadata())
+#' is_harbour_metadata(list())
 #' @export
 is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 
@@ -65,9 +70,17 @@ is_harbour_metadata <- function(x) inherits(x, "harbour_metadata")
 #'   (int), because in a file the rows are right there.
 #'
 #' @family metadata
-#' @examplesIf interactive()
+#' @examples
+#' # a .dtable file needs no server
+#' path <- system.file("extdata", "example.dtable", package = "harbouR")
+#' hb_list_tables(hb_read_dtable(path))
+#'
+#' # a live base needs a SeaTable server and an API token
+#' \dontrun{
 #' client <- hb_client()
 #' hb_list_tables(client)
+#' }
+#' @order 1
 #' @export
 hb_list_tables <- function(x, ...) {
   UseMethod("hb_list_tables")
@@ -95,9 +108,11 @@ hb_list_tables.harbour_client <- function(x, ..., refresh = FALSE) {
 #' @return A tibble with columns `email` (chr), `name` (chr) and
 #'   `contact_email` (chr). Zero rows if none are reported.
 #' @family metadata
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_list_collaborators(client)
+#' }
 #' @export
 hb_list_collaborators <- function(client, ...) {
   rlang::check_dots_empty()
@@ -127,9 +142,13 @@ hb_list_collaborators <- function(client, ...) {
 
 #' Print method for harbour metadata
 #' @param x A `harbour_metadata` object.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns `x`.
 #' @family metadata
+#' @examples
+#' meta <- hb_example_metadata()
+#' print(meta)
+#' format(meta)
 #' @export
 print.harbour_metadata <- function(x, ...) {
   rlang::check_dots_empty()
@@ -152,7 +171,7 @@ print.harbour_metadata <- function(x, ...) {
 }
 
 #' @param x A `harbour_metadata` object.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A character vector, one element per table.
 #' @rdname print.harbour_metadata
 #' @export
@@ -173,9 +192,11 @@ format.harbour_metadata <- function(x, ...) {
 #' Coerce harbour metadata to a tibble
 #'
 #' @param x A `harbour_metadata` object.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per table; see [hb_list_tables()].
 #' @family metadata
+#' @examples
+#' tibble::as_tibble(hb_example_metadata())
 #' @method as_tibble harbour_metadata
 #' @export
 as_tibble.harbour_metadata <- function(x, ...) {
@@ -198,11 +219,13 @@ as_tibble.harbour_metadata <- function(x, ...) {
 #' Summary of harbour metadata
 #'
 #' @param object A `harbour_metadata` object.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per column across all tables, suitable for
 #'   inspecting the SeaTable schema. Columns: `table` (chr), `column` (chr),
 #'   `type` (chr).
 #' @family metadata
+#' @examples
+#' summary(hb_example_metadata())
 #' @method summary harbour_metadata
 #' @export
 summary.harbour_metadata <- function(object, ...) {

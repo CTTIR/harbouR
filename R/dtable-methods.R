@@ -1,7 +1,7 @@
 #' Print a harbour dtable
 #'
 #' @param x A `harbour_dtable`.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns `x`.
 #' @family dtable
 #' @examples
@@ -32,7 +32,7 @@ print.harbour_dtable <- function(x, ...) {
 }
 
 #' @param x A `harbour_dtable`.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A character vector, one element per table.
 #' @rdname print.harbour_dtable
 #' @export
@@ -77,7 +77,7 @@ length.harbour_dtable <- function(x) {
 #' Coerce a dtable's table index to a tibble
 #'
 #' @param x A `harbour_dtable`.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per table and columns `name` (chr),
 #'   `n_rows` (int), `n_columns` (int) and `n_views` (int). Unlike the
 #'   server path, the row count is real: the rows are in the file.
@@ -106,7 +106,7 @@ as_tibble.harbour_dtable <- function(x, ...) {
 #' Summarise the schema of a dtable
 #'
 #' @param object A `harbour_dtable`.
-#' @param ... Unused.
+#' @param ... These dots are for future extensions and must be empty.
 #' @return A tibble with one row per column across all tables: `table`
 #'   (chr), `column` (chr), `type` (chr), `key` (chr).
 #' @family dtable

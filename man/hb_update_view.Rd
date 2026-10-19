@@ -11,7 +11,7 @@ hb_update_view(client, table, view, settings, ...)
 
 \item{table}{Table name.}
 
-\item{view}{New view name.}
+\item{view}{Name of the view to update.}
 
 \item{settings}{Named list of the fields to change: \code{name} to rename
 the view, \code{is_locked}, \code{filters}, \code{filter_conjunction}, \code{sorts},
@@ -28,16 +28,16 @@ Invisibly returns the client.
 Update a view
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_update_view(client, "Samples", "Active", list(filter_conjunction = "And"))
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other views:
 \code{\link[=hb_create_view]{hb_create_view()}},
 \code{\link[=hb_delete_view]{hb_delete_view()}},
 \code{\link[=hb_get_view]{hb_get_view()}},
-\code{\link[=hb_list_views.harbour_dtable]{hb_list_views.harbour_dtable()}}
+\code{\link[=hb_list_views]{hb_list_views()}}
 }
 \concept{views}

@@ -20,10 +20,10 @@ Returns the SeaTable server's reported version and basic info. This
 endpoint is unauthenticated.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_server_info(client)
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other client:

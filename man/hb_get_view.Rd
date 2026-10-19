@@ -24,16 +24,16 @@ A one-row tibble with columns \code{name} (chr), \code{type} (chr),
 Get a view's settings
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_get_view(client, "Samples", "Default")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other views:
 \code{\link[=hb_create_view]{hb_create_view()}},
 \code{\link[=hb_delete_view]{hb_delete_view()}},
-\code{\link[=hb_list_views.harbour_dtable]{hb_list_views.harbour_dtable()}},
+\code{\link[=hb_list_views]{hb_list_views()}},
 \code{\link[=hb_update_view]{hb_update_view()}}
 }
 \concept{views}

@@ -28,10 +28,10 @@ Invisibly returns the client.
 Add a column to a table
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_add_column(client, "Samples", "Notes", "text")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

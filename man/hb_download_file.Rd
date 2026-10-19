@@ -41,10 +41,10 @@ place only once complete, so a failed download never leaves a partial
 file and never destroys the file \code{overwrite = TRUE} would replace.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_download_file(client, "https://...", tempfile())
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other files:

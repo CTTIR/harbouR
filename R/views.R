@@ -10,9 +10,17 @@
 #' @return A tibble with columns `name` (chr), `type` (chr) and `is_default`
 #'   (lgl). Zero rows if no views exist.
 #' @family views
-#' @examplesIf interactive()
+#' @examples
+#' # a .dtable file needs no server
+#' path <- system.file("extdata", "example.dtable", package = "harbouR")
+#' hb_list_views(hb_read_dtable(path), "Samples")
+#'
+#' # a live base needs a SeaTable server and an API token
+#' \dontrun{
 #' client <- hb_client()
 #' hb_list_views(client, "Samples")
+#' }
+#' @order 1
 #' @export
 hb_list_views <- function(x, table, ...) {
   UseMethod("hb_list_views")
@@ -64,9 +72,11 @@ hb_list_views.harbour_client <- function(x, table, ...,
 #'   `is_default` (lgl), `filters` (list), `sorts` (list) and
 #'   `hidden_columns` (list of chr).
 #' @family views
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_get_view(client, "Samples", "Default")
+#' }
 #' @export
 hb_get_view <- function(client, table, view, ...) {
   rlang::check_dots_empty()
@@ -100,9 +110,11 @@ hb_get_view <- function(client, table, view, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family views
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_create_view(client, "Samples", "Active")
+#' }
 #' @export
 hb_create_view <- function(client, table, view, ..., settings = list()) {
   rlang::check_dots_empty()
@@ -123,6 +135,7 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
 
 #' Update a view
 #' @inheritParams hb_create_view
+#' @param view Name of the view to update.
 #' @param settings Named list of the fields to change: `name` to rename
 #'   the view, `is_locked`, `filters`, `filter_conjunction`, `sorts`,
 #'   `groupbys` or `hidden_columns`. Fields you leave out are unchanged.
@@ -131,9 +144,11 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family views
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_update_view(client, "Samples", "Active", list(filter_conjunction = "And"))
+#' }
 #' @export
 hb_update_view <- function(client, table, view, settings, ...) {
   rlang::check_dots_empty()
@@ -163,9 +178,11 @@ hb_update_view <- function(client, table, view, settings, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family views
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_delete_view(client, "Samples", "Old")
+#' }
 #' @export
 hb_delete_view <- function(client, table, view, ...) {
   rlang::check_dots_empty()

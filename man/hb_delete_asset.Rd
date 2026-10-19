@@ -30,11 +30,11 @@ another base, raises a \code{harbour_error_bad_argument} condition rather
 than deleting this base's file at the same path.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 # A path below the asset root, or the URL from a file or image cell
 hb_delete_asset(client, "/files/2026-07/report.pdf")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other files:

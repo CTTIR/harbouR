@@ -13,7 +13,7 @@ hb_update_select_option(client, table, name, option, new_option, ...)
 
 \item{name}{Column name.}
 
-\item{option}{Option name to add.}
+\item{option}{Name of the option to rename.}
 
 \item{new_option}{New option name.}
 
@@ -26,10 +26,10 @@ Invisibly returns the client.
 Update a single-select option
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_update_select_option(client, "Samples", "Status", "Done", "Complete")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other columns:

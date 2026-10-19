@@ -24,10 +24,10 @@ Returns the client invisibly, so it composes:
 \code{client |> hb_ping() |> hb_read_table("Samples")}.
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_ping(client)
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 \code{\link[=hb_check_credentials]{hb_check_credentials()}}

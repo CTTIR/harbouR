@@ -20,9 +20,11 @@
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A named list describing the uploaded asset.
 #' @family files
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_upload_file(client, "report.pdf")
+#' }
 #' @export
 hb_upload_file <- function(client, path, ..., relative_path = "files") {
   rlang::check_dots_empty()
@@ -158,9 +160,11 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family files
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
-#' hb_attach_file(client, "Samples", "abc", "Report", "report.pdf")
+#' hb_attach_file(client, "Samples", "abc", "Reports", "report.pdf")
+#' }
 #' @export
 hb_attach_file <- function(client, table, row_id, column, path, ...) {
   rlang::check_dots_empty()
@@ -214,9 +218,11 @@ hb_attach_file <- function(client, table, row_id, column, path, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns `dest`.
 #' @family files
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_download_file(client, "https://...", tempfile())
+#' }
 #' @export
 hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
   rlang::check_dots_empty()
@@ -459,10 +465,12 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family files
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' # A path below the asset root, or the URL from a file or image cell
 #' hb_delete_asset(client, "/files/2026-07/report.pdf")
+#' }
 #' @export
 hb_delete_asset <- function(client, url, ...) {
   rlang::check_dots_empty()

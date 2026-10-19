@@ -23,12 +23,22 @@
 #'   empty table.
 #'
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' # a .dtable file needs no server
+#' path <- system.file("extdata", "example.dtable", package = "harbouR")
+#' base <- hb_read_dtable(path)
+#' hb_read_table(base, "Samples")
+#' hb_read_table(base, "Samples", n_max = 1)
+#'
+#' # a live base needs a SeaTable server and an API token
+#' \dontrun{
 #' client <- hb_client()
 #' hb_read_table(client, "Samples")
 #'
 #' # just the first 10 rows
 #' hb_read_table(client, "Samples", n_max = 10)
+#' }
+#' @order 1
 #' @export
 hb_read_table <- function(x, table, ...) {
   UseMethod("hb_read_table")
@@ -257,9 +267,11 @@ hb_read_table.harbour_client <- function(x,
 #'   via `hb_query()` yields the same column types. Always a tibble, even
 #'   when the query returns no rows.
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_query(client, "select * from Samples limit 5")
+#' }
 #' @export
 hb_query <- function(client, sql, ..., parameters = NULL,
                      convert_keys = TRUE) {
@@ -411,9 +423,11 @@ hb_query <- function(client, sql, ..., parameters = NULL,
 #'   asking for a specific row that does not exist is a mistake worth
 #'   surfacing.
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_get_row(client, "Samples", "abc123")
+#' }
 #' @export
 hb_get_row <- function(client, table, row_id, ...) {
   rlang::check_dots_empty()
@@ -446,9 +460,11 @@ hb_get_row <- function(client, table, row_id, ...) {
 #'   `n_requests` (int). The server's reply also lists the new rows'
 #'   `_id`s; harbouR's summary does not include them.
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_append_rows(client, "Samples", tibble::tibble(Name = "S1"))
+#' }
 #' @export
 hb_append_rows <- function(client, table, data, ...,
                            chunk_size = 1000L) {
@@ -576,12 +592,14 @@ hb_append_rows <- function(client, table, data, ...,
 #' @return Invisibly, a one-row tibble with columns `table` (chr),
 #'   `n_rows` (int) and `n_requests` (int).
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_update_rows(
 #'   client, "Samples",
 #'   tibble::tibble(`_id` = "abc", Name = "renamed")
 #' )
+#' }
 #' @export
 hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
                            chunk_size = 1000L) {
@@ -660,9 +678,11 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
 #' @return Invisibly, a one-row tibble with columns `table` (chr),
 #'   `n_rows` (int) and `n_requests` (int).
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_delete_rows(client, "Samples", c("abc", "def"))
+#' }
 #' @export
 hb_delete_rows <- function(client, table, row_ids, ...,
                            chunk_size = 1000L) {
@@ -708,12 +728,15 @@ hb_delete_rows <- function(client, table, row_ids, ...,
 #' Lock rows
 #'
 #' @inheritParams hb_delete_rows
+#' @param row_ids A character vector of row IDs to lock.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_lock_rows(client, "Samples", "abc")
+#' }
 #' @export
 hb_lock_rows <- function(client, table, row_ids, ...) {
   rlang::check_dots_empty()
@@ -731,12 +754,15 @@ hb_lock_rows <- function(client, table, row_ids, ...) {
 
 #' Unlock rows
 #' @inheritParams hb_lock_rows
+#' @param row_ids A character vector of row IDs to unlock.
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family rows
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_unlock_rows(client, "Samples", "abc")
+#' }
 #' @export
 hb_unlock_rows <- function(client, table, row_ids, ...) {
   rlang::check_dots_empty()

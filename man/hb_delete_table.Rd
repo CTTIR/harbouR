@@ -20,10 +20,10 @@ Invisibly returns the client.
 Delete a table
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_delete_table(client, "DropMe")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other tables:

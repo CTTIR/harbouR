@@ -8,9 +8,12 @@
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family tables
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
-#' hb_create_table(client, "NewTable", list(list(name = "Name", type = "text")))
+#' hb_create_table(client, "NewTable",
+#'   columns = list(list(name = "Name", type = "text")))
+#' }
 #' @export
 hb_create_table <- function(client, table, ..., columns = list()) {
   rlang::check_dots_empty()
@@ -36,9 +39,11 @@ hb_create_table <- function(client, table, ..., columns = list()) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family tables
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_rename_table(client, "Old", "New")
+#' }
 #' @export
 hb_rename_table <- function(client, table, new_name, ...) {
   rlang::check_dots_empty()
@@ -59,9 +64,11 @@ hb_rename_table <- function(client, table, new_name, ...) {
 #' @param ... These dots are for future extensions and must be empty.
 #' @return Invisibly returns the client.
 #' @family tables
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_delete_table(client, "DropMe")
+#' }
 #' @export
 hb_delete_table <- function(client, table, ...) {
   rlang::check_dots_empty()
@@ -88,10 +95,12 @@ hb_delete_table <- function(client, table, ...) {
 #' set the name in the same request. Follow with [hb_rename_table()] if you
 #' need a particular name.
 #' @family tables
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' client <- hb_client()
 #' hb_duplicate_table(client, "Samples")
 #' hb_rename_table(client, "Samples(copy)", "Samples_backup")
+#' }
 #' @export
 hb_duplicate_table <- function(client, table, ..., duplicate_records = TRUE) {
   rlang::check_dots_empty()

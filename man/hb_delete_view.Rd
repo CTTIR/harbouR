@@ -22,16 +22,16 @@ Invisibly returns the client.
 Delete a view
 }
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_delete_view(client, "Samples", "Old")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other views:
 \code{\link[=hb_create_view]{hb_create_view()}},
 \code{\link[=hb_get_view]{hb_get_view()}},
-\code{\link[=hb_list_views.harbour_dtable]{hb_list_views.harbour_dtable()}},
+\code{\link[=hb_list_views]{hb_list_views()}},
 \code{\link[=hb_update_view]{hb_update_view()}}
 }
 \concept{views}

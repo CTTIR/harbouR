@@ -31,11 +31,11 @@ need a particular name.
 }
 
 \examples{
-\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+\dontrun{
 client <- hb_client()
 hb_duplicate_table(client, "Samples")
 hb_rename_table(client, "Samples(copy)", "Samples_backup")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 Other tables:
