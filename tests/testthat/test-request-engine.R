@@ -220,7 +220,10 @@ test_that(".hb_req constructs a request object with a query", {
 
 test_that("a missing number reaches the wire as null, not the string NA", {
   # jsonlite writes NA_real_ as "NA" by default, which SeaTable stores as
-  # text in a number column.
+  # text in a number column. req_dry_run() renders the request through a
+  # local server, which needs httpuv.
+  skip_on_cran()
+  skip_if_not_installed("httpuv")
   cl <- mock_client()
   sent <- NULL
   testthat::local_mocked_bindings(
