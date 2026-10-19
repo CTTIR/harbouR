@@ -23,7 +23,8 @@
 #'   files. An archive whose asset entries could land outside
 #'   `assets_dir` - a name that is absolute or has a `..` component,
 #'   between slashes or backslashes, or an entry that is a symbolic link -
-#'   is refused before anything is extracted.
+#'   is refused before anything is extracted. Assets whose names differ
+#'   only in case may not all be extracted, and a warning names them.
 #' @param assets_dir Where to extract assets to. Defaults to a session
 #'   temporary directory.
 #'
@@ -75,6 +76,7 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
   dir <- NULL
   if (identical(assets, "extract") && nrow(asset_rows) > 0L) {
     .hb_check_asset_entries(asset_rows)
+    .hb_warn_asset_case(asset_rows)
     dir <- assets_dir %||% tempfile("harbour-assets-")
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
     zip::unzip(path, files = asset_rows$filename, exdir = dir)
@@ -673,6 +675,30 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
       class = "harbour_error_bad_argument",
       call = call
     )
+  }
+  invisible(NULL)
+}
+
+#' Warn about assets whose names differ only in case
+#'
+#' `zip::unzip()` finds an entry by name without regard to case, and a
+#' macOS or Windows folder cannot hold two such files, so only one of
+#' them may be extracted - and so written back.
+#'
+#' @param entries The asset rows of a `zip::zip_list()` listing.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_warn_asset_case <- function(entries) {
+  files <- entries$filename[!endsWith(entries$filename, "/")]
+  folded <- tolower(files)
+  clash <- files[folded %in% folded[duplicated(folded)]]
+  if (length(clash) > 0L) {
+    cli::cli_warn(c(
+      "Some assets have names that differ only in case: {.file {clash}}.",
+      "x" = "Only one file of each such set may be extracted; the others
+             will be missing when the base is written back."
+    ))
   }
   invisible(NULL)
 }

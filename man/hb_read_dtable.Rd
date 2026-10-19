@@ -17,7 +17,8 @@ the assets so \code{\link[=hb_asset_path]{hb_asset_path()}} can resolve attachme
 files. An archive whose asset entries could land outside
 \code{assets_dir} - a name that is absolute or has a \code{..} component,
 between slashes or backslashes, or an entry that is a symbolic link -
-is refused before anything is extracted.}
+is refused before anything is extracted. Assets whose names differ
+only in case may not all be extracted, and a warning names them.}
 
 \item{assets_dir}{Where to extract assets to. Defaults to a session
 temporary directory.}

@@ -161,6 +161,29 @@ test_that("only the asset/ tree is extracted, not names that start alike", {
   )
 })
 
+test_that("assets whose names differ only in case are named in a warning", {
+  # zip::unzip() finds an entry by name without regard to case, so only one
+  # file of such a pair is extracted, and a base written back lacks the
+  # other.
+  archive <- dtable_with(c(
+    "asset/files/report.txt" = "lower",
+    "asset/files/Report.txt" = "upper",
+    "asset/files/other.txt" = "other"
+  ))
+  shown <- testthat::capture_warnings(
+    base <- hb_read_dtable(archive, assets = "extract")
+  )
+  expect_length(shown, 1L)
+  expect_match(shown, "differ only in case", fixed = TRUE)
+  expect_match(shown, "asset/files/report.txt", fixed = TRUE)
+  expect_match(shown, "asset/files/Report.txt", fixed = TRUE)
+  expect_false(grepl("other.txt", shown, fixed = TRUE))
+  expect_s3_class(base, "harbour_dtable")
+  # Nothing is lost when nothing is extracted.
+  expect_no_warning(hb_read_dtable(archive))
+  expect_no_warning(hb_read_dtable(fixture(), assets = "extract"))
+})
+
 test_that("a link in the asset tree refuses the archive", {
   skip_on_os("windows")
   sandbox <- withr::local_tempdir()
