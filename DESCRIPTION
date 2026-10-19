@@ -1,7 +1,7 @@
 Package: harbouR
 Title: Work with Self-Hosted 'SeaTable' Servers and Data Files
 Version: 0.1.0
-Date: 2026-10-07
+Date: 2026-10-19
 Authors@R: c(
     person("Raban", "Heller",
            email = "raban.heller@uni-ulm.de",
@@ -15,12 +15,13 @@ Authors@R: c(
 Description: An unofficial R client for self-hosted 'SeaTable' servers
     and for reading and writing 'SeaTable' data files directly. Reads a
     local '.dtable' export with no server at all, and talks to a
-    self-hosted server over its REST API, returning tables, rows,
+    self-hosted server over its REST (representational state transfer)
+    application programming interface (API), returning tables, rows,
     columns and views as tidy 'tibble' objects through a
     column-type-aware coercion layer. Includes helpers for managing
     bases and files, converters to and from spreadsheet formats, and an
     optional 'shiny' explorer for interactive inspection. The 'SeaTable'
-    REST API is documented at <https://api.seatable.com/>. This is an
+    API is documented at <https://api.seatable.com/>. This is an
     independent, third-party client: it is not affiliated with, endorsed
     by, or otherwise connected to SeaTable GmbH, and 'SeaTable' is their
     trademark, used here only to identify the software the package
@@ -45,7 +46,7 @@ Imports:
     tools,
     zip
 Suggests:
-    bslib,
+    bslib (>= 0.6.0),
     dplyr,
     DT,
     ggplot2,
@@ -56,7 +57,7 @@ Suggests:
     rmarkdown,
     shiny,
     spelling,
-    testthat (>= 3.0.0),
+    testthat (>= 3.2.0),
     tidyr,
     withr,
     writexl
