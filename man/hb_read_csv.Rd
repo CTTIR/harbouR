@@ -36,8 +36,9 @@ value does not change that:
 Two exceptions avoid losing data. A column holding an integer with a
 leading zero, such as \code{"0001"}, or an integer of more than 15 digits
 stays text, rather than losing the zeros or having its digits rounded.
-A column with no values at all is text, not a checkbox column that
-would read \code{FALSE} in every row.
+So does one holding a code such as \code{"12E"}, which \code{\link[utils:read.csv]{utils::read.csv()}}
+reads as \code{12} in R before 4.4.1. A column with no values at all is
+text, not a checkbox column that would read \code{FALSE} in every row.
 
 The files must be UTF-8, with or without a byte-order mark. A file in
 another encoding is refused, naming the first line that is not valid

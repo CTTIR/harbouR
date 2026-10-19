@@ -164,8 +164,9 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #' Two exceptions avoid losing data. A column holding an integer with a
 #' leading zero, such as `"0001"`, or an integer of more than 15 digits
 #' stays text, rather than losing the zeros or having its digits rounded.
-#' A column with no values at all is text, not a checkbox column that
-#' would read `FALSE` in every row.
+#' So does one holding a code such as `"12E"`, which [utils::read.csv()]
+#' reads as `12` in R before 4.4.1. A column with no values at all is
+#' text, not a checkbox column that would read `FALSE` in every row.
 #'
 #' The files must be UTF-8, with or without a byte-order mark. A file in
 #' another encoding is refused, naming the first line that is not valid
@@ -406,8 +407,13 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 .hb_convert_csv_column <- function(values) {
   # A number cannot keep the zeros of "0001", nor the digits of an integer
   # longer than the 15 a double is sure to hold, so such a column stays
-  # text.
-  lossy <- grepl("^\\s*[-+]?(0[0-9]+|[0-9]{16,})\\s*$", values, perl = TRUE)
+  # text. Before R 4.4.1, read.csv() also read a code such as "12E" as 12,
+  # taking the letter for an exponent with no digits.
+  mantissa <- "([0-9]+[.]?[0-9]*|[.][0-9]+)"
+  lossy <- grepl(
+    paste0("^\\s*[-+]?(0[0-9]+|[0-9]{16,}|", mantissa, "[eE][-+]?)\\s*$"),
+    values, perl = TRUE
+  )
   if (any(lossy)) {
     return(values)
   }

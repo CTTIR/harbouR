@@ -39,6 +39,19 @@ test_that("hb_read_csv keeps zero-padded and long integers as text", {
   expect_identical(data$Share, c(0.5, 1.5))
 })
 
+test_that("hb_read_csv keeps codes that end in an exponent letter as text", {
+  # Before R 4.4.1, read.csv() read "12E" as 12, taking the letter for an
+  # exponent with no digits. A number with a real exponent is still one.
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("Code,Small,Big", "12E,2.5E-1,1e5", "6e,5e-1,2E+5"), path)
+  base <- hb_read_csv(c(T = path))
+  expect_identical(column_types(base, "T"), c("text", "number", "number"))
+  data <- hb_read_table(base, "T")
+  expect_identical(data$Code, c("12E", "6e"))
+  expect_identical(data$Small, c(0.25, 0.5))
+  expect_identical(data$Big, c(1e5, 2e5))
+})
+
 test_that("a sixteen-digit integer is text, a fifteen-digit one a number", {
   path <- withr::local_tempfile(fileext = ".csv")
   writeLines(c("Long,Short", "1234567890123456,123456789012345"), path)
