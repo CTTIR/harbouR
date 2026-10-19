@@ -691,13 +691,19 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @noRd
 .hb_warn_asset_case <- function(entries) {
   files <- entries$filename[!endsWith(entries$filename, "/")]
-  folded <- tolower(files)
-  clash <- files[folded %in% folded[duplicated(folded)]]
+  # zip folds A to Z alone, in every locale, while tolower() follows the
+  # locale on Linux, where a Turkish one lowers "I" to a dotless "i".
+  ascii <- chartr("A-Z", "a-z", files)
+  full <- tolower(files)
+  clash <- files[ascii %in% ascii[duplicated(ascii)] |
+                   full %in% full[duplicated(full)]]
   if (length(clash) > 0L) {
     cli::cli_warn(c(
-      "Some assets have names that differ only in case: {.file {clash}}.",
-      "x" = "Only one file of each such set may be extracted; the others
-             will be missing when the base is written back."
+      "{length(clash)} assets have names that differ only in case:
+       {.file {clash}}.",
+      "x" = "Only one file of each such set may be extracted. A base
+             written back lacks the others, and {.fn hb_asset_path} may
+             give the extracted file for every name in the set."
     ))
   }
   invisible(NULL)

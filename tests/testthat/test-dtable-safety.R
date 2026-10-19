@@ -174,7 +174,8 @@ test_that("assets whose names differ only in case are named in a warning", {
     base <- hb_read_dtable(archive, assets = "extract")
   )
   expect_length(shown, 1L)
-  expect_match(shown, "differ only in case", fixed = TRUE)
+  expect_match(shown, "2 assets have names that differ only in case",
+               fixed = TRUE)
   expect_match(shown, "asset/files/report.txt", fixed = TRUE)
   expect_match(shown, "asset/files/Report.txt", fixed = TRUE)
   expect_false(grepl("other.txt", shown, fixed = TRUE))
