@@ -109,8 +109,10 @@
 #' @keywords internal
 #' @noRd
 .hb_dtable_timestamp <- function(time = Sys.time()) {
+  # Before R 4.3, as.POSIXct() ignored `tz` for a date-time, which then
+  # kept the session's zone; format() applies it in every version.
   paste0(
-    format(as.POSIXct(time, tz = "UTC"), "%Y-%m-%dT%H:%M:%OS3"),
+    format(as.POSIXct(time), "%Y-%m-%dT%H:%M:%OS3", tz = "UTC"),
     "+00:00"
   )
 }

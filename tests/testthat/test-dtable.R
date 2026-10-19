@@ -281,6 +281,16 @@ test_that("generated identifiers match SeaTable's shapes", {
   expect_false(harbouR:::.hb_new_column_key("0000") == "0000")
 })
 
+test_that("_ctime and _mtime are written in UTC, whatever the time's zone", {
+  # Before R 4.3, as.POSIXct() kept a date-time's own zone, so this came
+  # out as Auckland's 18:00, labelled UTC.
+  time <- as.POSIXct("2026-07-27 18:00:00", tz = "Pacific/Auckland")
+  expect_identical(
+    harbouR:::.hb_dtable_timestamp(time),
+    "2026-07-27T06:00:00.000+00:00"
+  )
+})
+
 test_that("exporting to csv and xlsx flattens, and says so", {
   base <- hb_read_dtable(fixture())
   dir <- withr::local_tempdir()
