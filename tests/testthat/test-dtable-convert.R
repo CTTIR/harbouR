@@ -52,6 +52,23 @@ test_that("hb_read_csv keeps codes that end in an exponent letter as text", {
   expect_identical(data$Big, c(1e5, 2e5))
 })
 
+test_that("a Unicode space after a padded code does not make it a number", {
+  # type.convert() ignores a trailing full-width or em space in a UTF-8
+  # session, so "0001" followed by one was read as 1.
+  skip_if_not(l10n_info()[["UTF-8"]], "not a UTF-8 session")
+  path <- withr::local_tempfile(fileext = ".csv")
+  con <- file(path, open = "wb")
+  writeLines(enc2utf8(c("Code,Ref,Plain", "0001\u3000,0002\u2003,1\u3000",
+                        "0003,0004,2")), con, useBytes = TRUE)
+  close(con)
+  base <- hb_read_csv(c(T = path))
+  expect_identical(column_types(base, "T"), c("text", "text", "number"))
+  data <- hb_read_table(base, "T")
+  expect_identical(data$Code, c("0001\u3000", "0003"))
+  expect_identical(data$Ref, c("0002\u2003", "0004"))
+  expect_identical(data$Plain, c(1, 2))
+})
+
 test_that("a sixteen-digit integer is text, a fifteen-digit one a number", {
   path <- withr::local_tempfile(fileext = ".csv")
   writeLines(c("Long,Short", "1234567890123456,123456789012345"), path)
