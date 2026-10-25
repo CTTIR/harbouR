@@ -1,10 +1,8 @@
 #' The harbouR explorer's palette
 #'
-#' Taken from the package logo, which is built on viridis. That is not a
-#' coincidence worth discarding: viridis is the colourblind-safe,
-#' perceptually uniform scale this package's users already read their own
-#' figures in, so the app speaks their visual language rather than
-#' inventing a second one.
+#' The explorer retains its established viridis palette independently of
+#' the Material Atlas package badge. Viridis is the colourblind-safe,
+#' perceptually uniform scale used to distinguish column families here.
 #'
 #' The scale is used to carry information, not decoration: every SeaTable
 #' column type gets a fixed position on it, so the same type is the same
