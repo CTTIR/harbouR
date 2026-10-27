@@ -84,7 +84,15 @@ base rather than restoring one.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>harbour_dtable</code>.</p>
+    <p>A <code>harbour_dtable</code>, with the components <code><a href="hb_read_dtable.html">hb_read_dtable()</a></code>
+describes, holding one table per sheet read.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>A column's type follows its cells, judged over every row of the sheet.
+A column with no values at all is text. A column named <code>_id</code>, such as
+the one <code><a href="hb_write_xlsx.html">hb_write_xlsx()</a></code> writes, is dropped, with a warning when it
+holds anything but SeaTable row ids.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

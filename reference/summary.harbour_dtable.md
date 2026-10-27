@@ -17,7 +17,7 @@ summary(object, ...)
 
 - ...:
 
-  Unused.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

@@ -5,12 +5,12 @@ List views of a table
 ## Usage
 
 ``` r
+hb_list_views(x, table, ...)
+
 # S3 method for class 'harbour_dtable'
 hb_list_views(x, table, ...)
 
 # Default S3 method
-hb_list_views(x, table, ...)
-
 hb_list_views(x, table, ...)
 
 # S3 method for class 'harbour_client'
@@ -53,8 +53,17 @@ Other views:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+# a .dtable file needs no server
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+hb_list_views(hb_read_dtable(path), "Samples")
+#> # A tibble: 1 × 3
+#>   name         type  is_default
+#>   <chr>        <chr> <lgl>     
+#> 1 Default View table TRUE      
+
+# a live base needs a SeaTable server and an API token
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_list_views(client, "Samples")
-}
+} # }
 ```

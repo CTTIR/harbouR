@@ -1,9 +1,8 @@
 # Offline example metadata
 
-A small, hand-crafted SeaTable base used to power offline examples,
-tests, the column-types vignette and the Shiny demo mode. The shape of
-the returned object matches what the SeaTable metadata endpoint would
-yield.
+A small, hand-crafted SeaTable base used to power offline examples and
+tests. The shape of the returned object matches what the SeaTable
+metadata endpoint would yield.
 
 ## Usage
 

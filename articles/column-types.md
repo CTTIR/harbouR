@@ -1,8 +1,8 @@
 # Column types and coercion
 
-SeaTable bases have 28 column types. harbouR maps every one of them onto
-a predictable R type so the tibble you get back is analysis-ready, not
-raw JSON. This vignette is the reference.
+harbouR maps SeaTable’s column types onto predictable R types, so the
+tibble you get back is analysis-ready, not raw JSON. This vignette is
+the reference.
 
 ## The mapping table
 
@@ -28,9 +28,9 @@ knitr::kable(hb_column_types())
 | euro | double | FALSE | FALSE | number with a currency format |
 | duration | double | FALSE | FALSE | seconds |
 | rate | integer | FALSE | FALSE | 0..N stars |
-| checkbox | logical | FALSE | FALSE | TRUE/FALSE |
+| checkbox | logical | FALSE | FALSE | TRUE/FALSE; an unset box reads as FALSE |
 | date | POSIXct | FALSE | FALSE | UTC; date-only columns have a zero time component |
-| single-select | character | FALSE | FALSE | validated against the column’s options on write |
+| single-select | character | FALSE | FALSE | not validated on write: SeaTable adds an unknown name as a new option |
 | multiple-select | list | TRUE | FALSE | always a list-column |
 | collaborator | list | TRUE | FALSE | list-column of email addresses |
 | image | list | TRUE | FALSE | list-column of URLs |
@@ -41,11 +41,16 @@ knitr::kable(hb_column_types())
 | formula | character | FALSE | TRUE | computed server-side |
 | auto-number | character | FALSE | TRUE | server-generated identifier |
 | button | list | TRUE | TRUE | carries no data |
-| digital-sign | list | TRUE | TRUE | signature metadata |
+| digital-sign | list | TRUE | TRUE | signature metadata; not written, since it should come from the signer |
 | creator | character | FALSE | TRUE | user email |
 | last-modifier | character | FALSE | TRUE | user email |
 | ctime | POSIXct | FALSE | TRUE | row creation time |
 | mtime | POSIXct | FALSE | TRUE | row modification time |
+
+Three of its rows are not column types of their own. `percent`, `dollar`
+and `euro` are formats of a number column: SeaTable reports such a
+column as type `number`, with the format in its `data`. They are listed
+so that a table carrying them as a type still reads as numbers.
 
 ## What the rows look like
 
@@ -79,14 +84,31 @@ str(samples[, c("Name", "Concentration", "Status", "Collected")])
 #>  $ Collected    : POSIXct[1:3], format: "2026-04-01 09:00:00" "2026-04-03 12:30:00" ...
 ```
 
-- `text` / `single-select` come back as `character`.
+- `text` / `single-select` come back as `character`. A single-select
+  value is not checked against the column’s options when you write it:
+  SeaTable adds an unknown name as a new option, so a typo becomes one.
 - `number` becomes a `double` (caveat: SeaTable’s numeric column is
   64-bit; large integers may round - if precision matters store them as
   text).
-- `date` always becomes `POSIXct`, in UTC. A date-only column simply has
-  a zero time component. Call
-  [`as.Date()`](https://rdrr.io/r/base/as.Date.html) if you want a
-  calendar date.
+- `checkbox` becomes `logical`. A box that was never ticked reads as
+  `FALSE`, as SeaTable shows it. When you write, harbouR sends the JSON
+  `true` or `false` SeaTable needs: a number is ticked unless it is 0,
+  and a string is read as
+  [`as.logical()`](https://rdrr.io/r/base/logical.html) reads it, so
+  `"TRUE"`, `"true"` and `"T"` tick the box and `"FALSE"`, `"false"` and
+  `"F"` clear it. Any other non-empty string, `NA` and `NaN` are sent as
+  empty, the string with a warning.
+- `date` always becomes `POSIXct`, in UTC. In a date-only column - one
+  whose format has no time - the value is midnight UTC on the date
+  SeaTable shows, whatever the server’s time zone, so
+  [`as.Date()`](https://rdrr.io/r/base/as.Date.html) gives that calendar
+  date. A date-time column holds an instant: a server sends it with its
+  UTC offset and harbouR converts it to UTC, while a `.dtable` stores it
+  without one and harbouR reads it as UTC. A column that reports no
+  format is read as a date-time. Written to a date-only column, a `Date`
+  is sent as itself and a date-time as the date it shows in its own time
+  zone, except one at exactly midnight UTC, which keeps its UTC date, so
+  a cell read and written back keeps its day.
 
 ### List-columns
 
@@ -155,9 +177,9 @@ Each entry is a list of file objects with `name`, `size`, `type` and
 
 ### Read-only columns
 
-These types are maintained by SeaTable, so harbouR drops them from any
-write. You can round-trip a tibble through harbouR without writing back
-computed values by accident.
+harbouR leaves columns of these types out of every write, so you can
+round-trip a tibble through harbouR without writing back computed values
+by accident.
 
 ``` r
 
@@ -167,9 +189,10 @@ subset(hb_column_types(), read_only)$seatable
 #>  [9] "ctime"         "mtime"
 ```
 
-Note that `link`, `button` and `digital-sign` are in that list too:
-links are maintained through SeaTable’s link endpoints rather than by
-writing the cell.
+Most of them are computed or maintained by SeaTable. Links are kept
+through SeaTable’s link endpoints rather than by writing the cell, and a
+button carries no data. A `digital-sign` cell is left out for another
+reason: a signature should come from the signer, not from a script.
 
 ## Empty tables
 

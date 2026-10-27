@@ -101,7 +101,7 @@ environment variable.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Unused.</p></dd>
+<dd><p>These dots are for future extensions and must be empty.</p></dd>
 
 
 <dt id="arg-username-password">username, password<a class="anchor" aria-label="anchor" href="#arg-username-password"></a></dt>
@@ -117,12 +117,15 @@ base-token exchange.</p></dd>
 <dt id="arg-workspace-id-base-name">workspace_id, base_name<a class="anchor" aria-label="anchor" href="#arg-workspace-id-base-name"></a></dt>
 <dd><p>Which base to work on. Required for a
 <code>username</code>/<code>password</code> client, because an account token is scoped to
-the user rather than to a base. Ignored when <code>api_token</code> is used,
-since an API token names its base implicitly.</p></dd>
+the user rather than to a base: <code>workspace_id</code> is a positive whole
+number, or a string of its digits, and <code>base_name</code> a string. Ignored
+when <code>api_token</code> is used, since an API token names its base
+implicitly.</p></dd>
 
 
 <dt id="arg-timeout">timeout<a class="anchor" aria-label="anchor" href="#arg-timeout"></a></dt>
-<dd><p>Per-request timeout in seconds. Default <code>30</code>.</p></dd>
+<dd><p>Per-request timeout in seconds, a positive number.
+Default <code>30</code>.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -132,6 +135,8 @@ since an API token names its base implicitly.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>harbour_client</code> object.</p>
+<p><code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> returns <code>x</code>, invisibly.</p>
+<p><code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> returns a character vector, one element per field.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -153,13 +158,29 @@ variables <code>SEATABLE_SERVER</code> and <code>SEATABLE_API_TOKEN</code>.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># creating a client does not contact the server</span></span></span>
+<span class="r-in"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu">hb_client</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  server <span class="op">=</span> <span class="st">"https://seatable.example.org"</span>,</span></span>
+<span class="r-in"><span>  api_token <span class="op">=</span> <span class="st">"your-api-token"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">client</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">&lt;harbour_client&gt;</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> server : https://seatable.example.org</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> auth : api_token</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> token : your...oken</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> base : &lt;not yet fetched&gt;</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> base uuid: &lt;unknown&gt;</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> expires : &lt;not yet fetched&gt;</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># a live base needs a SeaTable server and an API token</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu">hb_client</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  server <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"SEATABLE_SERVER"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  api_token <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"SEATABLE_API_TOKEN"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">client</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

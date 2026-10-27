@@ -51,7 +51,7 @@
     <div class="section level2">
       <h2 id="errors">Errors<a class="anchor" aria-label="anchor" href="#errors"></a></h2>
 
-      <div class="section-desc"><p>Every error harbouR raises carries a condition class, so callers can react to what went wrong rather than matching on message text.</p></div>
+      <div class="section-desc"><p>Every error harbouR raises itself, and every HTTP or transport failure, carries a condition class, so callers can react to what went wrong rather than matching on message text. Argument-matching errors from rlang keep the classes rlang gives them.</p></div>
 
       <dl></dl></div><div class="section level2">
 

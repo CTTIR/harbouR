@@ -24,7 +24,7 @@ hb_delete_select_option(client, table, name, option, ...)
 
 - option:
 
-  Option name to add.
+  Name of the option to delete.
 
 - ...:
 
@@ -48,8 +48,8 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_delete_select_option(client, "Samples", "Status", "Old")
-}
+} # }
 ```

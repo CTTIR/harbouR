@@ -2,7 +2,9 @@
 
 Produces a ZIP archive SeaTable can import. Round-tripping is lossless:
 reading a file and writing it back yields a `content.json` that parses
-to an identical structure, verified against a real 750 KB export.
+to an identical structure, verified against a real 750 KB export. The
+attachments go back in too when the file was read with
+`assets = "extract"`.
 
 ## Usage
 
@@ -31,11 +33,29 @@ hb_write_dtable(x, path, ..., assets = TRUE, overwrite = TRUE)
 
 - overwrite:
 
-  Refuse to clobber an existing file unless `TRUE`.
+  Whether to replace an existing file at `path`. Default `TRUE`; set
+  `FALSE` to refuse.
 
 ## Value
 
 `x`, invisibly.
+
+## Details
+
+The archive is built in a temporary file beside `path` and moved into
+place only once it is complete, so a failed write cannot destroy the
+file it replaces - even when that is the file the base was read from.
+Replacing a file gives it a new identity on disk, so any other hard link
+to it keeps the old content. Where no new file can be made beside
+`path`, or there is nothing at `path` to lose - an empty file such as
+`/dev/null`, or a link to a file not made yet - the archive is written
+straight into it. A file that cannot be replaced, because another
+program holds it open or the folder lets files be written but not
+removed, is written into once the archive is complete; that needs room
+for a second copy, and should it fail, the complete archive is kept
+beside `path` and the error says where. A symbolic link in the extracted
+asset tree is left out, with a warning, rather than followed to wherever
+it points.
 
 ## See also
 
@@ -61,15 +81,13 @@ Other dtable:
 
 ``` r
 path <- system.file("extdata", "example.dtable", package = "harbouR")
-base <- hb_read_dtable(path)
+# extract the assets, so the attachments are written back too
+base <- hb_read_dtable(path, assets = "extract")
 
 out <- tempfile(fileext = ".dtable")
 hb_write_dtable(base, out)
-#> Warning: This base references 7 bundled assets that will not be written.
-#> ✖ The attachment cells will point at files the archive does not contain.
-#> ℹ Re-read it with `hb_read_dtable(path, assets = "extract")`.
 
-# the round trip preserves the base exactly
+# content.json round-trips exactly
 identical(hb_read_dtable(out)$content, base$content)
 #> [1] TRUE
 ```

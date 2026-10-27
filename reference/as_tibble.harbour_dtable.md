@@ -17,7 +17,7 @@ as_tibble(x, ...)
 
 - ...:
 
-  Unused.
+  These dots are for future extensions and must be empty.
 
 ## Value
 

@@ -17,7 +17,7 @@ as_tibble(x, ...)
 
 - ...:
 
-  Unused.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
@@ -29,8 +29,19 @@ A tibble with one row per table; see
 Other metadata:
 [`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md),
 [`hb_list_collaborators()`](https://cttir.github.io/harbouR/reference/hb_list_collaborators.md),
-[`hb_list_tables.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
+[`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
 [`hb_metadata()`](https://cttir.github.io/harbouR/reference/hb_metadata.md),
 [`is_harbour_metadata()`](https://cttir.github.io/harbouR/reference/is_harbour_metadata.md),
 [`print.harbour_metadata()`](https://cttir.github.io/harbouR/reference/print.harbour_metadata.md),
 [`summary.harbour_metadata()`](https://cttir.github.io/harbouR/reference/summary.harbour_metadata.md)
+
+## Examples
+
+``` r
+tibble::as_tibble(hb_example_metadata())
+#> # A tibble: 2 × 3
+#>   name     n_columns n_views
+#>   <chr>        <int>   <int>
+#> 1 Samples          7       1
+#> 2 Patients         4       1
+```

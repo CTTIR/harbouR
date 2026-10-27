@@ -99,8 +99,15 @@ to start there. With no argument the app opens on its source panel,
 which offers a bundled example base that needs no credentials and no
 network.</p>
 <p>The UI packages (<code>shiny</code>, <code>bslib</code>, <code>reactable</code>) are in <code>Suggests</code>, so
-the client itself stays headless. A missing one produces a single
-informative error rather than a stack trace.</p>
+the client itself stays headless. A missing one, or a <code>bslib</code> older
+than 0.6.0, produces a single informative error rather than a stack
+trace. The Excel download also needs <code>writexl</code>; without it the app
+says so when you ask for one.</p>
+<p>Shiny refuses uploads over 5 MB by default, and a <code>.dtable</code> with
+attachments is often larger, so while the app runs it accepts files up
+to 1 GB. To choose another limit, set the <code>shiny.maxRequestSize</code>
+option, in bytes, before calling <code>hb_run_explorer()</code>; a value you have
+set is left as it is.</p>
     </div>
 
     <div class="section level2">
@@ -109,8 +116,10 @@ informative error rather than a stack trace.</p>
 <span class="r-in"><span><span class="co"># the bundled example base, no credentials needed</span></span></span>
 <span class="r-in"><span><span class="fu">hb_run_explorer</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># or start from a file</span></span></span>
-<span class="r-in"><span><span class="fu">hb_run_explorer</span><span class="op">(</span><span class="fu"><a href="hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="st">"my-base.dtable"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># or start from a file, with its attachments, so that a .dtable</span></span></span>
+<span class="r-in"><span><span class="co"># download keeps them</span></span></span>
+<span class="r-in"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example.dtable"</span>, package <span class="op">=</span> <span class="st">"harbouR"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">hb_run_explorer</span><span class="op">(</span><span class="fu"><a href="hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="va">path</span>, assets <span class="op">=</span> <span class="st">"extract"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

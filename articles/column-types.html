@@ -87,9 +87,9 @@
 
     
     
-<p>SeaTable bases have 28 column types. harbouR maps every one of them
-onto a predictable R type so the tibble you get back is analysis-ready,
-not raw JSON. This vignette is the reference.</p>
+<p>harbouR maps SeaTable’s column types onto predictable R types, so the
+tibble you get back is analysis-ready, not raw JSON. This vignette is
+the reference.</p>
 <div class="section level2">
 <h2 id="the-mapping-table">The mapping table<a class="anchor" aria-label="anchor" href="#the-mapping-table"></a>
 </h2>
@@ -100,11 +100,11 @@ cannot drift out of sync with the code:</p>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="15%">
-<col width="15%">
-<col width="7%">
-<col width="9%">
-<col width="52%">
+<col width="13%">
+<col width="13%">
+<col width="6%">
+<col width="8%">
+<col width="58%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">seatable</th>
@@ -189,7 +189,7 @@ cannot drift out of sync with the code:</p>
 <td align="left">logical</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">TRUE/FALSE</td>
+<td align="left">TRUE/FALSE; an unset box reads as FALSE</td>
 </tr>
 <tr class="even">
 <td align="left">date</td>
@@ -203,7 +203,8 @@ cannot drift out of sync with the code:</p>
 <td align="left">character</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">validated against the column’s options on write</td>
+<td align="left">not validated on write: SeaTable adds an unknown name
+as a new option</td>
 </tr>
 <tr class="even">
 <td align="left">multiple-select</td>
@@ -285,7 +286,8 @@ cell</td>
 <td align="left">list</td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
-<td align="left">signature metadata</td>
+<td align="left">signature metadata; not written, since it should come
+from the signer</td>
 </tr>
 <tr class="odd">
 <td align="left">creator</td>
@@ -317,6 +319,12 @@ cell</td>
 </tr>
 </tbody>
 </table>
+<p>Three of its rows are not column types of their own.
+<code>percent</code>, <code>dollar</code> and <code>euro</code> are
+formats of a number column: SeaTable reports such a column as type
+<code>number</code>, with the format in its <code>data</code>. They are
+listed so that a table carrying them as a type still reads as
+numbers.</p>
 </div>
 <div class="section level2">
 <h2 id="what-the-rows-look-like">What the rows look like<a class="anchor" aria-label="anchor" href="#what-the-rows-look-like"></a>
@@ -348,15 +356,35 @@ section reads it.</p>
 <ul>
 <li>
 <code>text</code> / <code>single-select</code> come back as
-<code>character</code>.</li>
+<code>character</code>. A single-select value is not checked against the
+column’s options when you write it: SeaTable adds an unknown name as a
+new option, so a typo becomes one.</li>
 <li>
 <code>number</code> becomes a <code>double</code> (caveat:
 SeaTable’s numeric column is 64-bit; large integers may round - if
 precision matters store them as text).</li>
 <li>
-<code>date</code> always becomes <code>POSIXct</code>, in UTC. A
-date-only column simply has a zero time component. Call
-<code><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date()</a></code> if you want a calendar date.</li>
+<code>checkbox</code> becomes <code>logical</code>. A box that was
+never ticked reads as <code>FALSE</code>, as SeaTable shows it. When you
+write, harbouR sends the JSON <code>true</code> or <code>false</code>
+SeaTable needs: a number is ticked unless it is 0, and a string is read
+as <code><a href="https://rdrr.io/r/base/logical.html" class="external-link">as.logical()</a></code> reads it, so <code>"TRUE"</code>,
+<code>"true"</code> and <code>"T"</code> tick the box and
+<code>"FALSE"</code>, <code>"false"</code> and <code>"F"</code> clear
+it. Any other non-empty string, <code>NA</code> and <code>NaN</code> are
+sent as empty, the string with a warning.</li>
+<li>
+<code>date</code> always becomes <code>POSIXct</code>, in UTC. In a
+date-only column - one whose format has no time - the value is midnight
+UTC on the date SeaTable shows, whatever the server’s time zone, so
+<code><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date()</a></code> gives that calendar date. A date-time column
+holds an instant: a server sends it with its UTC offset and harbouR
+converts it to UTC, while a <code>.dtable</code> stores it without one
+and harbouR reads it as UTC. A column that reports no format is read as
+a date-time. Written to a date-only column, a <code>Date</code> is sent
+as itself and a date-time as the date it shows in its own time zone,
+except one at exactly midnight UTC, which keeps its UTC date, so a cell
+read and written back keeps its day.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -415,17 +443,19 @@ downloaded via <code><a href="../reference/hb_download_file.html">hb_download_fi
 <div class="section level3">
 <h3 id="read-only-columns">Read-only columns<a class="anchor" aria-label="anchor" href="#read-only-columns"></a>
 </h3>
-<p>These types are maintained by SeaTable, so harbouR drops them from
-any write. You can round-trip a tibble through harbouR without writing
-back computed values by accident.</p>
+<p>harbouR leaves columns of these types out of every write, so you can
+round-trip a tibble through harbouR without writing back computed values
+by accident.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">read_only</span><span class="op">)</span><span class="op">$</span><span class="va">seatable</span></span>
 <span><span class="co">#&gt;  [1] "link"          "link-formula"  "formula"       "auto-number"  </span></span>
 <span><span class="co">#&gt;  [5] "button"        "digital-sign"  "creator"       "last-modifier"</span></span>
 <span><span class="co">#&gt;  [9] "ctime"         "mtime"</span></span></code></pre></div>
-<p>Note that <code>link</code>, <code>button</code> and
-<code>digital-sign</code> are in that list too: links are maintained
-through SeaTable’s link endpoints rather than by writing the cell.</p>
+<p>Most of them are computed or maintained by SeaTable. Links are kept
+through SeaTable’s link endpoints rather than by writing the cell, and a
+button carries no data. A <code>digital-sign</code> cell is left out for
+another reason: a signature should come from the signer, not from a
+script.</p>
 </div>
 </div>
 <div class="section level2">

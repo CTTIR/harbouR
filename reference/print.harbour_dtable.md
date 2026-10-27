@@ -20,13 +20,14 @@ format(x, ...)
 
 - ...:
 
-  Unused.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
-Invisibly returns `x`.
+[`print()`](https://rdrr.io/r/base/print.html) returns `x`, invisibly.
 
-A character vector, one element per table.
+[`format()`](https://rdrr.io/r/base/format.html) returns a character
+vector, one element per table.
 
 ## See also
 

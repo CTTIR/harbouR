@@ -1,6 +1,14 @@
 # Download an asset
 
-Download an asset
+A URL in a file or image cell is not directly downloadable: the asset
+sits behind SeaTable's login. harbouR recognises such a URL by its path,
+`/workspace/<id>/asset/<base uuid>/...`, whether it is absolute or
+relative to the server, and exchanges it, with the client's API token,
+for a short-lived download link. The URL must name the client's server -
+the host is compared ignoring case, the scheme and a default port - and
+the client's base: an asset of another server or another base raises a
+`harbour_error_bad_argument` condition instead of being fetched. A URL
+that is not an asset URL is fetched as it is.
 
 ## Usage
 
@@ -34,6 +42,16 @@ hb_download_file(client, url, dest, ..., overwrite = FALSE)
 
 Invisibly returns `dest`.
 
+## Details
+
+Should SeaTable answer an asset download with its login page, the
+download fails with a `harbour_error_http` condition rather than saving
+the page in place of the file.
+
+The file is written to a temporary name beside `dest` and moved into
+place only once complete, so a failed download never leaves a partial
+file and never destroys the file `overwrite = TRUE` would replace.
+
 ## See also
 
 Other files:
@@ -44,8 +62,8 @@ Other files:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_download_file(client, "https://...", tempfile())
-}
+} # }
 ```

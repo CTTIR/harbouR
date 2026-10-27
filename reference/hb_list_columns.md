@@ -58,8 +58,27 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+# a .dtable file needs no server
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+hb_list_columns(hb_read_dtable(path), "Samples")
+#> # A tibble: 27 × 5
+#>    name          type      key   editable data            
+#>    <chr>         <chr>     <chr> <lgl>    <list>          
+#>  1 Name          text      0000  TRUE     <list [0]>      
+#>  2 Notes         long-text Lt01  TRUE     <list [0]>      
+#>  3 Concentration number    Nm01  TRUE     <list [0]>      
+#>  4 Share         percent   Pc01  TRUE     <list [0]>      
+#>  5 Cost          dollar    Dl01  TRUE     <list [0]>      
+#>  6 Preis         euro      Eu01  TRUE     <list [0]>      
+#>  7 Runtime       duration  Du01  TRUE     <named list [1]>
+#>  8 Rating        rate      Rt01  TRUE     <list [0]>      
+#>  9 Consented     checkbox  Cb01  TRUE     <list [0]>      
+#> 10 Collected     date      Dt01  TRUE     <named list [1]>
+#> # ℹ 17 more rows
+
+# a live base needs a SeaTable server and an API token
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_list_columns(client, "Samples")
-}
+} # }
 ```

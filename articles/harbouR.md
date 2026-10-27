@@ -207,7 +207,8 @@ protection (Art. 1(2), Directive 2009/24/EC; § 69a(2) UrhG; CJEU
 C-406/10). SeaTable’s own dtable-server EULA points the same way —
 applications using the API are “third-party software”, and “\[t\]he
 provisions of the EULA do not apply to any such third-party software”.
-This is reasoning, not legal advice; see `NOTICE.md` for its limits.
+This is reasoning, not legal advice; the full notice linked above sets
+out its limits.
 
 SeaTable is developed by Seafile Ltd. (Beijing); SeaTable GmbH (Mainz)
 is the German company behind it. Thanks are owed to both.

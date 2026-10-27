@@ -30,7 +30,18 @@ hb_read_xlsx(path, ..., sheets = NULL, base_name = "harbouR base")
 
 ## Value
 
-A `harbour_dtable`.
+A `harbour_dtable`, with the components
+[`hb_read_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_dtable.md)
+describes, holding one table per sheet read.
+
+## Details
+
+A column's type follows its cells, judged over every row of the sheet. A
+column with no values at all is text. A column named `_id`, such as the
+one
+[`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md)
+writes, is dropped, with a warning when it holds anything but SeaTable
+row ids.
 
 ## See also
 

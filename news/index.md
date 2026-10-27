@@ -4,9 +4,479 @@
 
 First release.
 
+- **A write is no longer sent twice after a server error.** Every
+  request was retried after a 500, 502, 503 or 504, so an append that a
+  proxy gave up on after the server had applied it could store its rows
+  twice. `POST`, `PUT` and `DELETE` requests are now retried only after
+  a 429, which means the server declined them; `GET` requests keep their
+  retries.
+  [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)
+  sends all SQL as `POST`, so a `SELECT` that meets a 5xx now fails at
+  once as well.
+
+- **A base token is renewed before it lapses.** The API gateway refuses
+  an expired base token with HTTP 403 “invalid token”, and harbouR
+  renewed it only after a 401, so a client older than the token’s three
+  days failed every base call with `harbour_error_permission`. The token
+  is now renewed a few minutes before the expiry it carries, and once
+  more after a 403 “invalid token”; any other 403 is still not retried.
+  Should the early renewal fail for a moment, the call goes ahead with
+  the token that is still valid.
+  [`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md)
+  on a username/password client also drops the cached base token once
+  the login succeeds.
+
+- **Date-only cells read from a server no longer land on the day
+  before.** SeaTable sends such a cell as midnight in the server’s time
+  zone, with its offset (`2030-06-20T00:00:00+02:00`), and harbouR
+  converted that instant to UTC, so on any server east of UTC
+  [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+  [`hb_get_row()`](https://cttir.github.io/harbouR/reference/hb_get_row.md)
+  and
+  [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)
+  returned the evening before. A `date` column whose format has no time
+  now reads as midnight UTC on the date SeaTable shows, and is written
+  as `YYYY-MM-DD`, so reading a cell and writing it back keeps its day
+  on either side of UTC. A date-time written to such a column is sent as
+  the date it shows in its own time zone, except one at exactly midnight
+  UTC, which keeps its UTC date. Date-time cells, dates stored without
+  an offset (as in a `.dtable`) and columns that report no format read
+  as before.
+
+- Security:
+
+  - `hb_read_dtable(assets = "extract")` extracted whatever names an
+    archive held, so a crafted `.dtable` - the explorer opens uploads
+    this way - could write files outside `assets_dir`, `~/.Rprofile`
+    among them. An archive whose asset entries are absolute, climb out
+    with `..` or are symbolic links is now refused before anything is
+    extracted, and only entries under `asset/` count as assets.
+  - A `content.json`, or a server’s reply, that is a short string rather
+    than JSON is no longer read as a file path or fetched as a URL,
+    which
+    [`jsonlite::fromJSON()`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+    does with such a string. It is parsed as JSON text only.
+  - [`print()`](https://rdrr.io/r/base/print.html) on a client ran any
+    `{...}` in the base name or server URL as R code, and so did
+    [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+    with a table name when it refused a base. Both now show the text as
+    it is.
+  - The error from a request that got no answer held the client’s API
+    token, password and cached tokens, so saving it - with
+    [`saveRDS()`](https://rdrr.io/r/base/readRDS.html), or by returning
+    it from a parallel worker - wrote them out. It no longer holds them.
+    A malformed `api_token` or `password` is no longer shown in
+    [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md)’s
+    error message.
+
+- Errors:
+
+  - Credentials the server refuses raise `harbour_error_auth`, as
+    [`hb_check_credentials()`](https://cttir.github.io/harbouR/reference/hb_check_credentials.md)
+    documents. A wrong password (HTTP 400) raised `harbour_error_http`
+    with “SeaTable returned an error.”, and an unknown API token
+    (HTTP 403) `harbour_error_permission`. The old class is kept
+    alongside, and the message passes on the server’s reason.
+  - A request that gets no answer - a refused connection, a DNS or TLS
+    failure, a timeout, a dropped connection - raises
+    `harbour_error_http` with `status` `NA` and the request’s URL from
+    every function,
+    [`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md)
+    included. It escaped as httr2’s bare `httr2_failure`; that class is
+    kept, so handlers written for it still match. The message says the
+    server could not be reached only when nothing was sent -
+    [`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md)
+    keeps its own words - and after a timeout, a request that can change
+    data says to check before sending it again, since the server may
+    have applied it.
+  - [`?"harbouR-conditions"`](https://cttir.github.io/harbouR/reference/harbouR-conditions.md)
+    now lists the warning classes, and says that argument-matching
+    errors from rlang keep the classes rlang gives them.
+
+- Reading from a server:
+
+  - [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)
+    returned every column of a join as `NA`: SeaTable keys the cells of
+    a join by column key whatever `convert_keys` says. They are now read
+    by key, under the names the server reports.
+  - [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+    through a view returns the columns the view hides as `NA`, because
+    SeaTable leaves them out of the rows. That looked like empty data;
+    it now warns, naming them.
+  - [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+    gave up after 1000 requests whatever their size, so with a small
+    `page_size` a large table was an error, and so was one ending
+    exactly on the limit. The limit is now about ten million rows, a
+    read that ends on it completes, and a server that returns the same
+    page twice is stopped at once.
+  - [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)’s
+    warning about a missing `LIMIT` came at most once every eight hours
+    across all queries, so later ones were cut to 100 rows without a
+    word, and the word *limit* anywhere in the SQL silenced it. It is
+    now rate-limited per query and ignores quoted strings and
+    back-ticked names.
+  - Reading a table whose date cells repeat is faster: each distinct
+    date string in a column is parsed once, and pages are combined once
+    at the end rather than on every request.
+
+- Writing to a server:
+
+  - A checkbox is sent as a JSON boolean. A 0/1 column, which is how
+    [`read.csv()`](https://rdrr.io/r/utils/read.table.html) and most
+    exports store a flag, went out as numbers, which SeaTable stores as
+    unticked. A number is ticked unless it is 0, and a string is read as
+    [`as.logical()`](https://rdrr.io/r/base/logical.html) reads it
+    (`"TRUE"`, `"true"` or `"T"`, and the same for `FALSE`); any other
+    string is sent as empty, with a warning, rather than guessed.
+  - The file object
+    [`hb_upload_file()`](https://cttir.github.io/harbouR/reference/hb_upload_file.md)
+    returns, written as `tibble(Reports = list(obj))`, went out as an
+    array of its fields; it is now the array of objects a file cell
+    holds. A named vector of image URLs, one `hidden_columns` key in
+    [`hb_update_view()`](https://cttir.github.io/harbouR/reference/hb_update_view.md),
+    named row ids in
+    [`hb_lock_rows()`](https://cttir.github.io/harbouR/reference/hb_lock_rows.md)
+    and
+    [`hb_unlock_rows()`](https://cttir.github.io/harbouR/reference/hb_unlock_rows.md),
+    and named `parameters` in
+    [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)
+    all went out as JSON objects or strings rather than arrays.
+  - `Inf`, `-Inf` and `NaN`, which JSON cannot hold, are still sent as
+    `null`, but now with one warning per write naming the columns. In a
+    checkbox column a number ticks the box unless it is 0, so `Inf` and
+    `-Inf` tick it, and `NaN` is sent empty without a warning. A
+    `difftime` written to a duration column is sent in seconds, the unit
+    SeaTable stores; 90 minutes went out as 90.
+    [`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
+    now serialises through the same path as
+    [`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md).
+  - [`hb_update_column()`](https://cttir.github.io/harbouR/reference/hb_update_column.md)
+    with only `column_data` named the type from the cached schema, so a
+    column whose type had changed since was converted back. It now asks
+    the server.
+  - A `POSIXlt` written to a date-time column was sent as its wall-clock
+    time labelled as UTC; it is now sent as the instant it stands for.
+
+- Files:
+
+  - [`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
+    recognised an asset URL only when it began with the client’s
+    `server` exactly as typed. A relative URL, the form SeaTable writes
+    into cells, failed, and a host in other capitals, `http` for `https`
+    or an explicit `:443` was fetched directly, saving SeaTable’s login
+    page as the file. Asset URLs are now recognised by their path, and a
+    download that ends on the login page fails.
+  - The download and delete endpoints act on the client’s base whatever
+    a URL names, so a URL from another base downloaded, or deleted, this
+    base’s file at the same path.
+    [`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
+    and
+    [`hb_delete_asset()`](https://cttir.github.io/harbouR/reference/hb_delete_asset.md)
+    now refuse a URL of another base or server, and
+    [`hb_delete_asset()`](https://cttir.github.io/harbouR/reference/hb_delete_asset.md)
+    refuses one that names no file - the server itself, an asset URL cut
+    short, or a path with `.` or `..` in it - instead of asking to
+    delete the asset root or a folder.
+  - [`hb_upload_file()`](https://cttir.github.io/harbouR/reference/hb_upload_file.md)
+    escapes the folders of a custom `relative_path` like the file name,
+    and its file object has the type `"file"`, as SeaTable’s own file
+    cells do, rather than a MIME type. Its help says what the default
+    `relative_path = "files"` stands for.
+
+- The client:
+
+  - Logging in and exchanging an API token work for a server reached
+    under a path, such as `https://example.org/seatable`; both went to
+    the root of the host.
+  - [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md)
+    refuses a `workspace_id`, `base_name` or `timeout` that could not
+    work, instead of failing at the first request, and sends a round
+    workspace id such as `1e5` as `100000` rather than `1e+05`. A
+    username/password client remembers the base it named, so
+    `hb_metadata()$base_name` is its name rather than `NA`.
+
+- `.dtable` files:
+
+  - `hb_read_dtable(assets = "extract")` extracted only one of two
+    attachments whose names differ only in case, on any system, since
+    [`zip::unzip()`](https://r-lib.github.io/zip/reference/unzip.html)
+    finds an entry without regard to case; writing the base back then
+    lost the other without a word. It now warns, naming them, and the
+    explorer shows that warning when it opens such a file.
+  - In R 4.1 and 4.2, the `_ctime` and `_mtime` of a base built by
+    [`hb_dtable()`](https://cttir.github.io/harbouR/reference/hb_dtable.md),
+    [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md),
+    [`hb_read_xlsx()`](https://cttir.github.io/harbouR/reference/hb_read_xlsx.md)
+    or the explorer were the local time labelled as UTC. They are now
+    UTC there as well.
+  - [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+    builds the archive beside its destination and moves it into place
+    once complete, so a failed write cannot destroy the file it
+    replaces, even the one the base was read from. The bytes written are
+    the same. A destination that cannot be replaced - another program
+    holds it open, or the folder lets files be written but not removed -
+    is written into once the archive is complete, and should that fail,
+    the complete archive is kept beside it and the error says where. An
+    asset that cannot be copied stops the write, and links in the asset
+    tree are left out, with a warning, instead of followed.
+  - Text in a `.dtable` read in a session that is not UTF-8 - `Rscript`
+    under cron, or a container with `LANG` unset - came back mangled,
+    and
+    [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+    then saved it that way. It now reads as it does in a UTF-8 session.
+  - [`print()`](https://rdrr.io/r/base/print.html) and the warning about
+    assets that will not be written counted the archive’s folders as
+    assets: the example showed 7 for its 2 files.
+  - On a `.dtable`, `hb_read_table(view = )` applies none of the view’s
+    filters or sorts, which its help now says; a filtered view that
+    records no rows warns that every row was returned.
+
+- CSV and Excel:
+
+  - In R before 4.4.1,
+    [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
+    read a code such as `12E` as the number 12, as
+    [`read.csv()`](https://rdrr.io/r/utils/read.table.html) does there.
+    A column holding one now stays text, as it does in later versions of
+    R.
+  - In a UTF-8 session, a zero-padded or long integer followed by a
+    full-width or other Unicode space, which
+    [`read.csv()`](https://rdrr.io/r/utils/read.table.html) ignores
+    after a number, became a number: `"0001"` padded that way read as 1.
+    Such a column now stays text, like one padded with an ordinary
+    space.
+  - Re-importing an export gave a base none of whose tables could be
+    read: the exported `_id` became an ordinary column.
+    [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
+    and
+    [`hb_read_xlsx()`](https://cttir.github.io/harbouR/reference/hb_read_xlsx.md)
+    now drop a column of that name, which SeaTable keeps for its row
+    identifier; one that holds anything but SeaTable row ids - a
+    database’s keys, say - is dropped with a warning naming its table.
+  - [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
+    kept [`read.csv()`](https://rdrr.io/r/utils/read.table.html)’s type
+    guessing, which ignores quoting, so `"0001"` came back as `1` - the
+    auto-number column of an export among them - and a 19-digit barcode
+    was rounded. A column holding an integer with a leading zero, or one
+    of more than 15 digits, now stays text; every other column is typed
+    as before. The help now says that dates arrive as text and that a
+    literal `NA` is read as missing.
+  - [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
+    refuses a file whose bytes are not valid UTF-8, naming the line; a
+    Windows-1252 file, as Excel’s plain “CSV” often is, was cut off at
+    its first accented letter. In a session that is not UTF-8, a valid
+    UTF-8 file was cut off at the first character the session could not
+    hold, and one with a byte-order mark failed;
+    [`hb_write_csv()`](https://cttir.github.io/harbouR/reference/hb_write_csv.md)
+    there wrote such characters as text like `<U+00B0>`. Both now read
+    and write UTF-8 in a single-byte session such as C or Latin-1; a
+    multibyte one, such as Shift-JIS, converts the text into its own
+    encoding as before. An empty file is refused, naming it, and an
+    empty column is text rather than a checkbox reading `FALSE` in every
+    row.
+  - [`hb_read_xlsx()`](https://cttir.github.io/harbouR/reference/hb_read_xlsx.md)
+    judges a column’s type by every row of the sheet. `readxl` looked at
+    the first 1000, and later values that did not fit were lost.
+  - A file or sheet named `collaborators` or `base_name` imports as a
+    table; the first used to vanish into the base’s collaborator list.
+    [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md)
+    refuses table names that differ only in case, or that clash once
+    shortened and cleaned to Excel’s rules, which Excel cannot hold as
+    separate sheets. The flattening message names every column instead
+    of the first 20, and the help lists every loss the exports make.
+
+- The explorer:
+
+  - [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
+    needs `bslib` 0.6.0 or later, now the minimum that `DESCRIPTION`
+    lists. An older one gets the same informative error as a missing
+    one, instead of a stack trace.
+  - What opening a file warns about - attachments that cannot all be
+    extracted, a newer `.dtable` format - is shown in the app; it
+    reached only the R console.
+  - “This table as CSV” held only the rows the Data panel had loaded,
+    1000 by default; it now holds the whole table. The zipped CSV left
+    out any table whose name starts with a dot.
+  - The Export panel said a `.dtable` keeps everything. For a live base
+    that file is rebuilt from the rows, so column types are inferred
+    again and select options, attachments and views are lost; for a file
+    opened without its assets, the attachments are left out. The panel
+    now says which applies, and a live base’s `.dtable` download shows a
+    notification. That download also kept a table named `collaborators`
+    out of the file, and failed on one named `base_name`.
+  - A failed download is reported in the app rather than only in the R
+    console, and a missing `writexl` is named instead of prompting at
+    the console. The Query panel says, on every query without `LIMIT`,
+    that SeaTable returned at most 100 rows. The app accepts uploads up
+    to 1 GB while it runs, unless `shiny.maxRequestSize` is set: the 5
+    MB that Shiny allows by default refused most real exports.
+
+- Documentation and tests:
+
+  - The examples that need a server are wrapped in `\dontrun{}`. They
+    ran whenever R was interactive, so
+    [`example()`](https://rdrr.io/r/utils/example.html) sent their
+    writes and deletes to the base that `SEATABLE_SERVER` and
+    `SEATABLE_API_TOKEN` name.
+    [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+    [`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
+    [`hb_list_columns()`](https://cttir.github.io/harbouR/reference/hb_list_columns.md),
+    [`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md),
+    [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md),
+    the `is_harbour_*()` predicates and the `harbour_metadata` methods
+    gain examples that run offline. The
+    [`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md)
+    example names `columns`, which it passed into `...`; the
+    [`hb_metadata()`](https://cttir.github.io/harbouR/reference/hb_metadata.md)
+    example calls
+    [`tibble::as_tibble()`](https://tibble.tidyverse.org/reference/as_tibble.html);
+    and the conditions example no longer depends on the caller’s token.
+  - The help pages of
+    [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+    [`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md)
+    and
+    [`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md)
+    are named after the function rather than its `.dtable` method.
+    [`?harbouR`](https://cttir.github.io/harbouR/reference/harbouR-package.md)
+    no longer shows stray backslashes, the Get-started vignette no
+    longer refers to a `NOTICE.md` the package does not ship, and the
+    arguments of
+    [`hb_update_select_option()`](https://cttir.github.io/harbouR/reference/hb_update_select_option.md),
+    [`hb_delete_select_option()`](https://cttir.github.io/harbouR/reference/hb_delete_select_option.md),
+    [`hb_lock_rows()`](https://cttir.github.io/harbouR/reference/hb_lock_rows.md),
+    [`hb_unlock_rows()`](https://cttir.github.io/harbouR/reference/hb_unlock_rows.md)
+    and
+    [`hb_update_view()`](https://cttir.github.io/harbouR/reference/hb_update_view.md)
+    say what those functions do with them. The help of the
+    [`print()`](https://rdrr.io/r/base/print.html),
+    [`format()`](https://rdrr.io/r/base/format.html),
+    [`summary()`](https://rdrr.io/r/base/summary.html) and `as_tibble()`
+    methods no longer calls their `...` unused: it must be empty.
+  - The explorer’s tests no longer leave `sass`’s cache of compiled CSS
+    in the home directory, and the test that renders a request with
+    [`httr2::req_dry_run()`](https://httr2.r-lib.org/reference/req_dry_run.html)
+    skips on CRAN and without `httpuv`.
+  - The tests need `testthat` 3.2.0 or later, now the minimum that
+    `DESCRIPTION` lists.
+  - The API lock pins the signatures of the registered S3 methods as
+    well as the exports: the arguments users pass to
+    [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+    and the `hb_list_*()` verbs belong to the methods, not the generics,
+    so a changed default there passed the lock. The new section matches
+    the manuscript anchor exactly.
+  - Golden tests pin what the offline paths return: every column of the
+    bundled example as read,
+    [`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md),
+    the example data, the `.dtable` and CSV files the writers produce,
+    and what the CSV and Excel exports read back as.
+  - pkgdown builds the citation page from the source `DESCRIPTION`, so
+    it cited the maintainer alone; it now lists all six authors.
+  - [`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md)
+    corrects three notes: single-select values are not validated on
+    write (SeaTable adds an unknown name as a new option), an unset
+    checkbox reads as `FALSE`, and digital-signature cells are left out
+    of writes because a signature should come from the signer. Its help
+    says `percent`, `dollar` and `euro` are number formats, which
+    SeaTable reports as type `number`, rather than column types.
+  - The examples and README read the example file with
+    `assets = "extract"` before writing it back, the
+    [`hb_asset_path()`](https://cttir.github.io/harbouR/reference/hb_asset_path.md)
+    example resolves a file the example holds, and
+    [`hb_dtable()`](https://cttir.github.io/harbouR/reference/hb_dtable.md)‘s
+    help notes that building a base advances `.Random.seed`. The help no
+    longer says
+    [`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md)’s
+    reply lacks the new rows’ ids, nor that the example rows cover every
+    column type.
+  - The explorer’s tests skip rather than error without `readxl`,
+    `shiny` or `htmltools`, and two static checks that skipped in every
+    CI job now run there. The live-server tests compare harbouR’s reads
+    with what the server sent, and delete only the row they created.
+
+- Audited the server wrappers against SeaTable’s published OpenAPI
+  specification (v6.2) and the server responses recorded in its test
+  suite. The mocked tests could only prove that harbouR built the
+  request it intended; several of those requests were not the ones the
+  server expects:
+
+  - [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+    and
+    [`hb_get_row()`](https://cttir.github.io/harbouR/reference/hb_get_row.md)
+    now send `convert_keys=true`. The server’s default keys every cell
+    by column key, so a live read came back with every column `NA`.
+  - [`hb_create_view()`](https://cttir.github.io/harbouR/reference/hb_create_view.md),
+    [`hb_get_view()`](https://cttir.github.io/harbouR/reference/hb_get_view.md),
+    [`hb_update_view()`](https://cttir.github.io/harbouR/reference/hb_update_view.md)
+    and
+    [`hb_delete_view()`](https://cttir.github.io/harbouR/reference/hb_delete_view.md)
+    name the table in the query string, where the server reads it,
+    rather than in the body.
+    [`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md)
+    and
+    [`hb_get_view()`](https://cttir.github.io/harbouR/reference/hb_get_view.md)
+    recognise the default view by its id, because the server reports no
+    `is_default`.
+  - [`hb_upload_file()`](https://cttir.github.io/harbouR/reference/hb_upload_file.md),
+    [`hb_delete_asset()`](https://cttir.github.io/harbouR/reference/hb_delete_asset.md)
+    and
+    [`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
+    authenticate with the API token, as SeaTable’s file endpoints
+    require, instead of a base token.
+    [`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
+    exchanges an asset URL for a download link first - fetching a cell’s
+    URL directly saved SeaTable’s login page - and writes through a
+    temporary file, so a failed download leaves nothing behind and does
+    not destroy the file it was asked to replace.
+  - [`hb_attach_file()`](https://cttir.github.io/harbouR/reference/hb_attach_file.md)
+    writes the shape each column holds: a file object, wrapped in the
+    array a file cell is, or the URL for an image column. It refuses
+    other column types.
+  - [`hb_add_columns()`](https://cttir.github.io/harbouR/reference/hb_add_columns.md)
+    accepts `name`/`type` specs like
+    [`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md);
+    they were sent verbatim, with field names the server does not read.
+    [`hb_update_column()`](https://cttir.github.io/harbouR/reference/hb_update_column.md)
+    with only `column_data` names the column’s current type, which the
+    server requires.
+
+- Every HTTP error whose body parsed as JSON - most of them - crashed
+  with “Can’t supply conflicting bodies” from
+  [`rlang::abort()`](https://rlang.r-lib.org/reference/abort.html)
+  instead of raising a `harbour_error`, because the body was stored in
+  the field `abort()` reserves for its own use. It is now
+  `response_body`. The server’s message is shown whether it arrives as
+  `error_msg`, `error_message` or plain text. The test fixture could not
+  be parsed, which is how this went unnoticed.
+
+- A missing number in
+  [`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md)
+  or
+  [`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
+  was sent as the string `"NA"`; it is now `null`.
+
+- Geolocation and digital-signature cells keep their field names when
+  read, and geolocation cells are written back as objects. Unnamed, a
+  location read as `list(50, 8.23)` and was written as `[50, 8.23]`.
+
+- An empty multiple-select cell read from a `.dtable` is `character(0)`,
+  matching a populated one; it was `logical(0)`.
+
+- [`hb_dtable()`](https://cttir.github.io/harbouR/reference/hb_dtable.md)
+  stores select cells as option ids, as SeaTable’s own files do, and
+  creates options for multiple-select columns. Cells held option names,
+  which harbouR read back correctly but SeaTable showed as empty.
+  List-columns of objects are flattened to text rather than becoming
+  nonsense select options.
+
+- [`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md)
+  warns about columns the table does not have, which it drops; it used
+  to drop them silently. Row-id verbs refuse missing or empty ids, and
+  `hb_query(convert_keys = FALSE)` reads cells by key.
+
 - Final minor refinements: constrain bundled asset paths to their
   extraction directory and reject colliding CSV filenames before writing
   files.
+
 - Exclude local administration and repository citation metadata from
   source builds, and use the repository citation URL until the archival
   record is publicly available.
@@ -41,10 +511,11 @@ that was tagged but never published.
 - Errors now carry condition classes under a shared `harbour_error`, so
   they can be caught by kind rather than by message text. See
   [`?"harbouR-conditions"`](https://cttir.github.io/harbouR/reference/harbouR-conditions.md).
-  HTTP errors carry `status`, `url` and `body`.
+  HTTP errors carry `status`, `url` and `response_body`.
 
 - A `403` response is no longer retried as though the base token had
-  expired. Only `401` triggers a refresh.
+  expired. A `401` triggers a refresh, and so does a `403` that says the
+  token itself is invalid.
 
 - [`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md)
   and
@@ -89,7 +560,8 @@ that was tagged but never published.
 
 ### Legal position
 
-- `NOTICE.md`, the README, the vignette and
+- [`NOTICE.md`](https://github.com/CTTIR/harbouR/blob/main/NOTICE.md),
+  the README, the vignette and
   [`?harbouR`](https://cttir.github.io/harbouR/reference/harbouR-package.md)
   now cite the basis on which harbouR uses SeaTable’s interface, rather
   than implying it rests on a licence grant. Endpoint paths, HTTP verbs
@@ -130,8 +602,8 @@ that was tagged but never published.
   [`?harbouR`](https://cttir.github.io/harbouR/reference/harbouR-package.md).
 
 - The explorer’s server field no longer pre-fills a vendor-hosted
-  address; it starts empty with a neutral placeholder. The documented
-  examples for
+  address; it is empty, with a neutral placeholder, unless
+  `SEATABLE_SERVER` is set. The documented examples for
   [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md)
   and for the live tests use a self-hosted URL.
 
@@ -206,7 +678,7 @@ that was tagged but never published.
 - [`hb_duplicate_table()`](https://cttir.github.io/harbouR/reference/hb_duplicate_table.md)
   sent an undocumented `new_table_name` and omitted the required
   `is_duplicate_records`. It gains `duplicate_records` and documents
-  that SeaTable always names the copy `<original> (copy)`.
+  that SeaTable always names the copy `<original>(copy)`, with no space.
 
 - [`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md)
   documented column specs as `name`/`type` while the API wants
@@ -219,8 +691,9 @@ that was tagged but never published.
   validate their arguments before using them, so a wrong type gives a
   classed harbouR error rather than a raw R one.
 
-- Writing `Inf` or `NaN` to a `.dtable` warns. JSON cannot hold them, so
-  they become `null` and read back as `NA`; that is now visible.
+- Writing `Inf` to a `.dtable` warns. JSON cannot hold it, so it becomes
+  `null` and reads back as `NA`; that is now visible. `NaN` is written
+  as an empty cell, as `NA` is.
 
 - The endpoint contract test pins request-body field names as well as
   paths. Renaming a body field previously left the suite green.
@@ -407,8 +880,8 @@ that was tagged but never published.
 
 - [`hb_delete_asset()`](https://cttir.github.io/harbouR/reference/hb_delete_asset.md)
   targeted `/api/v2.1/dtable/asset/` with an API token and a `url` body.
-  The endpoint is `/api/v2.1/dtable/app-asset/`, takes a base token, and
-  identifies the asset by a `path` query parameter.
+  The endpoint is `/api/v2.1/dtable/app-asset/`, takes the API token,
+  and identifies the asset by a `path` query parameter.
 
 - **Writing a file, image or geolocation cell no longer corrupts it.**
   The write path flattened every list-valued cell with
@@ -464,8 +937,9 @@ that was tagged but never published.
   is now genuinely the single source of truth for the coercion layer. It
   gains `is_list` and `read_only` logical columns, which the coercion
   functions derive their type sets from instead of repeating hard-coded
-  vectors, and it covers five types it previously omitted: `percent`,
-  `dollar`, `euro`, `duration` and `digital-sign`.
+  vectors, and it covers five names it previously omitted: the types
+  `duration` and `digital-sign`, and the number formats `percent`,
+  `dollar` and `euro`.
 
 - **Breaking:**
   [`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md)

@@ -2,8 +2,10 @@
 
 ## Errors
 
-Every error harbouR raises carries a condition class, so callers can
-react to what went wrong rather than matching on message text.
+Every error harbouR raises itself, and every HTTP or transport failure,
+carries a condition class, so callers can react to what went wrong
+rather than matching on message text. Argument-matching errors from
+rlang keep the classes rlang gives them.
 
 - [`harbouR-conditions`](https://cttir.github.io/harbouR/reference/harbouR-conditions.md)
   : Conditions signalled by harbouR

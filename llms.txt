@@ -100,6 +100,8 @@ into SeaTable:
 
 ``` r
 
+# extract the assets, so the attachments are written back too
+base <- hb_read_dtable(path, assets = "extract")
 hb_write_dtable(base, "my-base.dtable")
 
 hb_dtable(Measurements = my_data) |>
@@ -293,8 +295,10 @@ Editable R artwork and regeneration instructions are in
 
 ## Errors
 
-Every error harbouR raises carries a condition class, so callers can
-react to what went wrong rather than matching on message text.
+Every error harbouR raises itself, and every HTTP or transport failure,
+carries a condition class, so callers can react to what went wrong
+rather than matching on message text. Argument-matching errors from
+rlang keep the classes rlang gives them.
 
 - [`harbouR-conditions`](https://cttir.github.io/harbouR/reference/harbouR-conditions.md)
   : Conditions signalled by harbouR

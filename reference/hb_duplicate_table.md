@@ -32,8 +32,9 @@ Invisibly returns the client.
 
 ## Naming
 
-SeaTable names the copy after the original with `(copy)` appended, and
-offers no way to set the name in the same request. Follow with
+SeaTable names the copy after the original with `(copy)` appended, with
+no space - a copy of `Samples` is `Samples(copy)` - and offers no way to
+set the name in the same request. Follow with
 [`hb_rename_table()`](https://cttir.github.io/harbouR/reference/hb_rename_table.md)
 if you need a particular name.
 
@@ -47,9 +48,9 @@ Other tables:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_duplicate_table(client, "Samples")
-hb_rename_table(client, "Samples (copy)", "Samples_backup")
-}
+hb_rename_table(client, "Samples(copy)", "Samples_backup")
+} # }
 ```

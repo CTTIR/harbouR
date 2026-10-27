@@ -24,7 +24,7 @@ hb_update_select_option(client, table, name, option, new_option, ...)
 
 - option:
 
-  Option name to add.
+  Name of the option to rename.
 
 - new_option:
 
@@ -52,8 +52,8 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_update_select_option(client, "Samples", "Status", "Done", "Complete")
-}
+} # }
 ```

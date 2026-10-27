@@ -95,7 +95,9 @@ you want to <em>do</em> something with the data.</p>
 <p>The app and its UI dependencies (<code>shiny</code>,
 <code>bslib</code>, <code>reactable</code>) live in
 <code>Suggests</code>, so the client itself stays headless. If something
-is missing, the launcher names it.</p>
+is missing, the launcher names it. The Excel download also needs
+<code>writexl</code>; without it, the app tells you so when you ask for
+a workbook.</p>
 <div class="section level2">
 <h2 id="open-something">Open something<a class="anchor" aria-label="anchor" href="#open-something"></a>
 </h2>
@@ -104,8 +106,9 @@ network:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Then choose <strong>Use the example base</strong> in the Source
-panel. It loads a bundled <code>.dtable</code> holding one column of
-every type harbouR supports, so every panel has something to show.</p>
+panel. It loads a bundled <code>.dtable</code> holding a column of
+nearly every type harbouR supports, so every panel has something to
+show.</p>
 <p>The Source panel takes three kinds of input:</p>
 <ul>
 <li>
@@ -118,9 +121,21 @@ password input is written into the page’s HTML.</li>
 <li>
 <strong>The example base</strong>, above.</li>
 </ul>
-<p>You can also hand the app something you already have:</p>
+<p>Shiny refuses uploads larger than 5 MB unless told otherwise, and an
+export with attachments is often bigger than that, so while the explorer
+runs it accepts files up to 1 GB. To choose another limit, set the
+<code>shiny.maxRequestSize</code> option, in bytes, before you start the
+app; a value you set yourself is left as it is:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="st">"my-base.dtable"</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>shiny.maxRequestSize <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="fl">1024</span><span class="op">^</span><span class="fl">3</span><span class="op">)</span> <span class="co"># 2 GB</span></span>
+<span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>You can also hand the app something you already have. Extract a
+file’s assets when you open it, as the Source panel does, or a
+<code>.dtable</code> download leaves its attachments behind:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span></span>
+<span>  <span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="st">"my-base.dtable"</span>, assets <span class="op">=</span> <span class="st">"extract"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_run_explorer.html">hb_run_explorer</a></span><span class="op">(</span><span class="fu">harbouR</span><span class="fu">::</span><span class="fu"><a href="../reference/hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -148,9 +163,14 @@ rather than failing.</li>
 <li>
 <strong>Export.</strong> Download the base as <code>.dtable</code>,
 as an Excel workbook, or as zipped CSVs - or just the table you are
-looking at, as one CSV. The <code>.dtable</code> keeps everything; the
-spreadsheet formats flatten whatever a cell cannot hold, which the app
-tells you about.</li>
+looking at, as one CSV holding all of its rows, however many the Data
+panel shows, each cell written as the panel shows it. A
+<code>.dtable</code> of a base opened from a file keeps everything. A
+live base has no file behind it, so its <code>.dtable</code> is rebuilt
+from the rows: it keeps the values, but not the column types, select
+options, attachments or views, and the app says so when you download it.
+The workbook and the zipped CSVs flatten whatever a cell cannot hold,
+which the app tells you about.</li>
 </ul>
 </div>
 <div class="section level2">

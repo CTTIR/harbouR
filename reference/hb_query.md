@@ -18,7 +18,9 @@ hb_query(client, sql, ..., parameters = NULL, convert_keys = TRUE)
 
   SeaTable SQL query string. SeaTable applies an implicit `LIMIT 100`
   when the query has none, and caps results at 10000 rows. harbouR warns
-  if there is no `LIMIT` clause.
+  if there is no `LIMIT` clause - the word inside a quoted string or a
+  back-ticked name does not count - at most once every eight hours for
+  the same query, so a loop does not repeat it.
 
 - ...:
 
@@ -26,7 +28,8 @@ hb_query(client, sql, ..., parameters = NULL, convert_keys = TRUE)
 
 - parameters:
 
-  Optional list of values for `?` placeholders in `sql`.
+  Optional list of values for `?` placeholders in `sql`, in order. Names
+  are ignored.
 
 - convert_keys:
 
@@ -47,15 +50,15 @@ Other rows:
 [`hb_delete_rows()`](https://cttir.github.io/harbouR/reference/hb_delete_rows.md),
 [`hb_get_row()`](https://cttir.github.io/harbouR/reference/hb_get_row.md),
 [`hb_lock_rows()`](https://cttir.github.io/harbouR/reference/hb_lock_rows.md),
-[`hb_read_table.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
+[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md),
 [`hb_unlock_rows()`](https://cttir.github.io/harbouR/reference/hb_unlock_rows.md),
 [`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
 
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_query(client, "select * from Samples limit 5")
-}
+} # }
 ```

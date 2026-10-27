@@ -28,7 +28,12 @@ hb_read_dtable(path, ..., assets = c("none", "extract"), assets_dir = NULL)
   Whether to extract the bundled `asset/` tree. `"none"`, the default,
   reads only `content.json`. `"extract"` unpacks the assets so
   [`hb_asset_path()`](https://cttir.github.io/harbouR/reference/hb_asset_path.md)
-  can resolve attachment URLs to local files.
+  can resolve attachment URLs to local files. An archive whose asset
+  entries could land outside `assets_dir` - a name that is absolute or
+  has a `..` component, between slashes or backslashes, or an entry that
+  is a symbolic link - is refused before anything is extracted. Assets
+  whose names differ only in case may not all be extracted, and a
+  warning names them.
 
 - assets_dir:
 
@@ -37,7 +42,9 @@ hb_read_dtable(path, ..., assets = c("none", "extract"), assets_dir = NULL)
 ## Value
 
 A `harbour_dtable`: a list with components `content` (the parsed tree),
-`path`, `assets` (a tibble of bundled files), `assets_dir` and
+`path`, `assets` (the archive's own listing of its `asset/` tree, as
+[`zip::zip_list()`](https://r-lib.github.io/zip/reference/zip_list.html)
+gives it: one row per entry, folders included), `assets_dir` and
 `base_name`. Note that [`names()`](https://rdrr.io/r/base/names.html) on
 a `harbour_dtable` gives its *table* names, not these components - reach
 them with `$` or [`unclass()`](https://rdrr.io/r/base/class.html).
@@ -87,7 +94,7 @@ base
 #> • base : "example"
 #> • tables : 2
 #> • rows : 4
-#> • assets : 7
+#> • assets : 2
 #> 
 #> - Samples (27 cols, 2 rows)
 #> - Reference (2 cols, 2 rows)

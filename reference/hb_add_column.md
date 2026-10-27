@@ -54,8 +54,8 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_add_column(client, "Samples", "Notes", "text")
-}
+} # }
 ```

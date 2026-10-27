@@ -41,7 +41,7 @@ format(x, ...)
 
 - ...:
 
-  Unused.
+  These dots are for future extensions and must be empty.
 
 - username, password:
 
@@ -56,13 +56,14 @@ format(x, ...)
 - workspace_id, base_name:
 
   Which base to work on. Required for a `username`/`password` client,
-  because an account token is scoped to the user rather than to a base.
-  Ignored when `api_token` is used, since an API token names its base
-  implicitly.
+  because an account token is scoped to the user rather than to a base:
+  `workspace_id` is a positive whole number, or a string of its digits,
+  and `base_name` a string. Ignored when `api_token` is used, since an
+  API token names its base implicitly.
 
 - timeout:
 
-  Per-request timeout in seconds. Default `30`.
+  Per-request timeout in seconds, a positive number. Default `30`.
 
 - x:
 
@@ -71,6 +72,11 @@ format(x, ...)
 ## Value
 
 A `harbour_client` object.
+
+[`print()`](https://rdrr.io/r/base/print.html) returns `x`, invisibly.
+
+[`format()`](https://rdrr.io/r/base/format.html) returns a character
+vector, one element per field.
 
 ## Details
 
@@ -93,11 +99,27 @@ Other client:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+# creating a client does not contact the server
+client <- hb_client(
+  server = "https://seatable.example.org",
+  api_token = "your-api-token"
+)
+client
+#> 
+#> ── <harbour_client> ────────────────────────────────────────────────────────────
+#> • server : https://seatable.example.org
+#> • auth : api_token
+#> • token : your...oken
+#> • base : <not yet fetched>
+#> • base uuid: <unknown>
+#> • expires : <not yet fetched>
+
+# a live base needs a SeaTable server and an API token
+if (FALSE) { # \dontrun{
 client <- hb_client(
   server = Sys.getenv("SEATABLE_SERVER"),
   api_token = Sys.getenv("SEATABLE_API_TOKEN")
 )
 print(client)
-}
+} # }
 ```

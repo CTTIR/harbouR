@@ -44,8 +44,8 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_delete_column(client, "Samples", "Old")
-}
+} # }
 ```

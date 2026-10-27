@@ -48,8 +48,8 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_add_select_option(client, "Samples", "Status", "Done")
-}
+} # }
 ```

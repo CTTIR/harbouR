@@ -69,7 +69,7 @@
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Unused.</p></dd>
+<dd><p>These dots are for future extensions and must be empty.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -84,12 +84,31 @@ inspecting the SeaTable schema. Columns: <code>table</code> (chr), <code>column<
 <code><a href="as_tibble.harbour_metadata.html">as_tibble.harbour_metadata()</a></code>,
 <code><a href="hb_column_types.html">hb_column_types()</a></code>,
 <code><a href="hb_list_collaborators.html">hb_list_collaborators()</a></code>,
-<code><a href="hb_list_tables.html">hb_list_tables.harbour_dtable()</a></code>,
+<code><a href="hb_list_tables.html">hb_list_tables()</a></code>,
 <code><a href="hb_metadata.html">hb_metadata()</a></code>,
 <code><a href="is_harbour_metadata.html">is_harbour_metadata()</a></code>,
 <code><a href="print.harbour_metadata.html">print.harbour_metadata()</a></code></p></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="hb_example_metadata.html">hb_example_metadata</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 11 × 3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    table    column        type           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> Samples  Name          text           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Samples  Concentration number         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Samples  Status        single-select  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Samples  Tags          multiple-select</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Samples  Collected     date           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Samples  Collaborators collaborator   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Samples  Reports       file           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Patients Patient ID    text           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Patients Age           number         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Patients Consented     checkbox       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Patients Last visit    date           </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

@@ -10,7 +10,8 @@ and friends) when you want to *do* something with the data.
 
 The app and its UI dependencies (`shiny`, `bslib`, `reactable`) live in
 `Suggests`, so the client itself stays headless. If something is
-missing, the launcher names it.
+missing, the launcher names it. The Excel download also needs `writexl`;
+without it, the app tells you so when you ask for a workbook.
 
 ## Open something
 
@@ -22,8 +23,8 @@ harbouR::hb_run_explorer()
 ```
 
 Then choose **Use the example base** in the Source panel. It loads a
-bundled `.dtable` holding one column of every type harbouR supports, so
-every panel has something to show.
+bundled `.dtable` holding a column of nearly every type harbouR
+supports, so every panel has something to show.
 
 The Source panel takes three kinds of input:
 
@@ -34,11 +35,27 @@ The Source panel takes three kinds of input:
   input is written into the page’s HTML.
 - **The example base**, above.
 
-You can also hand the app something you already have:
+Shiny refuses uploads larger than 5 MB unless told otherwise, and an
+export with attachments is often bigger than that, so while the explorer
+runs it accepts files up to 1 GB. To choose another limit, set the
+`shiny.maxRequestSize` option, in bytes, before you start the app; a
+value you set yourself is left as it is:
 
 ``` r
 
-harbouR::hb_run_explorer(harbouR::hb_read_dtable("my-base.dtable"))
+options(shiny.maxRequestSize = 2 * 1024^3) # 2 GB
+harbouR::hb_run_explorer()
+```
+
+You can also hand the app something you already have. Extract a file’s
+assets when you open it, as the Source panel does, or a `.dtable`
+download leaves its attachments behind:
+
+``` r
+
+harbouR::hb_run_explorer(
+  harbouR::hb_read_dtable("my-base.dtable", assets = "extract")
+)
 harbouR::hb_run_explorer(harbouR::hb_client())
 ```
 
@@ -59,9 +76,14 @@ measurements looks different from one that is mostly text.
 - **Query.** A SeaTable SQL console. It needs a server: a `.dtable` is a
   file, not a database, and the panel says so rather than failing.
 - **Export.** Download the base as `.dtable`, as an Excel workbook, or
-  as zipped CSVs - or just the table you are looking at, as one CSV. The
-  `.dtable` keeps everything; the spreadsheet formats flatten whatever a
-  cell cannot hold, which the app tells you about.
+  as zipped CSVs - or just the table you are looking at, as one CSV
+  holding all of its rows, however many the Data panel shows, each cell
+  written as the panel shows it. A `.dtable` of a base opened from a
+  file keeps everything. A live base has no file behind it, so its
+  `.dtable` is rebuilt from the rows: it keeps the values, but not the
+  column types, select options, attachments or views, and the app says
+  so when you download it. The workbook and the zipped CSVs flatten
+  whatever a cell cannot hold, which the app tells you about.
 
 ## Colour
 

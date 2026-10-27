@@ -5,12 +5,12 @@ List the tables in a base
 ## Usage
 
 ``` r
+hb_list_tables(x, ...)
+
 # S3 method for class 'harbour_dtable'
 hb_list_tables(x, ...)
 
 # Default S3 method
-hb_list_tables(x, ...)
-
 hb_list_tables(x, ...)
 
 # S3 method for class 'harbour_client'
@@ -57,8 +57,18 @@ Other metadata:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+# a .dtable file needs no server
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+hb_list_tables(hb_read_dtable(path))
+#> # A tibble: 2 × 4
+#>   name      n_rows n_columns n_views
+#>   <chr>      <int>     <int>   <int>
+#> 1 Samples        2        27       1
+#> 2 Reference      2         2       1
+
+# a live base needs a SeaTable server and an API token
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_list_tables(client)
-}
+} # }
 ```

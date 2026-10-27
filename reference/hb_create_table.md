@@ -41,8 +41,9 @@ Other tables:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
-hb_create_table(client, "NewTable", list(list(name = "Name", type = "text")))
-}
+hb_create_table(client, "NewTable",
+  columns = list(list(name = "Name", type = "text")))
+} # }
 ```

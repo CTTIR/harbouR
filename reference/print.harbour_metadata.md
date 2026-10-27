@@ -20,13 +20,14 @@ format(x, ...)
 
 - ...:
 
-  Unused.
+  These dots are for future extensions and must be empty.
 
 ## Value
 
-Invisibly returns `x`.
+[`print()`](https://rdrr.io/r/base/print.html) returns `x`, invisibly.
 
-A character vector, one element per table.
+[`format()`](https://rdrr.io/r/base/format.html) returns a character
+vector, one element per table.
 
 ## See also
 
@@ -34,7 +35,23 @@ Other metadata:
 [`as_tibble.harbour_metadata()`](https://cttir.github.io/harbouR/reference/as_tibble.harbour_metadata.md),
 [`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md),
 [`hb_list_collaborators()`](https://cttir.github.io/harbouR/reference/hb_list_collaborators.md),
-[`hb_list_tables.harbour_dtable()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
+[`hb_list_tables()`](https://cttir.github.io/harbouR/reference/hb_list_tables.md),
 [`hb_metadata()`](https://cttir.github.io/harbouR/reference/hb_metadata.md),
 [`is_harbour_metadata()`](https://cttir.github.io/harbouR/reference/is_harbour_metadata.md),
 [`summary.harbour_metadata()`](https://cttir.github.io/harbouR/reference/summary.harbour_metadata.md)
+
+## Examples
+
+``` r
+meta <- hb_example_metadata()
+print(meta)
+#> 
+#> ── <harbour_metadata> ──────────────────────────────────────────────────────────
+#> • base : "harbouR demo base"
+#> • tables : 2
+#> 
+#> - Samples (7 cols, 1 views)
+#> - Patients (4 cols, 1 views)
+format(meta)
+#> [1] "Samples (7 cols, 1 views)"  "Patients (4 cols, 1 views)"
+```

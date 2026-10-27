@@ -8,12 +8,12 @@ column.
 ## Usage
 
 ``` r
+hb_read_table(x, table, ...)
+
 # S3 method for class 'harbour_dtable'
 hb_read_table(x, table, ..., view = NULL, n_max = Inf, option_labels = TRUE)
 
 # Default S3 method
-hb_read_table(x, table, ...)
-
 hb_read_table(x, table, ...)
 
 # S3 method for class 'harbour_client'
@@ -37,7 +37,9 @@ hb_read_table(x, table, ..., view = NULL, page_size = 1000L, n_max = Inf)
 
 - view:
 
-  Optional view name.
+  Optional view name. A server returns only the columns a view shows, so
+  a read through a view gives `NA` for the columns it hides, and harbouR
+  warns naming them. A `.dtable` read keeps their values.
 
 - n_max:
 
@@ -61,6 +63,14 @@ hb_read_table(x, table, ..., view = NULL, page_size = 1000L, n_max = Inf)
 A tibble with one row per SeaTable row and one column per SeaTable
 column, plus `_id` (chr). A 0-row tibble is returned for an empty table.
 
+## Views on a `.dtable` file
+
+On a `harbour_dtable`, `view` restricts the rows only to the row ids the
+file records for that view, kept in table order. The view's filters and
+sorts are not applied. A view that records no rows returns the whole
+table, with a warning of class `harbour_warning_view_filters` when the
+view has filters that were therefore not applied.
+
 ## See also
 
 Other rows:
@@ -75,11 +85,37 @@ Other rows:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+# a .dtable file needs no server
+path <- system.file("extdata", "example.dtable", package = "harbouR")
+base <- hb_read_dtable(path)
+hb_read_table(base, "Samples")
+#> # A tibble: 2 × 28
+#>   Name  Notes           Concentration Share  Cost Preis Runtime Rating Consented
+#>   <chr> <chr>                   <dbl> <dbl> <dbl> <dbl>   <dbl>  <int> <lgl>    
+#> 1 S-001 A plain **mark…      0.000587  0.42  20.0  17.5    3661      4 TRUE     
+#> 2 S-002 Rendered elsew…      8.1      NA     NA    NA        NA     NA FALSE    
+#> # ℹ 19 more variables: Collected <dttm>, Status <chr>, Tags <list>,
+#> #   Collaborators <list>, Photos <list>, Reports <list>, Where <list>,
+#> #   Homepage <chr>, Contact <chr>, `Temperatur (°C)` <dbl>, Doubled <chr>,
+#> #   Ref <chr>, `Created by` <chr>, `Changed by` <chr>, Created <dttm>,
+#> #   Changed <dttm>, Action <list>, Signature <list>, `_id` <chr>
+hb_read_table(base, "Samples", n_max = 1)
+#> # A tibble: 1 × 28
+#>   Name  Notes           Concentration Share  Cost Preis Runtime Rating Consented
+#>   <chr> <chr>                   <dbl> <dbl> <dbl> <dbl>   <dbl>  <int> <lgl>    
+#> 1 S-001 A plain **mark…      0.000587  0.42  20.0  17.5    3661      4 TRUE     
+#> # ℹ 19 more variables: Collected <dttm>, Status <chr>, Tags <list>,
+#> #   Collaborators <list>, Photos <list>, Reports <list>, Where <list>,
+#> #   Homepage <chr>, Contact <chr>, `Temperatur (°C)` <dbl>, Doubled <chr>,
+#> #   Ref <chr>, `Created by` <chr>, `Changed by` <chr>, Created <dttm>,
+#> #   Changed <dttm>, Action <list>, Signature <list>, `_id` <chr>
+
+# a live base needs a SeaTable server and an API token
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_read_table(client, "Samples")
 
 # just the first 10 rows
 hb_read_table(client, "Samples", n_max = 10)
-}
+} # }
 ```

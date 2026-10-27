@@ -36,8 +36,8 @@ Other tables:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_delete_table(client, "DropMe")
-}
+} # }
 ```

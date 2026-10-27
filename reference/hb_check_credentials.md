@@ -3,7 +3,9 @@
 Exchanges the client's credentials for a token, which is the cheapest
 way to find out whether they work. For an API-token client this fetches
 a base token, and so also confirms the token is valid *for that base*;
-for a username/password client it fetches an account token.
+for a username/password client it fetches an account token and then
+drops any cached base token, so that the next base call fetches a new
+one.
 
 ## Usage
 
@@ -46,8 +48,8 @@ Other client:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_check_credentials(client)
-}
+} # }
 ```

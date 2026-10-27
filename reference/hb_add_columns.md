@@ -20,7 +20,11 @@ hb_add_columns(client, table, columns, ...)
 
 - columns:
 
-  A list of column specs (each a named list).
+  A list of column specs, each a named list with `name`, `type` and
+  optionally `data` - the same shape
+  [`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md)
+  takes. SeaTable's own spelling, `column_name`, `column_type` and
+  `column_data`, is accepted too.
 
 - ...:
 
@@ -44,14 +48,14 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_add_columns(
   client, "Samples",
   list(
-    list(column_name = "a", column_type = "text"),
-    list(column_name = "b", column_type = "number")
+    list(name = "a", type = "text"),
+    list(name = "b", type = "number")
   )
 )
-}
+} # }
 ```

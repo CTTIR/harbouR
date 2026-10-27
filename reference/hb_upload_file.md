@@ -29,11 +29,21 @@ hb_upload_file(client, path, ..., relative_path = "files")
 
 - relative_path:
 
-  Optional path on the SeaTable side; defaults to `"files"`.
+  Folder under the base's asset root. The default, `"files"`, stands for
+  the folder the upload link names: `files/<YYYY-MM>` for the current
+  month, or `images/<YYYY-MM>` when `path` has an image extension
+  (`.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.webp` or `.svg`). Passing
+  `"files"` yourself does the same. Any other value is used as given.
 
 ## Value
 
 A named list describing the uploaded asset.
+
+## Details
+
+SeaTable's file endpoints authenticate with the base's API token, so
+this needs a client created with `api_token`; a username/password client
+gets a `harbour_error_auth` condition.
 
 ## See also
 
@@ -45,8 +55,8 @@ Other files:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_upload_file(client, "report.pdf")
-}
+} # }
 ```

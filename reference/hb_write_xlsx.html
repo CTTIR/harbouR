@@ -90,6 +90,15 @@ have no faithful representation.</p>
     <p><code>path</code>, invisibly.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Each sheet is named after its table. <code>writexl</code> may adjust a name to fit
+Excel's rules for sheet names: at most 31 characters, and none of
+<code>/</code>, <code>\</code>, <code>?</code>, <code>*</code>, <code>:</code> or a square bracket. Excel compares sheet names
+ignoring case, so table names that differ only in the case of the
+letters A to Z, such as <code>Samples</code> and <code>samples</code>, are rejected before
+anything is written.</p>
+    </div>
+    <div class="section level2">
     <h2 id="what-is-lost">What is lost<a class="anchor" aria-label="anchor" href="#what-is-lost"></a></h2>
 
 
@@ -99,6 +108,18 @@ have no faithful representation.</p>
 <li><p><code>link</code> and <code>link-formula</code> cells reference rows in other tables and
 are exported as their display values.</p></li>
 <li><p><code>formula</code> columns export their computed value, not the formula.</p></li>
+<li><p><code>geolocation</code> cells are written as their values, in the order the
+source stores them, without the field names: <code>"11.5761, 48.1371"</code>
+does not say which number is the latitude.</p></li>
+<li><p><code>digital-sign</code> cells are written as a placeholder, <code>"&lt;object&gt;"</code>, or
+as their bare values, depending on how the source stores them; the
+signature itself is not exported. <code>button</code> columns hold no value and
+are written as missing.</p></li>
+<li><p>A CSV stores numbers with 15 significant digits and a workbook with
+16, so a double that needs more, such as <code>0.1 + 0.2</code>, reads back very
+slightly different. In a CSV, date-times are written by
+<code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code>, whose layout depends on the version of R. Use
+<code><a href="hb_write_dtable.html">hb_write_dtable()</a></code> for full precision.</p></li>
 <li><p>Views, filters, colours, column widths and every other piece of base
 configuration have no cell to live in.</p></li>
 </ul><p>harbouR reports which columns were flattened. To keep everything, write

@@ -72,11 +72,15 @@
 
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
-<dd><p>New view name.</p></dd>
+<dd><p>Name of the view to update.</p></dd>
 
 
 <dt id="arg-settings">settings<a class="anchor" aria-label="anchor" href="#arg-settings"></a></dt>
-<dd><p>Optional list of view settings.</p></dd>
+<dd><p>Named list of the fields to change: <code>name</code> to rename
+the view, <code>is_locked</code>, <code>filters</code>, <code>filter_conjunction</code>, <code>sorts</code>,
+<code>groupbys</code> or <code>hidden_columns</code>. Fields you leave out are unchanged.
+<code>hidden_columns</code> takes column keys - the <code>key</code> column of
+<code><a href="hb_list_columns.html">hb_list_columns()</a></code> - not names.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -93,15 +97,15 @@
 <code><a href="hb_create_view.html">hb_create_view()</a></code>,
 <code><a href="hb_delete_view.html">hb_delete_view()</a></code>,
 <code><a href="hb_get_view.html">hb_get_view()</a></code>,
-<code><a href="hb_list_views.html">hb_list_views.harbour_dtable()</a></code></p></div>
+<code><a href="hb_list_views.html">hb_list_views()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu"><a href="hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">hb_update_view</span><span class="op">(</span><span class="va">client</span>, <span class="st">"Samples"</span>, <span class="st">"Active"</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>filter_conjunction <span class="op">=</span> <span class="st">"And"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -82,13 +82,23 @@ into a <code>file</code>-typed cell via <code><a href="hb_update_rows.html">hb_u
 
 
 <dt id="arg-relative-path">relative_path<a class="anchor" aria-label="anchor" href="#arg-relative-path"></a></dt>
-<dd><p>Optional path on the SeaTable side; defaults to
-<code>"files"</code>.</p></dd>
+<dd><p>Folder under the base's asset root. The default,
+<code>"files"</code>, stands for the folder the upload link names:
+<code>files/&lt;YYYY-MM&gt;</code> for the current month, or <code>images/&lt;YYYY-MM&gt;</code> when
+<code>path</code> has an image extension (<code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.gif</code>,
+<code>.bmp</code>, <code>.webp</code> or <code>.svg</code>). Passing <code>"files"</code> yourself does the same.
+Any other value is used as given.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A named list describing the uploaded asset.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>SeaTable's file endpoints authenticate with the base's API token, so
+this needs a client created with <code>api_token</code>; a username/password
+client gets a <code>harbour_error_auth</code> condition.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -100,10 +110,10 @@ into a <code>file</code>-typed cell via <code><a href="hb_update_rows.html">hb_u
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu"><a href="hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">hb_upload_file</span><span class="op">(</span><span class="va">client</span>, <span class="st">"report.pdf"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

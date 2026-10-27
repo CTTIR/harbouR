@@ -46,9 +46,10 @@ hb_update_column(
 
 - column_data:
 
-  Optional list of column options, e.g. the choices for a select column.
-  Named `column_data` rather than `data` because `data` means "the rows
-  you are writing" everywhere else in harbouR.
+  Optional list of column options, sent with the type change. Given
+  without `new_type`, it reconfigures the column under its current type,
+  which harbouR asks the server for - SeaTable requires the type to be
+  named.
 
 ## Value
 
@@ -68,8 +69,8 @@ Other columns:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_update_column(client, "Samples", "Notes", new_name = "Comments")
-}
+} # }
 ```

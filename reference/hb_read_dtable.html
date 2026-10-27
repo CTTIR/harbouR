@@ -84,7 +84,11 @@ analysis can be written once and run either way.</p>
 <dd><p>Whether to extract the bundled <code>asset/</code> tree.
 <code>"none"</code>, the default, reads only <code>content.json</code>. <code>"extract"</code> unpacks
 the assets so <code><a href="hb_asset_path.html">hb_asset_path()</a></code> can resolve attachment URLs to local
-files.</p></dd>
+files. An archive whose asset entries could land outside
+<code>assets_dir</code> - a name that is absolute or has a <code>..</code> component,
+between slashes or backslashes, or an entry that is a symbolic link -
+is refused before anything is extracted. Assets whose names differ
+only in case may not all be extracted, and a warning names them.</p></dd>
 
 
 <dt id="arg-assets-dir">assets_dir<a class="anchor" aria-label="anchor" href="#arg-assets-dir"></a></dt>
@@ -95,9 +99,10 @@ temporary directory.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>harbour_dtable</code>: a list with components <code>content</code> (the
-parsed tree), <code>path</code>, <code>assets</code> (a tibble of bundled files),
-<code>assets_dir</code> and <code>base_name</code>. Note that <code><a href="https://rdrr.io/r/base/names.html" class="external-link">names()</a></code> on a
-<code>harbour_dtable</code> gives its <em>table</em> names, not these components -
+parsed tree), <code>path</code>, <code>assets</code> (the archive's own listing of its
+<code>asset/</code> tree, as <code><a href="https://r-lib.github.io/zip/reference/zip_list.html" class="external-link">zip::zip_list()</a></code> gives it: one row per entry,
+folders included), <code>assets_dir</code> and <code>base_name</code>. Note that <code><a href="https://rdrr.io/r/base/names.html" class="external-link">names()</a></code>
+on a <code>harbour_dtable</code> gives its <em>table</em> names, not these components -
 reach them with <code>$</code> or <code><a href="https://rdrr.io/r/base/class.html" class="external-link">unclass()</a></code>.</p>
     </div>
     <div class="section level2">
@@ -141,7 +146,7 @@ harbouR did not know about.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> base : <span style="color: #0000BB;">"example"</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> tables : 2</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> rows : 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> assets : 7</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> assets : 2</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> - Samples (27 cols, 2 rows)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> - Reference (2 cols, 2 rows)</span>

@@ -97,9 +97,10 @@ so this cannot be combined with <code>new_name</code>.</p></dd>
 
 
 <dt id="arg-column-data">column_data<a class="anchor" aria-label="anchor" href="#arg-column-data"></a></dt>
-<dd><p>Optional list of column options, e.g. the choices
-for a select column. Named <code>column_data</code> rather than <code>data</code> because
-<code>data</code> means "the rows you are writing" everywhere else in harbouR.</p></dd>
+<dd><p>Optional list of column options, sent with the type
+change. Given without <code>new_type</code>, it reconfigures the column under its
+current type, which harbouR asks the server for - SeaTable requires
+the type to be named.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -120,10 +121,10 @@ for a select column. Named <code>column_data</code> rather than <code>data</code
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu"><a href="hb_client.html">hb_client</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">hb_update_column</span><span class="op">(</span><span class="va">client</span>, <span class="st">"Samples"</span>, <span class="st">"Notes"</span>, new_name <span class="op">=</span> <span class="st">"Comments"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

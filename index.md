@@ -100,6 +100,8 @@ into SeaTable:
 
 ``` r
 
+# extract the assets, so the attachments are written back too
+base <- hb_read_dtable(path, assets = "extract")
 hb_write_dtable(base, "my-base.dtable")
 
 hb_dtable(Measurements = my_data) |>

@@ -80,14 +80,23 @@ be written out as a SeaTable base and imported.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>harbour_dtable</code>.</p>
+    <p>A <code>harbour_dtable</code>, with the components <code><a href="hb_read_dtable.html">hb_read_dtable()</a></code>
+describes, holding one table per data frame.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Column types are inferred: <code>character</code> becomes <code>text</code>, <code>numeric</code>
 <code>number</code>, <code>logical</code> <code>checkbox</code>, <code>Date</code> and <code>POSIXct</code> <code>date</code>, <code>factor</code>
-<code>single-select</code> with its levels as options, and list-columns
-<code>multiple-select</code>.</p>
+<code>single-select</code> with its levels as options, and a list-column of
+character vectors <code>multiple-select</code> with the values it uses as options.
+A list-column holding objects - file, image or location cells read from
+a live base - is flattened to <code>text</code>: a new base has none of the assets
+those cells point at.</p>
+<p>New row ids, table ids, column keys and select-option ids are drawn
+from the session's random number generator, so building a base
+advances <code>.Random.seed</code>: a random draw made after <code>hb_dtable()</code> differs
+from the same draw made without it. Set the seed after building the
+base when an analysis needs its random numbers not to depend on it.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

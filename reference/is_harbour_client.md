@@ -25,3 +25,17 @@ Other client:
 [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md),
 [`hb_ping()`](https://cttir.github.io/harbouR/reference/hb_ping.md),
 [`hb_server_info()`](https://cttir.github.io/harbouR/reference/hb_server_info.md)
+
+## Examples
+
+``` r
+# creating a client does not contact the server
+client <- hb_client(
+  server = "https://seatable.example.org",
+  api_token = "your-api-token"
+)
+is_harbour_client(client)
+#> [1] TRUE
+is_harbour_client(list())
+#> [1] FALSE
+```

@@ -32,6 +32,15 @@ hb_write_xlsx(x, path, ..., tables = NULL)
 
 `path`, invisibly.
 
+## Details
+
+Each sheet is named after its table. `writexl` may adjust a name to fit
+Excel's rules for sheet names: at most 31 characters, and none of `/`,
+`\`, `?`, `*`, `:` or a square bracket. Excel compares sheet names
+ignoring case, so table names that differ only in the case of the
+letters A to Z, such as `Samples` and `samples`, are rejected before
+anything is written.
+
 ## What is lost
 
 - `multiple-select`, `collaborator` and `image` cells are joined with
@@ -43,6 +52,23 @@ hb_write_xlsx(x, path, ..., tables = NULL)
   exported as their display values.
 
 - `formula` columns export their computed value, not the formula.
+
+- `geolocation` cells are written as their values, in the order the
+  source stores them, without the field names: `"11.5761, 48.1371"` does
+  not say which number is the latitude.
+
+- `digital-sign` cells are written as a placeholder, `"<object>"`, or as
+  their bare values, depending on how the source stores them; the
+  signature itself is not exported. `button` columns hold no value and
+  are written as missing.
+
+- A CSV stores numbers with 15 significant digits and a workbook with
+  16, so a double that needs more, such as `0.1 + 0.2`, reads back very
+  slightly different. In a CSV, date-times are written by
+  [`as.character()`](https://rdrr.io/r/base/character.html), whose
+  layout depends on the version of R. Use
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  for full precision.
 
 - Views, filters, colours, column widths and every other piece of base
   configuration have no cell to live in.

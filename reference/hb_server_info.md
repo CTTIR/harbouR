@@ -35,8 +35,8 @@ Other client:
 ## Examples
 
 ``` r
-if (FALSE) { # interactive()
+if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_server_info(client)
-}
+} # }
 ```

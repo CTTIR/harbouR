@@ -1,4 +1,4 @@
-# harbouR: R Client for SeaTable Collaborative Databases
+# harbouR: Work with Self-Hosted SeaTable Servers and Data Files
 
 An unofficial R client for working with SeaTable data from R: read and
 write a local `.dtable` export with no server at all, or connect to a
@@ -65,10 +65,10 @@ proprietary. The official clients and SDKs are Apache-2.0. The API
 specification and reference are published publicly but carry no open
 licence, and harbouR relies on none - it reproduces no documentation
 prose, and relies on the exclusion of the ideas and principles
-underlying a program\\s interfaces from copyright protection (Art. 1(2),
-Directive 2009/24/EC; § 69a(2) UrhG; CJEU C-406/10). SeaTable\\s own
+underlying a program's interfaces from copyright protection (Art. 1(2),
+Directive 2009/24/EC; § 69a(2) UrhG; CJEU C-406/10). SeaTable's own
 dtable-server EULA points the same way: applications using the API are
-"third-party software", and the EULA\\s provisions "do not apply to any
+"third-party software", and the EULA's provisions "do not apply to any
 such third-party software". This is reasoning, not legal advice; the
 notice sets out its limits.
 
