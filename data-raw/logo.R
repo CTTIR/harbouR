@@ -1,30 +1,15 @@
-# Reproducible build for the harbouR hex sticker.
-# Source of truth: harbouR icon.svg (committed at repo root).
-# Outputs:
-# to man/figures/logo.svg
-#   man/figures/logo.png  (480 px wide, transparent)
-#   inst/shiny/harbour_explorer/www/logo.png (320 px wide)
+# Compatibility entry point for the registered v5 package artwork.
+# Usage: Rscript data-raw/logo.R
 
-src <- "harbouR icon.svg"
-stopifnot(file.exists(src))
-
-dir.create("man/figures", recursive = TRUE, showWarnings = FALSE)
-dir.create("inst/shiny/harbour_explorer/www",
-  recursive = TRUE,
-  showWarnings = FALSE
-)
-
-file.copy(src, "man/figures/logo.svg", overwrite = TRUE)
-
-if (requireNamespace("rsvg", quietly = TRUE)) {
-  rsvg::rsvg_png("man/figures/logo.svg", "man/figures/logo.png",
-    width = 480
-  )
-  rsvg::rsvg_png("man/figures/logo.svg",
-    "inst/shiny/harbour_explorer/www/logo.png",
-    width = 320
-  )
-  message("Wrote PNGs.")
+args <- commandArgs(trailingOnly = FALSE)
+script <- sub("^--file=", "", args[grepl("^--file=", args)])
+root <- if (length(script)) {
+  normalizePath(file.path(dirname(script[1]), ".."), mustWork = TRUE)
 } else {
-  message("rsvg not available; only SVG copied.")
+  normalizePath(".", mustWork = TRUE)
 }
+renderer <- file.path(root, "tools", "branding", "render.R")
+if (!file.exists(renderer)) stop("Run this entry point from the package source tree.")
+status <- system2(file.path(R.home("bin"), "Rscript"),
+                  c(shQuote(renderer), "--apply"))
+if (!identical(status, 0L)) stop("Package artwork regeneration failed.")

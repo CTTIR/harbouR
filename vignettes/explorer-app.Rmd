@@ -94,8 +94,8 @@ different from one that is mostly text.
 
 ## Colour
 
-The palette is the package logo's, which is viridis: colourblind-safe and
-perceptually uniform. Column types are grouped into families - text,
+The explorer retains its viridis palette independently of the package badge.
+The palette is colourblind-safe and perceptually uniform. Column types are grouped into families - text,
 quantity, time, choice, attachment, relationship, and the ones SeaTable
 maintains itself - and each family keeps its colour everywhere in the
 app, so the rail and the schema table read as one system.
