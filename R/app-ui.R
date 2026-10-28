@@ -42,17 +42,10 @@
 #' @keywords internal
 #' @noRd
 .hb_masthead <- function() {
-  pal <- .hb_palette()
   shiny::tags$header(
     class = "hb-masthead",
     role = "banner",
-    shiny::HTML(sprintf(
-      '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-         <path d="M12 2 L21 20 H3 Z" fill="%s"/>
-         <path d="M12 8 L17 20 H7 Z" fill="%s"/>
-         <circle cx="12" cy="16" r="2.2" fill="%s"/>
-       </svg>', pal[["kelp"]], pal[["tide"]], pal[["beacon"]]
-    )),
+    .hb_brand_logo(mode = "dark"),
     shiny::tags$span(
       class = "hb-wordmark",
       shiny::HTML("harbou<span>R</span> explorer")

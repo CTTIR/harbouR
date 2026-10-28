@@ -9,7 +9,9 @@ root <- if (length(script)) {
   normalizePath(".", mustWork = TRUE)
 }
 renderer <- file.path(root, "tools", "branding", "render.R")
-if (!file.exists(renderer)) stop("Run this entry point from the package source tree.")
+if (!file.exists(renderer)) {
+  stop("Run this entry point from the package source tree.")
+}
 status <- system2(file.path(R.home("bin"), "Rscript"),
                   c(shQuote(renderer), "--apply"))
 if (!identical(status, 0L)) stop("Package artwork regeneration failed.")

@@ -46,6 +46,8 @@ before any request was made. Fields: none.}
 for example an auth mode that this endpoint does not accept.}
 \item{\code{harbour_error_column_collision}}{A column in the data would
 collide with a reserved SeaTable field name.}
+\item{\code{harbour_error_package_asset}}{A packaged branding asset is
+missing from the installation. Field: \code{file}.}
 }
 
 All of them also inherit from \code{harbour_error} and from \code{rlang_error}.
