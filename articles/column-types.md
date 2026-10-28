@@ -1,5 +1,7 @@
 # Column types and coercion
 
+![harbouR logo](figures/logo.svg)![harbouR logo](figures/logo-dark.svg)
+
 harbouR maps SeaTable’s column types onto predictable R types, so the
 tibble you get back is analysis-ready, not raw JSON. This vignette is
 the reference.

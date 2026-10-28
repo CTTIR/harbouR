@@ -1,5 +1,7 @@
 # The harbouR explorer
 
+![harbouR logo](figures/logo.svg)![harbouR logo](figures/logo-dark.svg)
+
 [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
 launches a Shiny app for working with a SeaTable base without writing
 any R. Reach for it when you want to *see* what is in a base; reach for

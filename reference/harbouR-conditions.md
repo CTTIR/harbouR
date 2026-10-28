@@ -60,6 +60,11 @@ function does not have - keep the classes rlang gives them.
   A column in the data would collide with a reserved SeaTable field
   name.
 
+- `harbour_error_package_asset`:
+
+  A packaged branding asset is missing from the installation. Field:
+  `file`.
+
 All of them also inherit from `harbour_error` and from `rlang_error`.
 
 ## Warning classes

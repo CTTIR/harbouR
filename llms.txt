@@ -1,4 +1,4 @@
-# harbouR ![harbouR hex logo](reference/figures/logo-with-name.png)
+# harbouR ![harbouR logo](reference/figures/logo-with-name.png)
 
 **harbouR** is an unofficial R client for working with
 [SeaTable](https://seatable.com/) data from R — either from a **local

@@ -1,5 +1,7 @@
 # Get started with harbouR
 
+![harbouR logo](figures/logo.svg)![harbouR logo](figures/logo-dark.svg)
+
 You have a SeaTable base of patient samples and you want to pull it into
 R for analysis, push your results back, and attach the resulting PDF
 reports - all without leaving R. `harbouR` is an unofficial R client

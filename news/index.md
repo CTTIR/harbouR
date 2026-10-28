@@ -288,6 +288,10 @@ First release.
 - The explorer:
 
   - [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
+    used a compact symbol in its header; it now shows the named v5
+    artwork. Missing packaged artwork raises
+    `harbour_error_package_asset` and identifies the missing file.
+  - [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
     needs `bslib` 0.6.0 or later, now the minimum that `DESCRIPTION`
     lists. An older one gets the same informative error as a missing
     one, instead of a stack trace.
@@ -313,6 +317,8 @@ First release.
 
 - Documentation and tests:
 
+  - README and vignette pages used different logos; they now use
+    standardised named v5 artwork in matching light and dark forms.
   - The examples that need a server are wrapped in `\dontrun{}`. They
     ran whenever R was interactive, so
     [`example()`](https://rdrr.io/r/utils/example.html) sent their
