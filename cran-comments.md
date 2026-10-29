@@ -9,25 +9,19 @@
   software name is in single quotes throughout the Description; the
   company name is not, because it is not software.
 
-The note comes from CRAN's incoming checks. The local runs below had
-their remote part turned off and no spell checker installed, and gave
-Status OK.
+The note comes from CRAN's incoming checks. Locally, with no spell
+checker installed, the only note was the new submission.
 
 ## Test environments
 
-* Local: macOS 27.0.1 on Apple silicon. The tarball was built from the
-  submitted commit with R 4.6.1 (aarch64-apple-darwin27.0.0) and checked
-  with `R CMD check --as-cran --no-manual` (this machine has no LaTeX):
-  * R 4.6.1, and R 4.5.3 (aarch64-apple-darwin20.0.0), with `NOT_CRAN`
-    unset, as on CRAN: Status OK.
-    The remote incoming checks were turned off because this machine's
-    network timed out on them; the URL check, run on its own, found no
-    problems;
-  * every example runs in well under 1 s, and the tests in about 20 s;
-  * R 4.6.1 with `_R_CHECK_DEPENDS_ONLY_=true`, as in CRAN's noSuggests
-    check: Status OK, and the tests that need the missing packages skip.
-* The test suite also passes in C, Shift-JIS, Big5 and GBK sessions and
-  under several time zones.
+* Local: Ubuntu 26.04 LTS, R 4.6.1. The tarball was built from the
+  submitted commit and checked with `R CMD check --as-cran`:
+  * with `NOT_CRAN` unset, as on CRAN: 1 NOTE, the new submission;
+  * with `_R_CHECK_DEPENDS_ONLY_=true`, as in CRAN's noSuggests check,
+    and `--ignore-vignettes`, since the vignettes need `rmarkdown`:
+    Status OK, and the tests that need the missing packages skip.
+* The tests were also run against a SeaTable 6.2.1 server, with the
+  opt-in live tests switched on: all pass.
 
 ## Notes
 
