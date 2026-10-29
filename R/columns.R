@@ -8,7 +8,11 @@
 #' @param refresh Logical. Ask the server rather than reusing the cached
 #'   base metadata. Default `FALSE`.
 #' @return A tibble with one row per column and columns `name` (chr),
-#'   `type` (chr), `key` (chr), `editable` (lgl) and `data` (list). The
+#'   `type` (chr), `key` (chr), `editable` (lgl) and `data` (list).
+#'   `editable` says whether harbouR writes the column: it is `FALSE` for
+#'   the types [hb_column_types()] marks `read_only`. SeaTable's own
+#'   `editable` flag is not used, since it is set for formula columns too.
+#'   The
 #'   `data` list-column holds the column's type-specific configuration -
 #'   for a select column, its options.
 #' @family columns

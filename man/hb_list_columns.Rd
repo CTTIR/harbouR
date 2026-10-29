@@ -28,7 +28,11 @@ base metadata. Default \code{FALSE}.}
 }
 \value{
 A tibble with one row per column and columns \code{name} (chr),
-\code{type} (chr), \code{key} (chr), \code{editable} (lgl) and \code{data} (list). The
+\code{type} (chr), \code{key} (chr), \code{editable} (lgl) and \code{data} (list).
+\code{editable} says whether harbouR writes the column: it is \code{FALSE} for
+the types \code{\link[=hb_column_types]{hb_column_types()}} marks \code{read_only}. SeaTable's own
+\code{editable} flag is not used, since it is set for formula columns too.
+The
 \code{data} list-column holds the column's type-specific configuration -
 for a select column, its options.
 }
