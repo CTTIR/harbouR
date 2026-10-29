@@ -594,7 +594,10 @@ hb_asset_path <- function(x, url, ...) {
   # A cell's URL is escaped - SeaTable's own export keeps it so - while the
   # archive holds the file under its real name. The URL is tried as it is,
   # for a name that holds a % of its own, and then decoded.
-  decoded <- tryCatch(utils::URLdecode(relative), error = function(cnd) relative)
+  decoded <- tryCatch(
+    utils::URLdecode(relative),
+    error = function(cnd) relative
+  )
   relative <- unique(c(relative, decoded))
   # An escaped climb out is one once decoded.
   if (any(.hb_climbs_out(relative))) {
@@ -1133,7 +1136,11 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   }
   if (type == "date") {
     data <- list(
-      format = if (.hb_is_calendar_date(values)) "YYYY-MM-DD" else "YYYY-MM-DD HH:mm"
+      format = if (.hb_is_calendar_date(values)) {
+        "YYYY-MM-DD"
+      } else {
+        "YYYY-MM-DD HH:mm"
+      }
     )
   }
   list(

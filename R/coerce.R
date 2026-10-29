@@ -449,7 +449,9 @@ hb_column_types <- function() {
   } else {
     vapply(
       value,
-      function(number) format(number, digits = 15, scientific = FALSE, trim = TRUE),
+      function(number) {
+        format(number, digits = 15, scientific = FALSE, trim = TRUE)
+      },
       character(1)
     )
   }
@@ -926,7 +928,9 @@ hb_column_types <- function() {
     if (!is.list(value)) {
       return(as.list(unname(value[!is.na(value)])))
     }
-    value <- Filter(function(item) !(is.atomic(item) && all(is.na(item))), value)
+    value <- Filter(
+      function(item) !(is.atomic(item) && all(is.na(item))), value
+    )
     # The object hb_upload_file() returns, written as it is: unnaming it
     # would send its fields as an array of scalars.
     if (identical(type, "file") && .hb_is_file_object(value)) {

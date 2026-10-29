@@ -151,7 +151,8 @@ hb_add_columns <- function(client, table, columns, ...) {
     )
   }
   specs <- .hb_column_specs(columns)
-  reply <- .hb_request(client, .hb_base_path(client, "batch-append-columns", ""),
+  reply <- .hb_request(
+    client, .hb_base_path(client, "batch-append-columns", ""),
     service = "gateway", auth = "base", method = "POST",
     body = list(table_name = table, columns = specs)
   )
