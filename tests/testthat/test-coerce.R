@@ -114,13 +114,15 @@ test_that("a geolocation cell is one object, on the way in and out", {
   # The API sends {"lat": 50, "lng": 8.23}. Unnaming it read back as
   # list(50, 8.23) and wrote back as [50, 8.23] - an array the server
   # cannot read as a location.
+  # The fields come back in one order, lng then lat, whatever order the
+  # endpoint used.
   read <- harbouR:::.hb_coerce_cell(list(lat = 50, lng = 8.23), "geolocation")
-  expect_identical(read, list(lat = 50, lng = 8.23))
+  expect_identical(read, list(lng = 8.23, lat = 50))
 
   written <- harbouR:::.hb_serialise_cell(read, "geolocation")
   expect_identical(
     as.character(jsonlite::toJSON(written, auto_unbox = TRUE)),
-    '{"lat":50,"lng":8.23}'
+    '{"lng":8.23,"lat":50}'
   )
   # Wrapped in a one-element list, as a list-column cell easily is.
   expect_identical(

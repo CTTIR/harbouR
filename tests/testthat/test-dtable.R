@@ -553,3 +553,17 @@ test_that("an empty multiple-select cell read from a file is character(0)", {
   tags <- hb_read_table(base, "T1")$tags
   expect_identical(tags[[2L]], character())
 })
+
+test_that("a select cell whose option is gone reads as NA, as on the server", {
+  # SeaTable's API sends such a cell as empty; the file kept showing the
+  # bare option id, which means nothing to a reader.
+  lookup <- c(o1 = "alpha")
+  expect_identical(
+    harbouR:::.hb_apply_select_lookup(c("o1", "339598", NA), lookup),
+    c("alpha", NA, NA)
+  )
+  expect_identical(
+    harbouR:::.hb_apply_select_lookup(list(c("o1", "339598"), character()), lookup),
+    list("alpha", character())
+  )
+})

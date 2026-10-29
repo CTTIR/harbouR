@@ -648,3 +648,80 @@ test_that("a Date with a fraction of a day is still sent as its midnight", {
     harbouR:::.hb_serialise_cell(half, "date"), "2030-06-20T00:00:00Z"
   )
 })
+
+# --- shapes found on a live 6.2.1 server -------------------------------------
+
+test_that("NA in a list-typed column is sent as an empty cell, not [null]", {
+  # A live server stored [null] for each of these, and a [null]
+  # geolocation then broke every export of the base.
+  ser <- function(value, type) wire_json(harbouR:::.hb_serialise_cell(value, type))
+  expect_identical(ser(NA, "geolocation"), "null")
+  expect_identical(ser(NA_character_, "collaborator"), "[]")
+  expect_identical(ser(NA_character_, "image"), "[]")
+  expect_identical(ser(NA_character_, "multiple-select"), "[]")
+  expect_identical(ser(c("a", NA), "multiple-select"), '["a"]')
+  expect_identical(ser(list(NA), "file"), "[]")
+  expect_identical(ser(list(list(lat = 1, lng = 2)), "geolocation"), '{"lat":1,"lng":2}')
+})
+
+test_that("a geolocation stored as [null] reads as an empty cell", {
+  expect_identical(harbouR:::.hb_coerce_cell(list(NULL), "geolocation"), list())
+  rows <- list(
+    list(`_id` = "r1", G = list(NULL)),
+    list(`_id` = "r2", G = list(lat = 48.4, lng = 9.99))
+  )
+  out <- harbouR:::.hb_rows_to_tibble(
+    rows, list(list(name = "G", type = "geolocation", key = "g001"))
+  )
+  expect_identical(out$G[[1]], list())
+  expect_identical(out$G[[2]], list(lng = 9.99, lat = 48.4))
+})
+
+test_that("geolocation fields read in one order, whichever the server sends", {
+  # The list and get-row endpoints sent lat and lng in different orders,
+  # so the same cell read from the two was not identical().
+  a <- harbouR:::.hb_coerce_cell(list(lng = 9.99, lat = 48.4), "geolocation")
+  b <- harbouR:::.hb_coerce_cell(list(lat = 48.4, lng = 9.99), "geolocation")
+  expect_identical(a, b)
+  c3 <- harbouR:::.hb_coerce_cell(
+    list(address = "Ulm", lng = 9.99, lat = 48.4), "geolocation"
+  )
+  expect_identical(names(c3), c("lng", "lat", "address"))
+})
+
+test_that("a number read into a text column is written out in full", {
+  # A formula cell with a numeric result read as "-2e-07" or "1.5e+10",
+  # and an array result kept only its first element.
+  cell <- function(value) harbouR:::.hb_coerce_cell(value, "formula")
+  expect_identical(cell(15000000000), "15000000000")
+  expect_identical(cell(-2e-07), "-0.0000002")
+  expect_identical(cell(0.6), "0.6")
+  expect_identical(cell(list("a", "b")), "a, b")
+  expect_identical(cell(TRUE), "TRUE")
+})
+
+test_that("an empty string reads as NA, as SeaTable's API reports it", {
+  # The API leaves an empty cell out of the row; a .dtable stores "".
+  expect_identical(harbouR:::.hb_coerce_cell("", "text"), NA_character_)
+  expect_identical(harbouR:::.hb_coerce_cell("", "single-select"), NA_character_)
+  expect_identical(
+    harbouR:::.hb_coerce_cell(list(text = "", preview = ""), "long-text"),
+    NA_character_
+  )
+  expect_identical(harbouR:::.hb_coerce_cell(" ", "text"), " ")
+})
+
+test_that("a row with no writable cells is sent as an object", {
+  rows <- harbouR:::.hb_serialise_rows(tibble::tibble(.rows = 2), character())
+  expect_identical(wire_json(rows), "[{},{}]")
+})
+
+test_that("a number written to a text column is sent as text", {
+  ser <- function(value) wire_json(harbouR:::.hb_serialise_cell(value, "text"))
+  expect_identical(ser(123456789012), '"123456789012"')
+  expect_identical(ser(0.1 + 0.2), '"0.3"')
+  expect_identical(ser(NA_real_), "null")
+  skip_if_not_installed("bit64")
+  big <- bit64::as.integer64("9007199254740993")
+  expect_identical(ser(big), '"9007199254740993"')
+})

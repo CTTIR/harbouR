@@ -362,10 +362,21 @@ hb_column_types <- function() {
   # long-text arrives either as a plain string or as an object carrying
   # the rendered text alongside its images, links and checklist.
   if (type == "long-text" && is.list(value)) {
-    return(as.character(value$text %||% NA_character_))
+    return(.hb_cell_text(value$text))
   }
   if (type %in% c("multiple-select", "collaborator", "image")) {
     return(as.character(unlist(value, use.names = FALSE)))
+  }
+  if (identical(type, "geolocation")) {
+    # One object. A stored [null], or anything else without field names,
+    # holds no position. lng and lat come first, in that order - the one a
+    # .dtable stores and SeaTable's "lng_lat" format names - because its
+    # endpoints send them in different orders.
+    if (!is.list(value) || is.null(names(value))) {
+      return(list())
+    }
+    first <- intersect(c("lng", "lat"), names(value))
+    return(value[c(first, setdiff(names(value), first))])
   }
   if (type %in% .hb_list_types()) {
     # Names are kept: a geolocation or digital-sign cell is one JSON object,
@@ -384,8 +395,52 @@ hb_column_types <- function() {
       error = function(cnd) NA_integer_
     ),
     logical = isTRUE(as.logical(value)),
-    as.character(value)
+    .hb_cell_text(value)
   )
+}
+
+#' Read a cell as text
+#'
+#' The API leaves an empty cell out of the row, while a `.dtable` stores
+#' it as `""`; both read as `NA`. A number - a formula's result, say - is
+#' written in full rather than as `1.5e+10`, and an array result keeps
+#' every element.
+#'
+#' @param value One raw cell value.
+#' @return A single string, possibly `NA`.
+#' @keywords internal
+#' @noRd
+.hb_cell_text <- function(value) {
+  if (is.list(value)) {
+    value <- unlist(value, use.names = FALSE)
+  }
+  text <- if (is.numeric(value)) .hb_number_text(value) else as.character(value)
+  text <- text[!is.na(text)]
+  if (length(text) == 0L) {
+    return(NA_character_)
+  }
+  text <- paste(text, collapse = ", ")
+  if (nzchar(text)) text else NA_character_
+}
+
+#' Write numbers as text, in full and without an exponent
+#'
+#' @param value A numeric or `integer64` vector.
+#' @return A character vector as long as `value`, `NA` where it is missing.
+#' @keywords internal
+#' @noRd
+.hb_number_text <- function(value) {
+  out <- if (inherits(value, "integer64")) {
+    as.character(value)
+  } else {
+    vapply(
+      value,
+      function(number) format(number, digits = 15, scientific = FALSE, trim = TRUE),
+      character(1)
+    )
+  }
+  out[is.na(value)] <- NA_character_
+  unname(out)
 }
 
 #' @keywords internal
@@ -609,7 +664,9 @@ hb_column_types <- function() {
   }
   rows <- vector("list", nrow(data))
   for (r in seq_len(nrow(data))) {
-    row <- list()
+    # An object even when no cell is written: an empty list would go out
+    # as [], which is no row.
+    row <- .hb_empty_object()
     for (j in seq_along(types)) {
       state$column <- names_[[j]]
       row[[names_[[j]]]] <- .hb_serialise_cell(
@@ -831,7 +888,10 @@ hb_column_types <- function() {
     if (wrapped) {
       value <- value[[1L]]
     }
-    if (length(value) == 0L) {
+    # NA, taken from an ordinary vector, is no object: sent as [null] it was
+    # stored as a cell that later broke every export of the base.
+    missing <- !is.list(value) && all(is.na(value))
+    if (length(value) == 0L || missing) {
       # NA reaches the server as null, which clears the cell.
       return(NA)
     }
@@ -843,10 +903,13 @@ hb_column_types <- function() {
     if (is.null(value)) {
       return(list())
     }
-    # Names would turn a vector of image URLs into a JSON object.
+    # Names would turn a vector of image URLs into a JSON object. An NA
+    # from an ordinary vector is no attachment, and is left out rather
+    # than stored as null.
     if (!is.list(value)) {
-      return(as.list(unname(value)))
+      return(as.list(unname(value[!is.na(value)])))
     }
+    value <- Filter(function(item) !(is.atomic(item) && all(is.na(item))), value)
     # The object hb_upload_file() returns, written as it is: unnaming it
     # would send its fields as an array of scalars.
     if (identical(type, "file") && .hb_is_file_object(value)) {
@@ -860,13 +923,21 @@ hb_column_types <- function() {
     if (is.null(value)) {
       return(list())
     }
-    return(as.list(unlist(value, use.names = FALSE)))
+    flat <- unlist(value, use.names = FALSE)
+    return(as.list(flat[!is.na(flat)]))
   }
   if (identical(type, "checkbox")) {
     return(.hb_serialise_checkbox(value, report))
   }
   if (is.list(value)) {
     value <- unlist(value, use.names = FALSE)
+  }
+  # A text column stores what it is given as text. A number sent as one
+  # was rounded to a double on the server - an integer64 key past 2^53
+  # lost its last digits - and shown in whatever notation JSON used.
+  if (identical(.hb_r_type(type), "character") &&
+        (is.numeric(value) || inherits(value, "integer64"))) {
+    return(.hb_number_text(value))
   }
   if (is.double(value)) {
     # JSON has no Inf or NaN, so the cell is sent as null either way; the
