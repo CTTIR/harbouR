@@ -203,29 +203,6 @@
 
 #' @keywords internal
 #' @noRd
-.check_table <- function(client, table,
-                         arg = rlang::caller_arg(table),
-                         call = rlang::caller_env()) {
-  .check_string(table, arg = arg, call = call)
-  if (!is.null(client$.metadata)) {
-    available <- vapply(
-      client$.metadata$tables, function(tbl) tbl$name, character(1)
-    )
-    if (!table %in% available) {
-      hb_abort(
-        c("Table {.val {table}} not found in this base.",
-          "i" = "Available tables: {.val {available}}."
-        ),
-        call = call,
-        class = "harbour_error_not_found"
-      )
-    }
-  }
-  invisible(NULL)
-}
-
-#' @keywords internal
-#' @noRd
 .mask_token <- function(x) {
   if (!is.character(x) || length(x) != 1L || is.na(x) || !nzchar(x)) {
     return("<none>")

@@ -28,18 +28,6 @@ test_that(".check_client requires a harbour_client", {
   expect_error(harbouR:::.check_client(1L), "harbour_client")
 })
 
-test_that(".check_table validates against cached metadata", {
-  cl <- mock_client()
-  expect_null(harbouR:::.check_table(cl, "Samples"))
-  expect_error(harbouR:::.check_table(cl, "Nope"), "not found")
-  expect_error(harbouR:::.check_table(cl, ""), "non-empty string")
-
-  cl2 <- mock_client()
-  cl2$.metadata <- NULL
-  # With no metadata cached, only the string check runs.
-  expect_null(harbouR:::.check_table(cl2, "Anything"))
-})
-
 test_that(".mask_token masks safely across lengths", {
   expect_identical(harbouR:::.mask_token("abcd"), "****")
   expect_identical(harbouR:::.mask_token(""), "<none>")

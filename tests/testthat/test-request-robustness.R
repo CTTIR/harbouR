@@ -88,10 +88,13 @@ api_client <- function(server = "https://demo.example.org",
 # How httr2 reports a request that got no answer: an `httr2_failure`
 # around the transport error.
 transport_failure <- function(reason = "Could not resolve host",
-                              curl = "couldnt_resolve_host") {
+                              curl = "couldnt_resolve_host",
+                              request = NULL) {
+  # httr2's own condition carries the request it could not send.
   rlang::error_cnd(
     class = c("httr2_failure", "httr2_error"),
     message = "Failed to perform HTTP request.",
+    request = request,
     parent = rlang::error_cnd(
       class = c(paste0("curl_error_", curl), "curl_error"),
       message = reason
@@ -791,4 +794,120 @@ test_that("a reply that is a URL is not fetched", {
     error = function(e) skip("cannot watch a listening socket here")
   )
   expect_false(pending)
+})
+
+
+# ---- Findings of the 2026-10-29 audit ----------------------------------------
+
+test_that("a saved transport error holds neither the request nor its data", {
+  # httr2's condition holds the whole request: with httr2 before 1.2.0 its
+  # Authorization header in clear text, and in every version the body - a
+  # write's rows - so saving the error saved them.
+  cl <- mock_client()
+  httr2::local_mocked_responses(function(req) transport_failure(request = req))
+  # Built at run time: the error's backtrace records this call, and a
+  # literal written in it would be found there.
+  payload <- paste0("PAY", "LOAD-", 77)
+  err <- expect_error(
+    .hb_request(cl, "/x/", method = "POST", body = list(cell = payload)),
+    class = "harbour_error_http"
+  )
+  saved <- serialize(err, NULL)
+  expect_length(grepRaw(payload, saved, fixed = TRUE), 0L)
+  expect_null(err$parent$request)
+  # The failure itself is still chained, with httr2's classes.
+  expect_s3_class(err$parent, "httr2_failure")
+})
+
+test_that("an infinite timeout sets no limit rather than failing", {
+  # curl refuses timeout_ms = Inf, so every request failed with an
+  # unclassed curl error although hb_client() accepted Inf.
+  cl <- hb_client(server = "https://x.example.org", api_token = "t",
+                  timeout = Inf)
+  req <- .hb_req(cl, "/x/", auth = "none")
+  expect_null(req$options$timeout_ms)
+  expect_identical(
+    .hb_req(mock_client(), "/x/", auth = "none")$options$timeout_ms, 10000
+  )
+})
+
+test_that("hb_ping keeps the class of an answer that was an error", {
+  # Every failure became "Could not reach", a 404 or a 429 included.
+  cl <- mock_client()
+  httr2::local_mocked_responses(function(req) {
+    httr2::response(status_code = 404L, url = req$url)
+  })
+  err <- expect_error(hb_ping(cl), class = "harbour_error_not_found")
+  expect_identical(err$status, 404L)
+  expect_no_match(conditionMessage(err), "Could not reach")
+})
+
+test_that("a reply that is not JSON names its URL and keeps its text", {
+  cl <- mock_client()
+  httr2::local_mocked_responses(function(req) {
+    httr2::response(
+      status_code = 200L, url = req$url,
+      headers = list(`Content-Type` = "text/html"),
+      body = charToRaw("<html>Log in</html>")
+    )
+  })
+  err <- expect_error(hb_server_info(cl), class = "harbour_error_http")
+  expect_identical(err$url, "https://demo.example.org/server-info/")
+  expect_match(err$response_body, "Log in", fixed = TRUE)
+})
+
+test_that("a failed credentials check keeps the base token that worked", {
+  cl <- mock_client()
+  httr2::local_mocked_responses(function(req) transport_failure(request = req))
+  expect_error(hb_check_credentials(cl), class = "harbour_error_http")
+  expect_identical(cl$.base_token, "BASETOKENSECRET")
+})
+
+test_that("a Retry-After longer than a minute is not waited for", {
+  # httr2 sleeps for whatever Retry-After says, so a 429 asking for an
+  # hour blocked the session for an hour per retry. Such an answer is not
+  # retried; a short wait still is. (Mocked responses skip httr2's retry
+  # loop, so the policy is checked directly.)
+  limited <- function(after) {
+    httr2::response(
+      status_code = 429L, url = "https://x.example.org/",
+      headers = if (!is.null(after)) list(`Retry-After` = after) else list()
+    )
+  }
+  retry <- .hb_retry_predicate("POST")
+  expect_false(retry(limited("3600")))
+  expect_true(retry(limited("5")))
+  expect_true(retry(limited(NULL)))
+  expect_false(.hb_retry_predicate("GET")(limited("61")))
+})
+
+test_that("a redirect is reported with where it points, not followed", {
+  # curl drops the Authorization header on a redirect to another host or
+  # scheme, so http:// redirected to https:// made a good token look
+  # refused. The request now stops at the redirect and says where to go.
+  cl <- mock_client()
+  expect_false(.hb_req(cl, "/x/", auth = "none")$options$followlocation)
+  httr2::local_mocked_responses(function(req) {
+    httr2::response(
+      status_code = 301L, url = req$url,
+      headers = list(Location = "https://secure.example.org/server-info/")
+    )
+  })
+  err <- expect_error(hb_server_info(cl), class = "harbour_error_http")
+  expect_identical(err$status, 301L)
+  expect_match(conditionMessage(err), "https://secure.example.org", fixed = TRUE)
+})
+
+test_that("a path segment of one or two dots is refused before sending", {
+  # curl resolves such a segment away, so the request reached another
+  # endpoint: hb_get_view(, ".") listed the views.
+  cl <- mock_client()
+  rec <- new_request_recorder()
+  for (id in c(".", "..")) {
+    expect_error(
+      with_mocked_request(hb_get_row(cl, "Samples", id), recorder = rec),
+      class = "harbour_error_bad_argument"
+    )
+  }
+  expect_length(rec$calls, 0L)
 })

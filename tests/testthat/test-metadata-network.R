@@ -83,7 +83,15 @@ test_that("hb_ping returns the client and needs no credentials and errors on fai
   expect_identical(rec$calls[[1]]$path, "/api2/ping/")
   expect_identical(rec$calls[[1]]$auth, "none")
 
-  fail <- function(...) stop("boom")
+  # What the request engine raises for a server that did not answer.
+  fail <- function(...) {
+    rlang::abort(
+      "boom",
+      class = c("harbour_error_http", "httr2_failure", "httr2_error",
+                "harbour_error")
+    )
+  }
   testthat::local_mocked_bindings(.hb_request = fail, .package = "harbouR")
-  expect_error(hb_ping(cl), class = "harbour_error_http")
+  err <- expect_error(hb_ping(cl), class = "harbour_error_http")
+  expect_match(conditionMessage(err), "Could not reach", fixed = TRUE)
 })

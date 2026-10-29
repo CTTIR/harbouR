@@ -83,7 +83,7 @@ test_that("hb_check_credentials refetches a base token for API clients", {
   cl <- mock_client()
   refreshed <- 0L
   testthat::local_mocked_bindings(
-    .hb_refresh_base_token = function(client, call = NULL) {
+    .hb_get_base_token = function(client, call = NULL) {
       refreshed <<- refreshed + 1L
       "TOK"
     },

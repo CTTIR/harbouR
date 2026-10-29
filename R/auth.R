@@ -9,7 +9,10 @@
 #'
 #' @inheritParams hb_metadata
 #' @param ... These dots are for future extensions and must be empty.
-#' @return The `client`, invisibly. Errors if the server is unreachable.
+#' @return The `client`, invisibly. Errors with a `harbour_error_http`
+#'   condition if the server cannot be reached, and with the class of the
+#'   answer - `harbour_error_not_found` for a 404, say - if it answers
+#'   with an error.
 #' @family client
 #' @seealso [hb_check_credentials()]
 #' @examples
@@ -26,27 +29,24 @@ hb_ping <- function(client, ...) {
       service = "web", auth = "none",
       method = "GET"
     ),
-    error = function(cnd) {
-      # A server that did not answer has already been reported as one by
-      # the request engine; chain httr2's own condition beneath that, so
-      # the cause is not told twice. The error keeps that one's status,
-      # URL and classes, as every other verb's does.
-      transport <- inherits(cnd, "harbour_error") &&
-        inherits(cnd, "httr2_failure")
-      status <- cnd$status %||% NA_integer_
-      url <- cnd$url %||% NA_character_
-      if (transport) {
-        cnd <- cnd$parent %||% cnd
+    # Only a server that did not answer is "not reached". One that answered
+    # with an error - a 404 from a wrong path, a 429 - is reported as that,
+    # with its own class, as every other verb reports it.
+    httr2_failure = function(cnd) {
+      if (!inherits(cnd, "harbour_error")) {
+        return(rlang::zap())
       }
+      # The request engine has already said the server was not reached;
+      # httr2's own condition is chained beneath, so the cause is not told
+      # twice.
       hb_abort(
         c("Could not reach {.url {client$server}}.",
           "i" = "Check the server URL and your network connection."
         ),
-        class = c("harbour_error_http",
-                  if (transport) c("httr2_failure", "httr2_error")),
-        status = status,
-        url = url,
-        parent = cnd
+        class = c("harbour_error_http", "httr2_failure", "httr2_error"),
+        status = cnd$status %||% NA_integer_,
+        url = cnd$url %||% NA_character_,
+        parent = cnd$parent %||% cnd
       )
     }
   )
@@ -81,7 +81,9 @@ hb_check_credentials <- function(client, ...) {
   rlang::check_dots_empty()
   .check_client(client)
   if (!is.null(client$api_token)) {
-    .hb_refresh_base_token(client)
+    # Fetched without dropping the cached token first: a check that fails
+    # for a moment leaves the client with the token that still works.
+    .hb_get_base_token(client)
   } else {
     client$.account_token <- NULL
     .hb_get_account_token(client)

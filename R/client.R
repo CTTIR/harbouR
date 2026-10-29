@@ -17,8 +17,8 @@
 #'   `"https://seatable.example.org"`. Defaults to the `SEATABLE_SERVER`
 #'   environment variable.
 #' @param api_token Long-lived per-base API token. Defaults to the
-#'   `SEATABLE_API_TOKEN` env var. Mutually exclusive with
-#'   `username`/`password`.
+#'   `SEATABLE_API_TOKEN` env var, which is not read when `username` or
+#'   `password` is given. Mutually exclusive with `username`/`password`.
 #' @param username,password Account credentials. Used to acquire an account
 #'   token. Mutually exclusive with `api_token`.
 #' @param base_uuid Optional base UUID hint; usually discovered from the
@@ -29,8 +29,8 @@
 #'   number, or a string of its digits, and `base_name` a string. Ignored
 #'   when `api_token` is used, since an API token names its base
 #'   implicitly.
-#' @param timeout Per-request timeout in seconds, a positive number.
-#'   Default `30`.
+#' @param timeout Per-request timeout in seconds, a positive number of
+#'   at most 2147483, or `Inf` for no limit. Default `30`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A `harbour_client` object.
@@ -63,6 +63,11 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
                       base_name = NULL,
                       timeout = 30) {
   rlang::check_dots_empty()
+  # The default reads SEATABLE_API_TOKEN, which a username/password client
+  # must not pick up: only a token passed explicitly conflicts with them.
+  if (missing(api_token) && (!is.null(username) || !is.null(password))) {
+    api_token <- NULL
+  }
   # Validate the shape before normalising: nzchar() on a non-string or a
   # vector errors before .check_string() can say what was wrong. Empty is
   # allowed here because Sys.getenv() returns "" for an unset variable,
@@ -124,8 +129,19 @@ hb_client <- function(server = Sys.getenv("SEATABLE_SERVER"),
     }
     .check_string(base_name, allow_null = TRUE)
   }
-  # httr2 refuses a timeout of a millisecond or less, at the first request.
+  # httr2 refuses a timeout of a millisecond or less, at the first request,
+  # and curl one past the 2147483 seconds its millisecond counter holds;
+  # Inf sets no limit.
   .check_positive_number(timeout, allow_null = TRUE, min = 0.001)
+  if (is.numeric(timeout) && is.finite(timeout) && timeout > 2147483) {
+    hb_abort(
+      c("{.arg timeout} must be at most 2147483 seconds, about 24 days.",
+        "x" = "You supplied {.val {timeout}}.",
+        "i" = "Use {.code Inf} for no limit."),
+      class = "harbour_error_bad_argument"
+    )
+  }
+  .check_string(base_uuid, allow_null = TRUE)
 
   if (has_acct && (is.null(workspace_id) || is.null(base_name))) {
     cli::cli_warn(c(

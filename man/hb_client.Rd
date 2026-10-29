@@ -28,8 +28,8 @@ hb_client(
 environment variable.}
 
 \item{api_token}{Long-lived per-base API token. Defaults to the
-\code{SEATABLE_API_TOKEN} env var. Mutually exclusive with
-\code{username}/\code{password}.}
+\code{SEATABLE_API_TOKEN} env var, which is not read when \code{username} or
+\code{password} is given. Mutually exclusive with \code{username}/\code{password}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
@@ -46,8 +46,8 @@ number, or a string of its digits, and \code{base_name} a string. Ignored
 when \code{api_token} is used, since an API token names its base
 implicitly.}
 
-\item{timeout}{Per-request timeout in seconds, a positive number.
-Default \code{30}.}
+\item{timeout}{Per-request timeout in seconds, a positive number of
+at most 2147483, or \code{Inf} for no limit. Default \code{30}.}
 
 \item{x}{A \code{harbour_client}.}
 }

@@ -156,7 +156,8 @@
   req <- httr2::request(paste0(client$server, "/api2/auth-token/")) |>
     httr2::req_method("POST") |>
     httr2::req_user_agent(.hb_user_agent()) |>
-    httr2::req_timeout(client$timeout %||% 30) |>
+    .hb_req_timeout(client$timeout) |>
+    httr2::req_options(followlocation = FALSE) |>
     httr2::req_body_json(list(
       username = client$username,
       password = client$password
@@ -215,6 +216,7 @@
     .hb_check_account_base(client, call = call)
     workspace <- .hb_format_id(client$workspace_id)
     base <- client$base_name
+    .hb_check_segments(c(workspace, base), call = call)
     req <- httr2::request(sprintf(
       "%s/api/v2.1/workspace/%s/dtable/%s/access-token/",
       client$server,
@@ -234,7 +236,8 @@
   }
   req <- req |>
     httr2::req_user_agent(.hb_user_agent()) |>
-    httr2::req_timeout(client$timeout %||% 30)
+    .hb_req_timeout(client$timeout) |>
+    httr2::req_options(followlocation = FALSE)
   # Neither exchange documents a 400, so only 401 and 403 are read as
   # refused credentials.
   resp <- rlang::try_fetch(
@@ -312,7 +315,27 @@
 #' @noRd
 .hb_refresh_base_token <- function(client, call = rlang::caller_env()) {
   client$.base_token <- NULL
+  client$.base_token_expires <- NULL
   .hb_get_base_token(client, call = call)
+}
+
+#' Limit how long a request may take
+#'
+#' curl refuses an infinite `timeout_ms`, and anything past the 2147483
+#' seconds that fits its millisecond counter, so an infinite timeout sets
+#' no limit at all - curl's own default - rather than failing.
+#'
+#' @param req An httr2 request.
+#' @param timeout The client's timeout in seconds, or `NULL` for 30.
+#' @return The request.
+#' @keywords internal
+#' @noRd
+.hb_req_timeout <- function(req, timeout) {
+  timeout <- timeout %||% 30
+  if (is.infinite(timeout)) {
+    return(req)
+  }
+  httr2::req_timeout(req, timeout)
 }
 
 #' @keywords internal
@@ -345,7 +368,10 @@
       Authorization = authorization,
       Accept = "application/json"
     ) |>
-    httr2::req_timeout(client$timeout %||% 30) |>
+    .hb_req_timeout(client$timeout) |>
+    # A redirect is reported rather than followed: curl drops the token
+    # when one changes host, port or scheme.
+    httr2::req_options(followlocation = FALSE) |>
     httr2::req_retry(max_tries = 3, is_transient = .hb_retry_predicate(method))
   if (!is.null(query)) req <- httr2::req_url_query(req, !!!query)
   req
@@ -379,25 +405,72 @@
 #' request, so saving that condition would save the client's credentials
 #' with it.
 #'
+#' An answer whose `Retry-After` asks for more than `.hb_max_retry_wait`
+#' seconds is not retried: httr2 sleeps for as long as the header says,
+#' before any deadline applies, so a 429 asking for an hour blocked the
+#' session for an hour per retry. Such an answer is reported at once.
+#'
 #' @param method The request's HTTP method.
 #' @return A function of an `httr2_response`, returning `TRUE` or `FALSE`.
 #' @keywords internal
 #' @noRd
 .hb_retry_predicate <- function(method) {
   retry_on <- .hb_retry_statuses(method)
-  function(resp) httr2::resp_status(resp) %in% retry_on
+  function(resp) {
+    if (!httr2::resp_status(resp) %in% retry_on) {
+      return(FALSE)
+    }
+    wait <- httr2::resp_retry_after(resp)
+    is.na(wait) || wait <= .hb_max_retry_wait
+  }
 }
+
+#' The longest `Retry-After`, in seconds, that harbouR waits out
+#' @keywords internal
+#' @noRd
+.hb_max_retry_wait <- 60
 
 #' @keywords internal
 #' @noRd
 .hb_perform_raw <- function(req, path = NULL, call = rlang::caller_env(),
                             client = NULL) {
-  rlang::try_fetch(
+  resp <- rlang::try_fetch(
     httr2::req_perform(req, path = path),
     httr2_failure = function(cnd) .hb_transport_error(cnd, req, call = call),
     httr2_http = function(cnd) {
       .hb_translate_error(cnd, call = call, client = client)
     }
+  )
+  .hb_check_redirect(resp, call = call)
+}
+
+#' Stop at a redirect, saying where it points
+#'
+#' harbouR's requests do not follow redirects: curl drops the
+#' Authorization header when one changes host, port or scheme, so a server
+#' given as `http://` that redirects to `https://` made a good token look
+#' refused. A redirect is reported instead, with its target.
+#'
+#' @param resp An `httr2_response`.
+#' @param call The frame to blame for the error.
+#' @return `resp`, unless it is a redirect.
+#' @keywords internal
+#' @noRd
+.hb_check_redirect <- function(resp, call = rlang::caller_env()) {
+  status <- httr2::resp_status(resp)
+  if (status < 300L || status >= 400L) {
+    return(resp)
+  }
+  location <- httr2::resp_header(resp, "Location") %||% "nowhere it names"
+  hb_abort(
+    c("The SeaTable server answered with a redirect (HTTP {status}).",
+      "x" = "It points to {.url {location}}.",
+      "i" = "Give {.fn hb_client} the address it redirects to as
+             {.arg server}, usually the {.code https://} one."),
+    class = "harbour_error_http",
+    status = status,
+    url = resp$url %||% NA_character_,
+    call = call
   )
 }
 
@@ -447,6 +520,9 @@
                  applied it; check before sending it again.")
       })
   }
+  # The rest of httr2's condition keeps the request too - its headers, and
+  # a write's rows - so it is chained without it.
+  cnd$request <- NULL
   hb_abort(
     message,
     class = c("harbour_error_http", "httr2_failure", "httr2_error"),
@@ -577,7 +653,7 @@
     req2 <- httr2::req_headers(req, Authorization = authorization)
     .hb_perform_raw(req2, call = call, client = client)
   }
-  rlang::try_fetch(
+  resp <- rlang::try_fetch(
     httr2::req_perform(req),
     # try_fetch() keeps the handlers listed after a running handler
     # active, and a resend that fails to connect signals this class again,
@@ -605,6 +681,7 @@
       .hb_translate_error(cnd, call = call, client = client)
     }
   )
+  .hb_check_redirect(resp, call = call)
 }
 
 #' Did the gateway refuse the base token itself?
@@ -648,12 +725,17 @@
       )
     },
     error = function(cnd) {
+      # Kept, shortened, for whoever handles the error: a reply that is not
+      # JSON is often a proxy's or a login page, and says what went wrong.
+      text <- tryCatch(httr2::resp_body_string(resp), error = function(e) NULL)
       hb_abort(
         c("Could not parse the server's JSON response.",
           "x" = "HTTP {httr2::resp_status(resp)}"
         ),
         class = "harbour_error_http",
         status = httr2::resp_status(resp),
+        url = resp$url %||% NA_character_,
+        response_body = if (!is.null(text)) substr(text, 1L, 2000L),
         call = call,
         parent = cnd
       )

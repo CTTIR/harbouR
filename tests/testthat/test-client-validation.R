@@ -197,3 +197,46 @@ test_that("the timeout must be a positive number of seconds", {
     fixed = TRUE
   )
 })
+
+test_that("a username and password are used even with SEATABLE_API_TOKEN set", {
+  # The api_token default reads the variable, so the account client was
+  # refused for holding both kinds of credentials.
+  withr::local_envvar(SEATABLE_API_TOKEN = "from-the-environment")
+  cl <- hb_client(
+    server = "https://x.example.org", username = "u", password = "p",
+    workspace_id = 1, base_name = "B"
+  )
+  expect_null(cl$api_token)
+  expect_identical(cl$username, "u")
+  # Passing both explicitly is still a mistake.
+  expect_error(
+    hb_client(server = "https://x.example.org", api_token = "t",
+              username = "u", password = "p"),
+    class = "harbour_error_auth"
+  )
+})
+
+test_that("a finite timeout curl cannot take is refused", {
+  expect_error(
+    hb_client(server = "https://x.example.org", api_token = "t", timeout = 1e10),
+    class = "harbour_error_bad_argument"
+  )
+  expect_s3_class(
+    hb_client(server = "https://x.example.org", api_token = "t", timeout = 2147483),
+    "harbour_client"
+  )
+})
+
+test_that("base_uuid must be one string, and is escaped in the path", {
+  client <- function(uuid) {
+    hb_client(server = "https://x.example.org", api_token = "t", base_uuid = uuid)
+  }
+  for (bad in list(c("a", "b"), NA_character_, "", 1)) {
+    expect_error(client(bad), class = "harbour_error_bad_argument")
+  }
+  cl <- client("a/b?c")
+  expect_identical(
+    harbouR:::.hb_base_path(cl, "rows", ""),
+    "/api-gateway/api/v2/dtables/a%2Fb%3Fc/rows/"
+  )
+})

@@ -12,7 +12,10 @@ hb_ping(client, ...)
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-The \code{client}, invisibly. Errors if the server is unreachable.
+The \code{client}, invisibly. Errors with a \code{harbour_error_http}
+condition if the server cannot be reached, and with the class of the
+answer - \code{harbour_error_not_found} for a 404, say - if it answers
+with an error.
 }
 \description{
 Issues a lightweight, unauthenticated request against the server's ping

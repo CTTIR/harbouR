@@ -26,7 +26,11 @@ as well.}
 \item{\code{harbour_error_http}}{The server returned a non-2xx status that
 has no more specific subclass, or the request got no complete
 answer (status \code{NA}). Fields: \code{status}, \code{url} and \code{response_body} -
-the parsed JSON, or the text when the server did not send JSON. A
+the parsed JSON, or the text when the server did not send JSON. It
+is also raised for a redirect (a 3xx status), which harbouR reports
+rather than follows, and for a reply that is not JSON whatever its
+status, a 2xx included; \code{response_body} then holds the start of its
+text. A
 request that got no answer - a refused connection, a DNS or TLS
 failure, a timeout, a dropped connection - also carries httr2's
 classes \code{httr2_failure} and \code{httr2_error}, and has no

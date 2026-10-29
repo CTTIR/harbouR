@@ -56,6 +56,7 @@
 #' @noRd
 .hb_base_path <- function(client, ..., call = rlang::caller_env()) {
   segments <- c(...)
+  .hb_check_segments(segments, call = call)
   uuid <- .hb_base_uuid(client, call = call)
   encoded <- vapply(
     segments,
@@ -66,9 +67,33 @@
     USE.NAMES = FALSE
   )
   paste(
-    c("/api-gateway/api", .hb_api_version, "dtables", uuid, encoded),
+    c("/api-gateway/api", .hb_api_version, "dtables", .hb_url_escape(uuid),
+      encoded),
     collapse = "/"
   )
+}
+
+#' Refuse a path segment of one or two dots
+#'
+#' curl resolves such a segment away before sending, so the request would
+#' reach another endpoint: a view named `.` listed every view.
+#'
+#' @param segments Path segments, unescaped.
+#' @param call The frame to blame for the error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_segments <- function(segments, call = rlang::caller_env()) {
+  dots <- unique(segments[segments %in% c(".", "..")])
+  if (length(dots) > 0L) {
+    hb_abort(
+      c("{.val {dots}} cannot be sent as part of a URL.",
+        "x" = "A name or id of one or two dots reads as a folder there."),
+      class = "harbour_error_bad_argument",
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Percent-encode one path segment
