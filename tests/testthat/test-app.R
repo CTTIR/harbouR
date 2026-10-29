@@ -441,6 +441,7 @@ contrast <- function(a, b) {
 }
 
 test_that("the source badge and muted text are readable", {
+  skip_if_no_ui()
   # Dark green text on a translucent tint over the dark masthead measured
   # 1.2 to 2.5:1, and the grey 4.40:1; WCAG AA asks 4.5:1.
   css <- as.character(harbouR:::.hb_styles())
