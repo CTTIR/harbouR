@@ -139,10 +139,10 @@
     shiny::tags$p(
       class = "text-muted small",
       "SeaTable SQL. Needs a server connection; a local file has no
-       query engine."
+       query engine. UPDATE, INSERT and DELETE change the base."
     ),
     shiny::textAreaInput(
-      "sql", NULL, width = "100%", height = "110px",
+      "sql", "SQL query", width = "100%", height = "110px",
       placeholder = "select * from Samples limit 100"
     ),
     shiny::uiOutput("run_sql_ui"),

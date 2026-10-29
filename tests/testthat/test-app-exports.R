@@ -305,3 +305,45 @@ test_that("an upload limit the user set is left alone", {
   expect_identical(seen, 30 * 1024^2)
   expect_identical(getOption("shiny.maxRequestSize"), 30 * 1024^2)
 })
+
+test_that("a failure opening the example base is reported, not thrown", {
+  # It was the one action without error handling, so a full disk ended
+  # the session with a grey screen.
+  skip_if_no_ui()
+  seen <- local_notifications()
+  testthat::local_mocked_bindings(
+    hb_read_dtable = function(...) stop("No space left on device"),
+    .package = "harbouR"
+  )
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    session$setInputs(use_demo = 1)
+    expect_null(session$env$state$source)
+  })
+  expect_match(seen$text, "example base", all = FALSE)
+})
+
+test_that("the attachments the app unpacked go when they are done with", {
+  # Every opened base left its extracted attachments in the temporary
+  # folder until R quit, and uploads may be 1 GB.
+  skip_if_no_ui()
+  last <- NULL
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    session$setInputs(use_demo = 1)
+    first <- session$env$state$source$assets_dir
+    expect_true(dir.exists(first))
+    session$setInputs(use_demo = 2)
+    expect_false(dir.exists(first))
+    last <<- session$env$state$source$assets_dir
+    expect_true(dir.exists(last))
+  })
+  expect_false(dir.exists(last))
+})
+
+test_that("a preset's attachments are left where they were", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(example_path(), assets = "extract")
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    session$setInputs(use_demo = 1)
+  })
+  expect_true(dir.exists(base$assets_dir))
+})

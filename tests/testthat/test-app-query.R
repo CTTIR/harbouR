@@ -115,3 +115,57 @@ test_that("a failed query is reported as a failure, not as a missing LIMIT", {
   expect_identical(shown$notes[[1L]]$type, "error")
   expect_match(shown$notes[[1L]]$text, "no such table", fixed = TRUE)
 })
+
+test_that("a statement that returns no columns says so, with no LIMIT notice", {
+  # SeaTable answers an UPDATE with neither rows nor metadata: the panel
+  # showed reactable's own error, and a notice about a LIMIT it does not
+  # take.
+  skip_if_no_query_ui()
+  shown <- record_notifications()
+  cl <- mock_client()
+  reply <- list(
+    error_message = "", success = TRUE, metadata = NULL,
+    is_join_stmt = FALSE, results = NULL
+  )
+  with_mocked_request(
+    shiny::testServer(harbouR:::.hb_app_server(preset = cl), {
+      session$setInputs(sql = "UPDATE Samples SET Name = 'x' WHERE Name = 'y'")
+      session$setInputs(run_sql = 1)
+      panel <- as.character(htmltools::renderTags(output$query_panel$html)$html)
+      expect_match(panel, "returned no columns", fixed = TRUE)
+    }),
+    response = reply
+  )
+  expect_length(shown$notes, 0L)
+})
+
+test_that("connecting opens the server's base and enables queries", {
+  skip_if_no_query_ui()
+  testthat::local_mocked_bindings(
+    hb_metadata = function(client, ...) {
+      client$.metadata <- hb_example_metadata()
+      client$.metadata
+    },
+    .package = "harbouR"
+  )
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    session$setInputs(server = "https://seatable.example.org", token = "tok",
+                      connect = 1)
+    expect_true(is_harbour_client(session$env$state$source))
+    expect_identical(session$env$state$kind, "server")
+    expect_identical(session$env$state$table, "Samples")
+    html <- as.character(htmltools::renderTags(output$run_sql_ui$html)$html)
+    expect_no_match(html, "disabled", fixed = TRUE)
+  })
+})
+
+test_that("a failed connection is shown to the user", {
+  skip_if_no_query_ui()
+  shown <- record_notifications()
+  shiny::testServer(harbouR:::.hb_app_server(), {
+    session$setInputs(server = "https://example.org", token = "", connect = 1)
+    expect_null(session$env$state$source)
+  })
+  expect_length(shown$notes, 1L)
+  expect_match(shown$notes[[1L]]$text, "Could not connect", fixed = TRUE)
+})

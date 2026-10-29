@@ -22,7 +22,8 @@
     beacon = "#FDE725",
     paper = "#F7FAF9",
     ink = "#0B1E24",
-    mist = "#5B7A80"
+    # Darkened from #5B7A80, which read at 4.40:1 on the page.
+    mist = "#56747A"
   )
 }
 
@@ -191,11 +192,12 @@ body { background: var(--hb-paper); }
 .hb-source {
   display: inline-flex; align-items: center; gap: 0.35rem;
   font-size: 0.78rem; padding: 0.1rem 0.5rem; border-radius: 999px;
-  background: rgba(29, 158, 117, 0.14); color: var(--hb-deep);
+  background: #DDF2EA; color: var(--hb-deep);
   font-weight: 500;
 }
-.hb-source.hb-file { background: rgba(128, 203, 196, 0.28); }
-.hb-source.hb-demo { background: rgba(253, 231, 37, 0.35); }
+/* Opaque: a tint over the dark masthead left the dark text unreadable. */
+.hb-source.hb-file { background: #D7EFEC; }
+.hb-source.hb-demo { background: #FEF6B6; }
 
 :focus-visible { outline: 2px solid var(--hb-tide); outline-offset: 2px; }
 

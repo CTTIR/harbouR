@@ -11,7 +11,10 @@ hb_run_explorer(x = NULL, ..., host = "127.0.0.1", port = NULL)
 
 \item{...}{Passed to \code{\link[shiny:runApp]{shiny::runApp()}}.}
 
-\item{host}{Host to bind. Default \code{"127.0.0.1"}.}
+\item{host}{Host to bind. Default \code{"127.0.0.1"}, this computer only.
+The app has no login: bound to an address others can reach, it hands
+them a client passed to it - its token, and a SQL box that can change
+the base - and whatever file is open.}
 
 \item{port}{Port. Default \code{NULL}, letting Shiny choose.}
 }

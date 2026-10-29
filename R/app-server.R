@@ -14,7 +14,20 @@
       query = NULL
     )
 
-    open_source <- function(value, kind) {
+    # The asset folder the app itself unpacked for the open base. Removed
+    # when another base is opened and when the session ends; uploads may be
+    # 1 GB, and each stayed in the temporary folder until R quit. A
+    # preset's folder belongs to whoever passed it in, and stays.
+    scratch <- new.env(parent = emptyenv())
+    release_assets <- function() {
+      if (!is.null(scratch$assets)) unlink(scratch$assets, recursive = TRUE)
+      scratch$assets <- NULL
+    }
+    session$onSessionEnded(release_assets)
+
+    open_source <- function(value, kind, owned = FALSE) {
+      release_assets()
+      if (owned) scratch$assets <- value$assets_dir
       state$source <- value
       state$kind <- kind
       state$table <- .hb_first_table(value)
@@ -47,7 +60,7 @@
             invokeRestart("muffleWarning")
           }
         )
-        open_source(base, "file")
+        open_source(base, "file", owned = TRUE)
         # datapath is a temporary upload name; keep the real one for the
         # download filename.
         state$source$base_name <- tools::file_path_sans_ext(file$name)
@@ -55,8 +68,12 @@
     })
 
     shiny::observeEvent(input$use_demo, {
-      open_source(hb_read_dtable(.hb_example_dtable(), assets = "extract"),
-                  "demo")
+      .hb_try(session, "Could not open the example base", {
+        open_source(
+          hb_read_dtable(.hb_example_dtable(), assets = "extract"),
+          "demo", owned = TRUE
+        )
+      })
     })
 
     shiny::observeEvent(input$connect, {
@@ -258,7 +275,7 @@
             invokeRestart("muffleWarning")
           }
         )
-        if (.hb_sql_lacks_limit(sql)) {
+        if (.hb_sql_is_select(sql) && .hb_sql_lacks_limit(sql)) {
           shiny::showNotification(
             shiny::tags$div(
               shiny::tags$strong("No LIMIT clause"),
@@ -281,6 +298,13 @@
       }
       if (is.null(state$query)) {
         return(.hb_placeholder("Run a query to see results."))
+      }
+      # An UPDATE, INSERT or DELETE answers with no result to show.
+      if (ncol(state$query) == 0L) {
+        return(.hb_placeholder(
+          "The statement ran and returned no columns. A statement other
+           than SELECT changes the base."
+        ))
       }
       reactable::reactableOutput("query_table")
     })

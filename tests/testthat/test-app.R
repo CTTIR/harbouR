@@ -427,3 +427,39 @@ test_that("the citation lists every author from DESCRIPTION", {
   expect_true(grepl(utils::packageVersion("harbouR"), bib, fixed = TRUE))
   expect_true(grepl("github.com/CTTIR/harbouR", bib, fixed = TRUE))
 })
+
+# WCAG's contrast ratio between two "#RRGGBB" colours.
+contrast <- function(a, b) {
+  luminance <- function(hex) {
+    channel <- grDevices::col2rgb(hex)[, 1] / 255
+    linear <- ifelse(channel <= 0.03928, channel / 12.92,
+                     ((channel + 0.055) / 1.055)^2.4)
+    sum(c(0.2126, 0.7152, 0.0722) * linear)
+  }
+  l <- sort(c(luminance(a), luminance(b)), decreasing = TRUE)
+  (l[[1]] + 0.05) / (l[[2]] + 0.05)
+}
+
+test_that("the source badge and muted text are readable", {
+  # Dark green text on a translucent tint over the dark masthead measured
+  # 1.2 to 2.5:1, and the grey 4.40:1; WCAG AA asks 4.5:1.
+  css <- as.character(harbouR:::.hb_styles())
+  pal <- harbouR:::.hb_palette()
+  background <- function(selector) {
+    rule <- regmatches(css, regexpr(paste0(selector, " \\{[^}]*\\}"), css))
+    expect_length(rule, 1L)
+    sub(".*background: (#[0-9A-Fa-f]{6}).*", "\\1", rule)
+  }
+  for (selector in c("\\.hb-source", "\\.hb-source\\.hb-file",
+                     "\\.hb-source\\.hb-demo")) {
+    expect_gte(contrast(background(selector), pal[["deep"]]), 4.5)
+  }
+  expect_gte(contrast(pal[["mist"]], pal[["paper"]]), 4.5)
+  expect_gte(contrast(pal[["mist"]], "#FFFFFF"), 4.5)
+})
+
+test_that("the SQL box has an accessible name", {
+  skip_if_no_ui()
+  html <- as.character(harbouR:::.hb_query_ui())
+  expect_match(html, '<label[^>]*for="sql"[^>]*>[^<]*SQL query', perl = TRUE)
+})

@@ -24,7 +24,10 @@
 #'
 #' @param x Optional `harbour_client` or `harbour_dtable` to open with.
 #' @param ... Passed to [shiny::runApp()].
-#' @param host Host to bind. Default `"127.0.0.1"`.
+#' @param host Host to bind. Default `"127.0.0.1"`, this computer only.
+#'   The app has no login: bound to an address others can reach, it hands
+#'   them a client passed to it - its token, and a SQL box that can change
+#'   the base - and whatever file is open.
 #' @param port Port. Default `NULL`, letting Shiny choose.
 #'
 #' @return Invisible `NULL`; launches a Shiny application.
