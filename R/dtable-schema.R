@@ -153,6 +153,18 @@
 #' @keywords internal
 #' @noRd
 .hb_dtable_from_json <- function(bytes) {
+  # R cannot hold a NUL in a string: written as a byte it stops rawToChar(),
+  # and as \u0000 jsonlite silently empties the string around it.
+  nul <- bytes == as.raw(0L)
+  if (any(nul) || length(grepRaw("\\u0000", bytes, fixed = TRUE)) > 0L) {
+    cli::cli_warn(
+      c("This file's {.file content.json} holds a NUL character.",
+        "i" = "R cannot keep one in a string, so text around it may be
+               lost."),
+      class = "harbour_warning_json_text"
+    )
+    bytes <- bytes[!nul]
+  }
   text <- rawToChar(bytes)
   Encoding(text) <- "UTF-8"
   jsonlite::parse_json(text, simplifyVector = FALSE)

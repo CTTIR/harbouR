@@ -290,8 +290,15 @@ hb_read_table.harbour_dtable <- function(x, table, ..., view = NULL,
     rows <- rows[seq_len(n_max)]
   }
   # Cells in a file are keyed by the column's 4-character key, not by its
-  # display name as they are over the API.
-  out <- .hb_rows_to_tibble(rows, columns, by = "key")
+  # display name as they are over the API. A date-time is stored as the
+  # time its server showed, with no offset, so it is read in that server's
+  # zone when the user has named it.
+  naive_tz <- .hb_dtable_tz()
+  if (is.null(naive_tz)) {
+    .hb_warn_naive_times(columns, rows)
+    naive_tz <- "UTC"
+  }
+  out <- .hb_rows_to_tibble(rows, columns, by = "key", naive_tz = naive_tz)
   if (option_labels) {
     for (i in seq_along(columns)) {
       type <- columns[[i]]$type %||% "text"
@@ -303,6 +310,74 @@ hb_read_table.harbour_dtable <- function(x, table, ..., view = NULL,
   }
   .hb_warn_large_numbers(out, table)
   out
+}
+
+#' The time zone a .dtable's date-times are the local time of
+#'
+#' @param call The frame to blame for the error.
+#' @return The zone set with `options(harbouR.dtable_tz = )`, or `NULL`
+#'   when none is.
+#' @keywords internal
+#' @noRd
+.hb_dtable_tz <- function(call = rlang::caller_env()) {
+  tz <- getOption("harbouR.dtable_tz")
+  if (is.null(tz)) {
+    return(NULL)
+  }
+  ok <- is.character(tz) && length(tz) == 1L && !is.na(tz) &&
+    tz %in% OlsonNames()
+  if (!ok) {
+    hb_abort(
+      c("{.code options(harbouR.dtable_tz)} must name a time zone R knows.",
+        "x" = "It is {.val {tz}}.",
+        "i" = "See {.fn OlsonNames}, for example {.val Europe/Berlin}."),
+      class = "harbour_error_bad_argument",
+      call = call
+    )
+  }
+  tz
+}
+
+#' Warn, once a session, that a file's date-times are read as UTC
+#'
+#' A SeaTable server stores a date-time as the time it shows, with no
+#' offset, and so does its export. Without the server's zone such a value
+#' can only be read as UTC, off by the server's offset; date-only cells and
+#' values with an offset are not affected.
+#'
+#' @param columns The table's columns.
+#' @param rows The table's rows.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_warn_naive_times <- function(columns, rows, call = rlang::caller_env()) {
+  naive <- FALSE
+  for (column in columns) {
+    if (!identical(column$type, "date") ||
+          .hb_date_only_format(.hb_column_format(column))) {
+      next
+    }
+    values <- unlist(lapply(rows, function(row) row[[column$key]]),
+                     use.names = FALSE)
+    values <- as.character(values[!is.na(values)])
+    if (any(nzchar(values) & !grepl(.hb_offset_timestamp, values))) {
+      naive <- TRUE
+      break
+    }
+  }
+  if (naive) {
+    cli::cli_warn(
+      c("This file's date-times carry no time zone, so they are read as UTC.",
+        "i" = "A SeaTable server stores the time it shows, in its own zone.
+               Name that zone with, for example,
+               {.code options(harbouR.dtable_tz = \"Europe/Berlin\")}."),
+      class = "harbour_warning_dtable_tz",
+      .frequency = "once",
+      .frequency_id = "harbour_dtable_tz",
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Restrict rows to those a view shows

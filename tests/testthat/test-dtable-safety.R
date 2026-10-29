@@ -698,3 +698,98 @@ test_that("links in the asset tree are left out of the archive", {
     c("content.json", "asset/", "asset/files/", "asset/files/ok.txt")
   )
 })
+
+# --- findings of the 2026-10-29 audit ----------------------------------------
+
+test_that("an assets_dir that already holds an asset tree is refused", {
+  # Reused, the folder kept another base's attachments, and the next
+  # hb_write_dtable() packed them into this base's export.
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "asset", "files"), recursive = TRUE)
+  writeLines("another base", file.path(dir, "asset", "files", "old.txt"))
+  expect_error(
+    hb_read_dtable(fixture(), assets = "extract", assets_dir = dir),
+    class = "harbour_error_bad_argument"
+  )
+  expect_identical(list.files(file.path(dir, "asset", "files")), "old.txt")
+  # An empty folder is what the argument is for.
+  fresh <- withr::local_tempdir()
+  expect_s3_class(
+    hb_read_dtable(fixture(), assets = "extract", assets_dir = fresh),
+    "harbour_dtable"
+  )
+})
+
+test_that("a .dtable larger than the size limit is refused before reading", {
+  # A few MB of compressed text expanded to GBs in memory, or on disk.
+  path <- dtable_with(c("asset/files/big.txt" = strrep("x", 5000)))
+  withr::local_options(harbouR.max_dtable_bytes = 2000)
+  expect_s3_class(hb_read_dtable(path), "harbour_dtable")
+  expect_error(
+    hb_read_dtable(path, assets = "extract"),
+    class = "harbour_error_bad_argument"
+  )
+  withr::local_options(harbouR.max_dtable_bytes = 10)
+  expect_error(hb_read_dtable(path), class = "harbour_error_bad_argument")
+})
+
+test_that("asset names that are not ASCII extract in a C locale", {
+  # zip::unzip(files = ) could not find such an entry in a C locale - a
+  # cron job, a container - and failed with an unclassed error.
+  path <- dtable_with(c("asset/files/my report ü.pdf" = "pdf"))
+  out <- withr::with_locale(
+    c(LC_CTYPE = "C"),
+    hb_read_dtable(path, assets = "extract")
+  )
+  expect_true(file.exists(
+    file.path(out$assets_dir, "asset", "files", "my report ü.pdf")
+  ))
+})
+
+test_that("an attachment URL with escaped characters resolves to its file", {
+  # SeaTable's export keeps a cell's URL escaped, while the archive holds
+  # the file under its real name.
+  name <- "Bericht ä 1 (2).txt"
+  path <- dtable_with(stats::setNames("x", paste0("asset/files/2026-10/", name)))
+  base <- hb_read_dtable(path, assets = "extract")
+  url <- paste0(
+    "file://dtable-bundle/asset/files/2026-10/",
+    "Bericht%20%C3%A4%201%20%282%29.txt"
+  )
+  expect_identical(
+    normalizePath(hb_asset_path(base, url)),
+    normalizePath(file.path(base$assets_dir, "asset", "files", "2026-10", name))
+  )
+  # An escaped climb out is refused once it is decoded.
+  expect_identical(
+    hb_asset_path(base, "file://dtable-bundle/asset/%2e%2e/%2e%2e/x"),
+    NA_character_
+  )
+})
+
+test_that("a NUL character in content.json is reported", {
+  # R strings cannot hold it, so the text around it would vanish unseen.
+  content <- sub(
+    '"tables":[]', '"tables":[],"note":"a\\u0000b"', minimal_content,
+    fixed = TRUE
+  )
+  path <- dtable_with(content = content)
+  expect_warning(hb_read_dtable(path), class = "harbour_warning_json_text")
+})
+
+test_that("an archive replacing a private file is never readable by others", {
+  skip_on_os("windows")
+  path <- withr::local_tempfile(fileext = ".dtable")
+  hb_write_dtable(hb_dtable(T = data.frame(x = 1)), path)
+  Sys.chmod(path, "600", use_umask = FALSE)
+  seen <- NULL
+  testthat::local_mocked_bindings(
+    zip = function(zipfile, ...) {
+      seen <<- format(file.mode(zipfile))
+      stop("stopped here")
+    },
+    .package = "zip"
+  )
+  expect_error(hb_write_dtable(hb_dtable(T = data.frame(x = 2)), path))
+  expect_identical(seen, "600")
+})

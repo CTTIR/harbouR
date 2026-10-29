@@ -4,12 +4,13 @@
 #' spreadsheet cell holds a single value, so several SeaTable column types
 #' have no faithful representation.
 #'
-#' Each sheet is named after its table. `writexl` may adjust a name to fit
-#' Excel's rules for sheet names: at most 31 characters, and none of
-#' `/`, `\`, `?`, `*`, `:` or a square bracket. Excel compares sheet names
-#' ignoring case, so table names that differ only in the case of the
-#' letters A to Z, such as `Samples` and `samples`, are rejected before
-#' anything is written.
+#' Each sheet is named after its table, made to fit Excel's rules for
+#' sheet names: cut to 31 characters, with each of `/`, `\`, `?`, `*`,
+#' `:` or a square bracket replaced by `_`. Excel compares sheet names
+#' ignoring case, so table names that would give sheet names differing
+#' only in the case of the letters A to Z, such as `Samples` and
+#' `samples`, are rejected before anything is written. So is text longer
+#' than the 32,767 characters a workbook cell holds.
 #'
 #' @section What is lost:
 #'
@@ -58,26 +59,29 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
   rlang::check_installed("writexl", reason = "to write .xlsx files")
   .check_string(path)
   sheets <- .hb_flatten_tables(x, tables)
+  .hb_check_cell_length(sheets)
   # Excel compares sheet names ignoring case, and libxlsxwriter rejects
-  # such a clash with an error that names neither table. Only A to Z are
-  # folded: writexl writes names that differ in the case of other letters,
-  # and renames exact repeats itself.
+  # such a clash with an error that names neither table. The names are
+  # compared as they will be written, and only A to Z are folded: writexl
+  # writes names that differ in the case of other letters.
   distinct <- unique(names(sheets))
+  sheet <- .hb_sheet_names(distinct)
   folded <- chartr(
-    paste(LETTERS, collapse = ""), paste(letters, collapse = ""), distinct
+    paste(LETTERS, collapse = ""), paste(letters, collapse = ""), sheet
   )
   if (anyDuplicated(folded)) {
     clashing <- folded %in% folded[duplicated(folded)]
     # The names that would share a sheet are listed next to each other.
     clash <- distinct[clashing][order(match(folded[clashing], folded))]
     hb_abort(
-      c("Table names that differ only in case cannot all be sheet names.",
-        "x" = "Excel ignores case in sheet names, so these clash:
-               {.val {clash}}.",
+      c("These table names give the same sheet name: {.val {clash}}.",
+        "x" = "Excel shortens sheet names to 31 characters, replaces
+               {.code [ ] : * ? / \\} and ignores case.",
         "i" = "Export them to separate workbooks with {.arg tables}."),
       class = "harbour_error_bad_argument"
     )
   }
+  names(sheets) <- sheet[match(names(sheets), distinct)]
   # writexl shortens a long name and replaces the characters Excel does not
   # allow, which can make two names clash that the check above passed;
   # libxlsxwriter then fails with an error that names neither table.
@@ -104,8 +108,11 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
 #' Export a base to CSV files
 #'
 #' Writes one `.csv` per table into `dir`. Subject to the same losses as
-#' [hb_write_xlsx()]; see its documentation. Table names that produce the
-#' same filename (ignoring case) are rejected before any files are written.
+#' [hb_write_xlsx()]; see its documentation. Each file is named after its
+#' table, with the characters a file name cannot hold on some system -
+#' `/ \ : * ? " < > |` and control characters - replaced by `_`. Table
+#' names that produce the same filename (ignoring case) are rejected
+#' before any files are written.
 #'
 #' @param x A `harbour_dtable`, or a `harbour_client` to read from first.
 #' @param dir Destination directory. Created if it does not exist.
@@ -161,9 +168,10 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #' * A value written `NA` is read as missing.
 #' * Dates and date-times arrive as text.
 #'
-#' Two exceptions avoid losing data. A column holding an integer with a
-#' leading zero, such as `"0001"`, or an integer of more than 15 digits
-#' stays text, rather than losing the zeros or having its digits rounded,
+#' Some exceptions avoid losing data. A column holding an integer with a
+#' leading zero, such as `"0001"`, a value with a leading plus, such as
+#' the telephone number `"+4917612345678"`, or an integer of more than 15
+#' digits stays text, rather than losing the zeros, the plus or digits,
 #' and so does one holding a code such as `"12E"`, which
 #' [utils::read.csv()] reads as `12` in R before 4.4.1. A column with no
 #' values at all is text, not a checkbox column that would read `FALSE`
@@ -222,7 +230,8 @@ hb_read_csv <- function(files, ..., base_name = "harbouR base") {
 #' base rather than restoring one.
 #'
 #' A column's type follows its cells, judged over every row of the sheet.
-#' A column with no values at all is text. A column named `_id`, such as
+#' A column with no values at all is text. The spaces around a text value
+#' are kept. A column named `_id`, such as
 #' the one [hb_write_xlsx()] writes, is dropped, with a warning when it
 #' holds anything but SeaTable row ids.
 #'
@@ -266,7 +275,11 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
     # value that does not fit the guess is lost. 1048576 is Excel's row
     # limit, so the guess sees the whole sheet.
     as.data.frame(
-      readxl::read_excel(path, sheet = sheet, guess_max = 1048576L)
+      # trim_ws = FALSE: readxl strips the spaces around text by default,
+      # which changed a value without saying so.
+      readxl::read_excel(
+        path, sheet = sheet, guess_max = 1048576L, trim_ws = FALSE
+      )
     )
   })
   names(frames) <- wanted
@@ -421,6 +434,10 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
            "[eE][-+]?)\\s*$"),
     values, perl = TRUE
   )
+  # A leading plus, as a telephone number has, is lost as well: +49 17...
+  # would read as 4917... Hex codes, exponents and Inf are typed as
+  # read.csv() types them, which scripts may rely on.
+  lossy <- lossy | grepl("(*UCP)^\\s*\\+[0-9.]", values, perl = TRUE)
   if (any(lossy)) {
     return(values)
   }
@@ -504,27 +521,7 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
                             call = rlang::caller_env()) {
   tables <- names(frames)
   frames <- lapply(seq_along(frames), function(k) {
-    frame <- frames[[k]]
-    # The exporters write the _id that hb_read_table() adds. Kept as an
-    # ordinary column it collides with the row identifier, and no table of
-    # the new base could be read. The other row fields collide with nothing
-    # offline and have always imported, so they stay. Columns go one at a
-    # time, because subsetting with `[` would rename repeated names.
-    for (i in rev(which(names(frame) == "_id"))) {
-      # An export's _id holds row ids; any other is data of the user's
-      # own, such as a database's keys, and its loss is reported.
-      if (!.hb_holds_row_ids(frame[[i]])) {
-        table <- tables[[k]]
-        cli::cli_warn(
-          c("Dropped the {.field _id} column of table {.val {table}}.",
-            "i" = "SeaTable keeps {.field _id} for its row identifier.
-                   Rename the column in the file to keep its values."),
-          class = "harbour_warning_id_column",
-          call = call
-        )
-      }
-      frame[[i]] <- NULL
-    }
+    frame <- .hb_drop_id_columns(frames[[k]], tables[[k]], call = call)
     # A column with no values gives read.csv() and readxl nothing to judge
     # by, and both call it logical. As a checkbox it would read back FALSE
     # in every row.
@@ -545,6 +542,39 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' @return A single `TRUE` or `FALSE`; `TRUE` for a column with no values.
 #' @keywords internal
 #' @noRd
+#' Drop the columns named _id from a table's data
+#'
+#' The exporters, and [hb_read_table()], give the row identifier as a
+#' column named `_id`. Kept as an ordinary column it collides with the row
+#' identifier, and no table of the new base could be read. The other row
+#' fields collide with nothing offline and have always imported, so they
+#' stay. Columns go one at a time, because subsetting with `[` would
+#' rename repeated names.
+#'
+#' @param frame A data frame.
+#' @param table The table's name, for the warning.
+#' @param call The frame to report the warning from.
+#' @return `frame` without its `_id` columns.
+#' @keywords internal
+#' @noRd
+.hb_drop_id_columns <- function(frame, table, call = rlang::caller_env()) {
+  for (i in rev(which(names(frame) == "_id"))) {
+    # An export's _id holds row ids; any other is data of the user's own,
+    # such as a database's keys, and its loss is reported.
+    if (!.hb_holds_row_ids(frame[[i]])) {
+      cli::cli_warn(
+        c("Dropped the {.field _id} column of table {.val {table}}.",
+          "i" = "SeaTable keeps {.field _id} for its row identifier.
+                 Rename the column to keep its values."),
+        class = "harbour_warning_id_column",
+        call = call
+      )
+    }
+    frame[[i]] <- NULL
+  }
+  frame
+}
+
 .hb_holds_row_ids <- function(x) {
   values <- as.character(x)
   values <- values[!is.na(values) & nzchar(values)]
@@ -644,18 +674,24 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
       # A file or image cell is a list of objects; its name is the useful
       # part. Anything else is already a vector of scalars.
       if (is.list(cell)) {
+        # Each part may be missing or hold several values: a geolocation
+        # without a latitude, or a link whose display value is an array.
         parts <- vapply(
           cell,
           function(item) {
             if (is.list(item)) {
-              as.character(item$name %||% item$display_value %||%
-                             item$url %||% "<object>")
-            } else {
-              as.character(item)
+              item <- item[["name"]] %||% item[["display_value"]] %||%
+                item[["url"]] %||% "<object>"
             }
+            paste(as.character(unlist(item, use.names = FALSE)),
+                  collapse = ", ")
           },
           character(1)
         )
+        parts <- parts[nzchar(parts)]
+        if (length(parts) == 0L) {
+          return(NA_character_)
+        }
         return(paste(parts, collapse = ", "))
       }
       paste(as.character(cell), collapse = ", ")
@@ -664,12 +700,69 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
   )
 }
 
+#' Refuse text longer than a workbook cell holds
+#'
+#' Excel keeps at most 32,767 characters in a cell, and libxlsxwriter
+#' fails on more with an error that names no cell. SeaTable allows long
+#' text of 100,000.
+#'
+#' @param sheets A named list of flattened data frames.
+#' @param call The frame to blame for the error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_cell_length <- function(sheets, call = rlang::caller_env()) {
+  long <- character()
+  for (table in names(sheets)) {
+    for (column in names(sheets[[table]])) {
+      values <- sheets[[table]][[column]]
+      if (is.character(values) &&
+            any(nchar(values, type = "chars", allowNA = TRUE) > 32767L,
+                na.rm = TRUE)) {
+        long <- c(long, paste0(table, "$", column))
+      }
+    }
+  }
+  if (length(long) > 0L) {
+    hb_abort(
+      c("Some cells hold more text than a workbook cell can: {.field {long}}.",
+        "x" = "Excel keeps at most 32,767 characters in a cell.",
+        "i" = "Write those tables with {.fn hb_write_csv} or
+               {.fn hb_write_dtable} instead."),
+      class = "harbour_error_bad_argument",
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Make a table name safe to use as a file name
 #'
+#' Only what a file name cannot hold on some system is replaced: path
+#' separators, the characters Windows reserves, and control characters.
+#' Letters outside A to Z are kept, so that two tables named in Chinese do
+#' not both become `_.csv`, and a table keeps its name when re-imported.
+#'
 #' @param x A table name.
-#' @return A single string with path separators replaced.
+#' @return A single string.
 #' @keywords internal
 #' @noRd
 .hb_safe_filename <- function(x) {
-  gsub("[^A-Za-z0-9._-]+", "_", x)
+  out <- gsub("[/\\\\:*?\"<>|[:cntrl:]]+", "_", x)
+  out[out %in% c("", ".", "..")] <- "_"
+  out
+}
+
+#' Make table names legal sheet names
+#'
+#' Excel allows at most 31 characters and none of `[ ] : * ? / \\`.
+#' writexl before 2.0.0 refused such a name with an error that named no
+#' table, so harbouR replaces them itself.
+#'
+#' @param x Table names.
+#' @return A character vector as long as `x`.
+#' @keywords internal
+#' @noRd
+.hb_sheet_names <- function(x) {
+  substr(gsub("[]:*?/\\\\[]", "_", x), 1L, 31L)
 }

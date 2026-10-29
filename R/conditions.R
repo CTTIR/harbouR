@@ -75,7 +75,17 @@
 #'     read as `TRUE` or `FALSE` as `null`. Field: `columns`.}
 #'   \item{`harbour_warning_asset_link`}{[hb_write_dtable()] left symbolic
 #'     links in the asset tree out of the archive.}
-#'   \item{`harbour_warning_id_column`}{[hb_read_csv()] or [hb_read_xlsx()]
+#'   \item{`harbour_warning_dtable_tz`}{[hb_read_table()] read date-times
+#'     from a `.dtable` that carry no time zone, as a server's export
+#'     stores them, as UTC, because `options(harbouR.dtable_tz)` names
+#'     none. Given once a session.}
+#'   \item{`harbour_warning_json_keys`}{[hb_write_dtable()] met object
+#'     keys that JSON cannot keep - empty, or repeated - so those values
+#'     change on the way to disk.}
+#'   \item{`harbour_warning_json_text`}{[hb_read_dtable()] met a NUL
+#'     character in `content.json`, which R cannot keep in a string.}
+#'   \item{`harbour_warning_id_column`}{[hb_dtable()], [hb_read_csv()] or
+#'     [hb_read_xlsx()]
 #'     dropped a column named `_id` that held values other than SeaTable
 #'     row ids.}
 #' }

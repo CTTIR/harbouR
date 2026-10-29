@@ -567,3 +567,111 @@ test_that("a select cell whose option is gone reads as NA, as on the server", {
     list("alpha", character())
   )
 })
+
+test_that("hb_dtable() drops the _id that hb_read_table() adds", {
+  # Kept as data, it became a column named _id: SeaTable imported it and
+  # no table of the base could then be read.
+  read <- hb_read_table(hb_read_dtable(fixture()), "Samples")
+  base <- hb_dtable(Samples = read)
+  expect_false("_id" %in% hb_list_columns(base, "Samples")$name)
+  expect_identical(nrow(hb_read_table(base, "Samples")), nrow(read))
+  # An _id holding something else is dropped, and said so.
+  expect_warning(
+    other <- hb_dtable(T = data.frame(x = 1:2, `_id` = c("k1", "k2"),
+                                      check.names = FALSE)),
+    class = "harbour_warning_id_column"
+  )
+  expect_false("_id" %in% hb_list_columns(other, "T")$name)
+})
+
+test_that("validation reports what SeaTable's importer trips on", {
+  problems <- function(edit) {
+    base <- hb_dtable(T = data.frame(x = 1, y = 2))
+    base$content$tables[[1]] <- edit(base$content$tables[[1]])
+    v <- hb_validate_dtable(base)
+    v$problem[v$severity == "error"]
+  }
+  expect_match(problems(function(t) { t$columns[[1]]$name <- "_id"; t }),
+               "_id", all = FALSE)
+  expect_match(problems(function(t) { t$columns[[1]]$key <- NULL; t }),
+               "key", all = FALSE)
+  expect_match(problems(function(t) { t$columns[[2]]$type <- NULL; t }),
+               "type", all = FALSE)
+  expect_match(problems(function(t) { t$columns[[1]]$name <- ""; t }),
+               "name", all = FALSE)
+  expect_match(problems(function(t) { t[["_id"]] <- NULL; t }),
+               "_id", all = FALSE)
+  expect_match(problems(function(t) { t$rows[[1]][["_id"]] <- NULL; t }),
+               "row", all = FALSE)
+  expect_length(problems(identity), 0L)
+})
+
+test_that("a Date column is a date column, and a date-time names its zone", {
+  # Every Date became a date-time column, and a date-time was written with
+  # no offset, which the server reads in whatever zone it runs in.
+  base <- hb_dtable(T = data.frame(
+    d = as.Date("2026-01-01"),
+    t = as.POSIXct("2026-01-01 10:00:30", tz = "UTC")
+  ))
+  cols <- base$content$tables[[1]]$columns
+  expect_identical(cols[[1]]$data$format, "YYYY-MM-DD")
+  expect_identical(cols[[2]]$data$format, "YYYY-MM-DD HH:mm")
+  row <- base$content$tables[[1]]$rows[[1]]
+  expect_identical(row[[cols[[1]]$key]], "2026-01-01")
+  expect_identical(row[[cols[[2]]$key]], "2026-01-01T10:00:30+00:00")
+  back <- hb_read_table(base, "T")
+  expect_identical(as.Date(back$d), as.Date("2026-01-01"))
+  expect_identical(
+    as.numeric(back$t),
+    as.numeric(as.POSIXct("2026-01-01 10:00:30", tz = "UTC"))
+  )
+})
+
+naive_time_base <- function(value = "2030-07-05 01:45") {
+  # Not midnight UTC, which would make it a date column.
+  base <- hb_dtable(T = data.frame(t = as.POSIXct("2030-01-01 10:00", tz = "UTC")))
+  key <- base$content$tables[[1]]$columns[[1]]$key
+  base$content$tables[[1]]$rows[[1]][[key]] <- value
+  base
+}
+
+test_that("a date-time with no zone is read in harbouR.dtable_tz", {
+  # A server's export stores the time shown in the server's zone, with no
+  # offset; read as UTC it was off by the server's offset.
+  withr::local_options(harbouR.dtable_tz = "Europe/Berlin")
+  out <- hb_read_table(naive_time_base(), "T")
+  expect_identical(format(out$t, tz = "UTC"), "2030-07-04 23:45:00")
+  expect_identical(attr(out$t, "tzone"), "UTC")
+})
+
+test_that("without harbouR.dtable_tz such date-times read as UTC, with a warning", {
+  withr::local_options(
+    harbouR.dtable_tz = NULL, rlib_warning_verbosity = "verbose"
+  )
+  expect_warning(
+    out <- hb_read_table(naive_time_base(), "T"),
+    class = "harbour_warning_dtable_tz"
+  )
+  expect_identical(format(out$t, tz = "UTC"), "2030-07-05 01:45:00")
+  # A cell with an offset, or a date-only column, needs no zone.
+  expect_no_warning(hb_read_table(naive_time_base("2030-07-05T01:45:00+00:00"), "T"))
+  expect_no_warning(hb_read_table(hb_read_dtable(fixture()), "Samples"))
+})
+
+test_that("a time zone R does not know is refused", {
+  withr::local_options(harbouR.dtable_tz = "Mars/Olympus")
+  expect_error(
+    hb_read_table(naive_time_base(), "T"),
+    class = "harbour_error_bad_argument"
+  )
+})
+
+test_that("object keys JSON cannot keep are reported when writing", {
+  # An empty key was written as "1", and a repeated one renamed.
+  path <- withr::local_tempfile(fileext = ".dtable")
+  base <- hb_dtable(T = data.frame(x = 1))
+  base$content$extra <- stats::setNames(list(1, 2), c("a", "a"))
+  expect_warning(hb_write_dtable(base, path), class = "harbour_warning_json_keys")
+  base$content$extra <- stats::setNames(list(1), "")
+  expect_warning(hb_write_dtable(base, path), class = "harbour_warning_json_keys")
+})

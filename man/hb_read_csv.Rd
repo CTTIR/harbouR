@@ -34,9 +34,10 @@ value does not change that:
 \item Dates and date-times arrive as text.
 }
 
-Two exceptions avoid losing data. A column holding an integer with a
-leading zero, such as \code{"0001"}, or an integer of more than 15 digits
-stays text, rather than losing the zeros or having its digits rounded,
+Some exceptions avoid losing data. A column holding an integer with a
+leading zero, such as \code{"0001"}, a value with a leading plus, such as
+the telephone number \code{"+4917612345678"}, or an integer of more than 15
+digits stays text, rather than losing the zeros, the plus or digits,
 and so does one holding a code such as \code{"12E"}, which
 \code{\link[utils:read.csv]{utils::read.csv()}} reads as \code{12} in R before 4.4.1. A column with no
 values at all is text, not a checkbox column that would read \code{FALSE}

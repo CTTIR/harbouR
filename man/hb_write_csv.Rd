@@ -20,8 +20,11 @@ A character vector of the files written, invisibly.
 }
 \description{
 Writes one \code{.csv} per table into \code{dir}. Subject to the same losses as
-\code{\link[=hb_write_xlsx]{hb_write_xlsx()}}; see its documentation. Table names that produce the
-same filename (ignoring case) are rejected before any files are written.
+\code{\link[=hb_write_xlsx]{hb_write_xlsx()}}; see its documentation. Each file is named after its
+table, with the characters a file name cannot hold on some system -
+\verb{/ \\ : * ? " < > |} and control characters - replaced by \verb{_}. Table
+names that produce the same filename (ignoring case) are rejected
+before any files are written.
 }
 \examples{
 base <- hb_read_dtable(

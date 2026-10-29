@@ -1316,7 +1316,7 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["column: data", "class: list", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]"]
+          "value": ["column: data", "class: list", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD\"}}", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "{\"format\":{\"character\":\"YYYY-MM-DD HH:mm\"}}", "[]", "[]"]
         },
         {
           "type": "character",
@@ -1366,7 +1366,7 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: Collected", "{\"character\":\"2026-04-01T00:00:00\"}", "{\"character\":\"2026-04-03T00:00:00\"}"]
+          "value": ["stored: Collected", "{\"character\":\"2026-04-01\"}", "{\"character\":\"2026-04-03\"}"]
         },
         {
           "type": "character",
@@ -1436,12 +1436,12 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: Created", "{\"character\":\"2026-07-27T12:00:00\"}", null]
+          "value": ["stored: Created", "{\"character\":\"2026-07-27T12:00:00+00:00\"}", null]
         },
         {
           "type": "character",
           "attributes": {},
-          "value": ["stored: Changed", "{\"character\":\"2026-07-27T12:00:00\"}", null]
+          "value": ["stored: Changed", "{\"character\":\"2026-07-27T12:00:00+00:00\"}", null]
         },
         {
           "type": "character",

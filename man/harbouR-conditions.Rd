@@ -82,7 +82,17 @@ hold, as \code{null}. Field: \code{columns}.}
 read as \code{TRUE} or \code{FALSE} as \code{null}. Field: \code{columns}.}
 \item{\code{harbour_warning_asset_link}}{\code{\link[=hb_write_dtable]{hb_write_dtable()}} left symbolic
 links in the asset tree out of the archive.}
-\item{\code{harbour_warning_id_column}}{\code{\link[=hb_read_csv]{hb_read_csv()}} or \code{\link[=hb_read_xlsx]{hb_read_xlsx()}}
+\item{\code{harbour_warning_dtable_tz}}{\code{\link[=hb_read_table]{hb_read_table()}} read date-times
+from a \code{.dtable} that carry no time zone, as a server's export
+stores them, as UTC, because \code{options(harbouR.dtable_tz)} names
+none. Given once a session.}
+\item{\code{harbour_warning_json_keys}}{\code{\link[=hb_write_dtable]{hb_write_dtable()}} met object
+keys that JSON cannot keep - empty, or repeated - so those values
+change on the way to disk.}
+\item{\code{harbour_warning_json_text}}{\code{\link[=hb_read_dtable]{hb_read_dtable()}} met a NUL
+character in \code{content.json}, which R cannot keep in a string.}
+\item{\code{harbour_warning_id_column}}{\code{\link[=hb_dtable]{hb_dtable()}}, \code{\link[=hb_read_csv]{hb_read_csv()}} or
+\code{\link[=hb_read_xlsx]{hb_read_xlsx()}}
 dropped a column named \verb{_id} that held values other than SeaTable
 row ids.}
 }

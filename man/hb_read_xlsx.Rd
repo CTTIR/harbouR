@@ -25,7 +25,8 @@ base rather than restoring one.
 }
 \details{
 A column's type follows its cells, judged over every row of the sheet.
-A column with no values at all is text. A column named \verb{_id}, such as
+A column with no values at all is text. The spaces around a text value
+are kept. A column named \verb{_id}, such as
 the one \code{\link[=hb_write_xlsx]{hb_write_xlsx()}} writes, is dropped, with a warning when it
 holds anything but SeaTable row ids.
 }

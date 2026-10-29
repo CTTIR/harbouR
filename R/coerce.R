@@ -274,10 +274,14 @@ hb_column_types <- function() {
 #'   The API sends such a cell as local midnight with the server's UTC
 #'   offset; converting that instant to UTC put it on the previous day
 #'   on any server east of UTC. The written date is kept instead.
+#' @param naive_tz The zone a date-time without an offset is the local
+#'   time of. A server's `.dtable` export stores the time the server shows,
+#'   in the server's zone; the result is still given in `tz`.
 #' @return A length-1 `POSIXct`, possibly `NA`.
 #' @keywords internal
 #' @noRd
-.hb_parse_date_value <- function(x, tz = "UTC", date_only = FALSE) {
+.hb_parse_date_value <- function(x, tz = "UTC", date_only = FALSE,
+                                 naive_tz = tz) {
   if (is.null(x) || length(x) == 0L) {
     return(.POSIXct(NA_real_, tz = tz))
   }
@@ -303,17 +307,23 @@ hb_column_types <- function() {
     parsed <- if (is.na(day)) .POSIXct(NA_real_, tz = tz) else as.POSIXct(day)
     return(as.POSIXct(parsed))
   }
+  # A value with an offset says which instant it is; one without is the
+  # local time of naive_tz. A date-only column's dates are always midnight
+  # UTC, the way harbouR reads them everywhere.
+  zone <- if (date_only || grepl(.hb_offset_timestamp, s)) tz else naive_tz
   # ymd_hms handles the T separator, fractional seconds and offsets; the
   # fallbacks cover date-time without seconds and date-only columns.
-  parsed <- suppressWarnings(lubridate::ymd_hms(s, tz = tz, quiet = TRUE))
+  parsed <- suppressWarnings(lubridate::ymd_hms(s, tz = zone, quiet = TRUE))
   if (is.na(parsed)) {
-    parsed <- suppressWarnings(lubridate::ymd_hm(s, tz = tz, quiet = TRUE))
+    parsed <- suppressWarnings(lubridate::ymd_hm(s, tz = zone, quiet = TRUE))
   }
   if (is.na(parsed)) {
-    day <- suppressWarnings(lubridate::ymd(s, tz = tz, quiet = TRUE))
-    parsed <- if (is.na(day)) .POSIXct(NA_real_, tz = tz) else as.POSIXct(day)
+    day <- suppressWarnings(lubridate::ymd(s, tz = zone, quiet = TRUE))
+    parsed <- if (is.na(day)) .POSIXct(NA_real_, tz = zone) else as.POSIXct(day)
   }
-  as.POSIXct(parsed)
+  parsed <- as.POSIXct(parsed)
+  attr(parsed, "tzone") <- tz
+  parsed
 }
 
 #' Coerce one SeaTable cell to its R representation
@@ -323,11 +333,14 @@ hb_column_types <- function() {
 #' @param tz Time zone for date parsing.
 #' @param date_only For a `date` column, whether its format has no time
 #'   part; see `.hb_parse_date_value()`.
+#' @param naive_tz The zone of a date-time without an offset; see
+#'   `.hb_parse_date_value()`.
 #' @return A length-1 vector, or a list for list-typed columns. Empty and
 #'   populated cells of the same column always agree in type.
 #' @keywords internal
 #' @noRd
-.hb_coerce_cell <- function(value, type, tz = "UTC", date_only = FALSE) {
+.hb_coerce_cell <- function(value, type, tz = "UTC", date_only = FALSE,
+                            naive_tz = tz) {
   type <- type %||% "text"
   # An absent cell yields the column's prototype, so the empty and
   # populated branches cannot disagree about the resulting type.
@@ -356,7 +369,8 @@ hb_column_types <- function() {
     # Creation and modification times are instants, whatever their format.
     return(.hb_parse_date_value(
       value,
-      tz = tz, date_only = date_only && identical(type, "date")
+      tz = tz, date_only = date_only && identical(type, "date"),
+      naive_tz = naive_tz
     ))
   }
   # long-text arrives either as a plain string or as an object carrying
@@ -454,7 +468,7 @@ hb_column_types <- function() {
 #' @keywords internal
 #' @noRd
 .hb_rows_to_tibble <- function(rows, columns, by = c("name", "key"),
-                               tz = "UTC") {
+                               tz = "UTC", naive_tz = tz) {
   by <- rlang::arg_match(by)
   if (length(columns) == 0L) {
     # Documented to always carry _id, so a column-less table is 0 x 1,
@@ -482,7 +496,9 @@ hb_column_types <- function() {
     coerced <- if (type %in% c("date", "ctime", "mtime")) {
       date_only <- identical(type, "date") &&
         .hb_date_only_format(.hb_column_format(columns[[i]]))
-      .hb_coerce_dates(raw, type, tz = tz, date_only = date_only)
+      .hb_coerce_dates(
+        raw, type, tz = tz, date_only = date_only, naive_tz = naive_tz
+      )
     } else {
       lapply(raw, .hb_coerce_cell, type = type, tz = tz)
     }
@@ -520,11 +536,12 @@ hb_column_types <- function() {
 #'
 #' @param raw A list of raw cell values, one per row.
 #' @param type `"date"`, `"ctime"` or `"mtime"`.
-#' @param tz,date_only Passed to `.hb_coerce_cell()`.
+#' @param tz,date_only,naive_tz Passed to `.hb_coerce_cell()`.
 #' @return A list of coerced cells, as long as `raw`.
 #' @keywords internal
 #' @noRd
-.hb_coerce_dates <- function(raw, type, tz = "UTC", date_only = FALSE) {
+.hb_coerce_dates <- function(raw, type, tz = "UTC", date_only = FALSE,
+                             naive_tz = tz) {
   plain <- vapply(
     raw,
     function(value) {
@@ -535,13 +552,13 @@ hb_column_types <- function() {
   out <- vector("list", length(raw))
   out[!plain] <- lapply(
     raw[!plain], .hb_coerce_cell,
-    type = type, tz = tz, date_only = date_only
+    type = type, tz = tz, date_only = date_only, naive_tz = naive_tz
   )
   strings <- as.character(unlist(raw[plain], use.names = FALSE))
   distinct <- unique(strings)
   parsed <- lapply(
     distinct, .hb_coerce_cell,
-    type = type, tz = tz, date_only = date_only
+    type = type, tz = tz, date_only = date_only, naive_tz = naive_tz
   )
   out[plain] <- parsed[match(strings, distinct)]
   out

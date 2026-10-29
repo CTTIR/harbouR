@@ -21,7 +21,8 @@ is refused before anything is extracted. Assets whose names differ
 only in case may not all be extracted, and a warning names them.}
 
 \item{assets_dir}{Where to extract assets to. Defaults to a session
-temporary directory.}
+temporary directory. A folder that already holds an \verb{asset/} tree is
+refused: the next \code{\link[=hb_write_dtable]{hb_write_dtable()}} would pack that tree as well.}
 }
 \value{
 A \code{harbour_dtable}: a list with components \code{content} (the
@@ -48,6 +49,22 @@ Keeping the tree untouched is what makes \code{\link[=hb_write_dtable]{hb_write_
 rebuilding it from a typed intermediate would quietly drop whatever
 harbouR did not know about.
 }
+\section{Options}{
+
+\itemize{
+\item \code{harbouR.dtable_tz}: the time zone of the SeaTable server a file
+comes from, such as \code{"Europe/Berlin"}. A server stores a date-time as
+the time it shows, with no offset, and its export keeps it so; such a
+value is read in this zone. Unset, it is read as UTC, with a warning
+once a session. Date-only cells, and values that carry an offset,
+need no zone.
+\item \code{harbouR.max_dtable_bytes}: how large \code{content.json}, plus the
+assets when they are extracted, may be once unpacked. Default 4 GiB.
+A larger file is refused before anything is read, since a small
+archive can unpack to enough to fill memory or disk.
+}
+}
+
 \examples{
 path <- system.file("extdata", "example.dtable", package = "harbouR")
 base <- hb_read_dtable(path)

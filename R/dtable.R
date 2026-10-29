@@ -26,7 +26,21 @@
 #'   is refused before anything is extracted. Assets whose names differ
 #'   only in case may not all be extracted, and a warning names them.
 #' @param assets_dir Where to extract assets to. Defaults to a session
-#'   temporary directory.
+#'   temporary directory. A folder that already holds an `asset/` tree is
+#'   refused: the next [hb_write_dtable()] would pack that tree as well.
+#'
+#' @section Options:
+#'
+#' * `harbouR.dtable_tz`: the time zone of the SeaTable server a file
+#'   comes from, such as `"Europe/Berlin"`. A server stores a date-time as
+#'   the time it shows, with no offset, and its export keeps it so; such a
+#'   value is read in this zone. Unset, it is read as UTC, with a warning
+#'   once a session. Date-only cells, and values that carry an offset,
+#'   need no zone.
+#' * `harbouR.max_dtable_bytes`: how large `content.json`, plus the
+#'   assets when they are extracted, may be once unpacked. Default 4 GiB.
+#'   A larger file is refused before anything is read, since a small
+#'   archive can unpack to enough to fill memory or disk.
 #'
 #' @return A `harbour_dtable`: a list with components `content` (the
 #'   parsed tree), `path`, `assets` (the archive's own listing of its
@@ -66,20 +80,26 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
       class = "harbour_error_bad_argument"
     )
   }
-  content <- .hb_dtable_from_json(.hb_dtable_read_entry(path, .hb_dtable_entry))
-  .hb_warn_format_version(content$format_version)
-
   # The separator is part of the match: "assets.txt" and "asset_old/..."
   # are not in the asset tree.
   prefix <- paste0(.hb_dtable_asset_dir, "/")
   asset_rows <- listing[startsWith(listing$filename, prefix), ]
+  extract <- identical(assets, "extract") && nrow(asset_rows) > 0L
+  .hb_check_dtable_size(listing, if (extract) asset_rows else asset_rows[0L, ])
+  content <- .hb_dtable_from_json(.hb_dtable_read_entry(path, .hb_dtable_entry))
+  .hb_warn_format_version(content$format_version)
+
   dir <- NULL
-  if (identical(assets, "extract") && nrow(asset_rows) > 0L) {
+  if (extract) {
     .hb_check_asset_entries(asset_rows)
     .hb_warn_asset_case(asset_rows)
     dir <- assets_dir %||% tempfile("harbour-assets-")
+    .hb_check_assets_dir(dir)
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
-    zip::unzip(path, files = asset_rows$filename, exdir = dir)
+    .hb_extract_assets(
+      path, dir, asset_rows$filename,
+      whole = length(.hb_unsafe_entries(listing)) == 0L
+    )
     .hb_check_extracted(dir, asset_rows$filename)
   }
   new_harbour_dtable(
@@ -184,6 +204,7 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
   dir.create(staging, recursive = TRUE)
   on.exit(unlink(staging, recursive = TRUE), add = TRUE)
 
+  .hb_warn_json_keys(x$content)
   json <- .hb_dtable_to_json(x$content)
   writeBin(charToRaw(as.character(json)),
            file.path(staging, .hb_dtable_entry))
@@ -227,6 +248,11 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
     # is written into, as before.
     if (file.create(scratch, showWarnings = FALSE)) {
       partial <- scratch
+      # Before anything is written into it: the file it replaces may be
+      # readable by its owner alone.
+      if (file.exists(target)) {
+        Sys.chmod(partial, file.mode(target), use_umask = FALSE)
+      }
     } else if (!file.exists(target)) {
       hb_abort(
         c("Destination cannot be written.", "x" = "{.path {path}}"),
@@ -319,6 +345,17 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
 #' a live base - is flattened to `text`: a new base has none of the assets
 #' those cells point at.
 #'
+#' A `Date` column, or a date-time column whose every value is midnight
+#' UTC - which is how [hb_read_table()] reads a date-only column - becomes
+#' a date column showing the date alone. Other date-times are written with
+#' their UTC offset, so the server stores the instant whatever zone it
+#' runs in.
+#'
+#' A column named `_id`, such as the one [hb_read_table()] adds, is
+#' dropped: SeaTable keeps that name for the row identifier, and the new
+#' base has identifiers of its own. One that holds anything but SeaTable
+#' row ids is dropped with a `harbour_warning_id_column` warning.
+#'
 #' New row ids, table ids, column keys and select-option ids are drawn
 #' from the session's random number generator, so building a base
 #' advances `.Random.seed`: a random draw made after `hb_dtable()` differs
@@ -364,6 +401,11 @@ hb_dtable <- function(..., base_name = "harbouR base",
   ids <- character()
   built <- vector("list", length(tables))
   for (i in seq_along(tables)) {
+    # The _id hb_read_table() adds would become a column of that name,
+    # which collides with the row identifier on every later read.
+    tables[[i]] <- .hb_drop_id_columns(
+      tables[[i]], names(tables)[[i]], call = rlang::current_env()
+    )
     id <- .hb_new_table_id(ids)
     ids <- c(ids, id)
     built[[i]] <- .hb_build_table(names(tables)[[i]], tables[[i]], id)
@@ -388,7 +430,12 @@ hb_dtable <- function(..., base_name = "harbouR base",
 #' Check a base for problems before writing it
 #'
 #' Reports structural issues that would make SeaTable reject the file, or
-#' that indicate the base was built incorrectly in R.
+#' that indicate the base was built incorrectly in R: missing top-level
+#' keys; a table without a name or an `_id`; repeated table names, table
+#' ids, column keys, column names or row ids; a column without a key, a
+#' type or a name, or one named `_id`; rows without an `_id`; and empty
+#' table or view settings that would be written as `[]` where SeaTable
+#' expects `{}`.
 #'
 #' @param x A `harbour_dtable`.
 #' @param ... These dots are for future extensions and must be empty.
@@ -435,7 +482,9 @@ hb_validate_dtable <- function(x, ...) {
     }
     seen_names <- c(seen_names, name)
     id <- tbl[["_id"]] %||% NA_character_
-    if (!is.na(id) && id %in% seen_ids) {
+    if (is.na(id)) {
+      add(where, "table has no `_id`")
+    } else if (id %in% seen_ids) {
       add(where, sprintf("duplicate table id `%s`", id))
     }
     seen_ids <- c(seen_ids, id)
@@ -451,11 +500,26 @@ hb_validate_dtable <- function(x, ...) {
     }
     columns <- tbl$columns %||% list()
     keys <- .hb_chr_field(columns, "key")
-    if (anyDuplicated(keys) > 0L) {
+    col_names <- .hb_chr_field(columns, "name")
+    types <- .hb_chr_field(columns, "type")
+    # SeaTable's importer reads each column's key and type, and stops at
+    # the first column that lacks one.
+    for (j in seq_along(columns)) {
+      at <- sprintf("%s$columns[[%d]]", where, j)
+      if (is.na(keys[[j]]) || !nzchar(keys[[j]])) add(at, "column has no key")
+      if (is.na(types[[j]]) || !nzchar(types[[j]])) {
+        add(at, "column has no type")
+      }
+      if (is.na(col_names[[j]]) || !nzchar(col_names[[j]])) {
+        add(at, "column has no name")
+      } else if (identical(col_names[[j]], "_id")) {
+        add(at, "a column named `_id` collides with the row identifier")
+      }
+    }
+    if (anyDuplicated(keys[!is.na(keys)]) > 0L) {
       add(paste0(where, "$columns"), "duplicate column keys")
     }
-    col_names <- .hb_chr_field(columns, "name")
-    if (anyDuplicated(col_names) > 0L) {
+    if (anyDuplicated(col_names[!is.na(col_names)]) > 0L) {
       add(paste0(where, "$columns"), "duplicate column names")
     }
     row_ids <- vapply(
@@ -463,8 +527,27 @@ hb_validate_dtable <- function(x, ...) {
       function(row) as.character(row[["_id"]] %||% NA_character_),
       character(1)
     )
-    if (anyDuplicated(row_ids) > 0L) {
+    missing_ids <- sum(is.na(row_ids))
+    if (missing_ids > 0L) {
+      add(paste0(where, "$rows"),
+          sprintf("%d row%s without an `_id`", missing_ids,
+                  if (missing_ids == 1L) "" else "s"))
+    }
+    if (anyDuplicated(row_ids[!is.na(row_ids)]) > 0L) {
       add(paste0(where, "$rows"), "duplicate row ids")
+    }
+    views <- tbl$views %||% list()
+    for (k in seq_along(views)) {
+      for (slot in .hb_dtable_object_slots$view) {
+        value <- views[[k]][[slot]]
+        if (!is.null(value) && length(value) == 0L && is.null(names(value))) {
+          add(
+            sprintf("%s$views[[%d]]$%s", where, k, slot),
+            "empty list would serialise as [] but SeaTable expects {}",
+            "warning"
+          )
+        }
+      }
     }
   }
   found <- state$found
@@ -485,6 +568,8 @@ hb_validate_dtable <- function(x, ...) {
 #' Attachment cells in an export point at
 #' `file://dtable-bundle/asset/...`. When the base was read with
 #' `assets = "extract"`, this gives the path the file was extracted to.
+#' The URL may be escaped, as SeaTable's export writes it -
+#' `my%20report%20%281%29.txt` for `my report (1).txt`.
 #'
 #' @param x A `harbour_dtable` read with `assets = "extract"`.
 #' @param url An asset URL taken from a `file` or `image` cell.
@@ -506,19 +591,24 @@ hb_asset_path <- function(x, url, ...) {
     return(NA_character_)
   }
   relative <- sub("^file://dtable-bundle/", "", url)
-  if (.hb_climbs_out(relative)) {
+  # A cell's URL is escaped - SeaTable's own export keeps it so - while the
+  # archive holds the file under its real name. The URL is tried as it is,
+  # for a name that holds a % of its own, and then decoded.
+  decoded <- tryCatch(utils::URLdecode(relative), error = function(cnd) relative)
+  relative <- unique(c(relative, decoded))
+  # An escaped climb out is one once decoded.
+  if (any(.hb_climbs_out(relative))) {
     return(NA_character_)
   }
-  relative <- sub("^/+", "", relative)
-  if (!startsWith(relative, "asset/")) return(NA_character_)
-  candidate <- file.path(x$assets_dir, relative)
-  if (!file.exists(candidate) || dir.exists(candidate)) {
-    return(NA_character_)
+  for (path in sub("^/+", "", relative)) {
+    if (!startsWith(path, "asset/")) next
+    candidate <- file.path(x$assets_dir, path)
+    if (!file.exists(candidate) || dir.exists(candidate)) next
+    if (.hb_path_inside(candidate, x$assets_dir)) {
+      return(candidate)
+    }
   }
-  if (!.hb_path_inside(candidate, x$assets_dir)) {
-    return(NA_character_)
-  }
-  candidate
+  NA_character_
 }
 
 #' Test whether an object is a harbour dtable
@@ -655,15 +745,7 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @keywords internal
 #' @noRd
 .hb_check_asset_entries <- function(entries, call = rlang::caller_env()) {
-  name <- entries$filename
-  # zip::zip_list() reports each entry's type from zip 2.3.3, the release
-  # in which zip::unzip() began to make a link entry into a link.
-  type <- entries[["type"]] %||% character(length(name))
-  # A backslash on its own is a character an uploaded file's name may
-  # hold, so only a `..` between either separator refuses a name.
-  unsafe <- .hb_climbs_out(name) | grepl("^([/\\\\]|[A-Za-z]:)", name) |
-    type %in% "symlink"
-  bad <- name[unsafe]
+  bad <- .hb_unsafe_entries(entries)
   if (length(bad) > 0L) {
     # Not the path: in the explorer that is a temporary upload name the user
     # never chose, and its notice names the file already.
@@ -678,6 +760,25 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     )
   }
   invisible(NULL)
+}
+
+#' The entries of an archive that would not extract inside its directory
+#'
+#' @param entries Rows of a `zip::zip_list()` listing.
+#' @return The names of the entries that are absolute, climb out, or are
+#'   symbolic links.
+#' @keywords internal
+#' @noRd
+.hb_unsafe_entries <- function(entries) {
+  name <- entries$filename
+  # zip::zip_list() reports each entry's type from zip 2.3.3, the release
+  # in which zip::unzip() began to make a link entry into a link.
+  type <- entries[["type"]] %||% character(length(name))
+  # A backslash on its own is a character an uploaded file's name may
+  # hold, so only a `..` between either separator refuses a name.
+  unsafe <- .hb_climbs_out(name) | grepl("^([/\\\\]|[A-Za-z]:)", name) |
+    type %in% "symlink"
+  name[unsafe]
 }
 
 #' Warn about assets whose names differ only in case
@@ -723,7 +824,20 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @keywords internal
 #' @noRd
 .hb_check_extracted <- function(dir, entries, call = rlang::caller_env()) {
-  written <- file.exists(file.path(dir, entries))
+  # A name the session's encoding cannot hold - in a C locale, say - cannot
+  # be looked up; such a file was unpacked into a new private folder, so
+  # nothing already there could have led it out.
+  written <- vapply(
+    file.path(dir, entries),
+    function(file) {
+      tryCatch(
+        file.exists(file),
+        warning = function(cnd) FALSE, error = function(cnd) FALSE
+      )
+    },
+    logical(1),
+    USE.NAMES = FALSE
+  )
   entries <- entries[written]
   outside <- entries[!.hb_path_inside(file.path(dir, entries), dir)]
   if (length(outside) > 0L) {
@@ -740,6 +854,158 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 
 #' @keywords internal
 #' @noRd
+#' Refuse a file that would unpack to more than harbouR opens
+#'
+#' The listing gives every entry's size once unpacked, so this costs
+#' nothing: a few megabytes of compressed text can unpack to gigabytes in
+#' memory, and a small archive of zeros to a full disk.
+#'
+#' @param listing The archive's `zip::zip_list()` listing.
+#' @param asset_rows The asset entries that will be extracted.
+#' @param call The frame to blame for the error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_dtable_size <- function(listing, asset_rows,
+                                  call = rlang::caller_env()) {
+  limit <- getOption("harbouR.max_dtable_bytes", 4 * 1024^3)
+  ok <- is.numeric(limit) && length(limit) == 1L && !is.na(limit) &&
+    limit > 0
+  if (!ok) {
+    hb_abort(
+      "{.code options(harbouR.max_dtable_bytes)} must be a positive number
+       of bytes.",
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  content <- listing$uncompressed_size[listing$filename == .hb_dtable_entry]
+  size <- sum(as.numeric(content)) +
+    sum(as.numeric(asset_rows$uncompressed_size))
+  if (size > limit) {
+    shown <- format(structure(size, class = "object_size"), units = "auto")
+    allowed <- format(structure(limit, class = "object_size"), units = "auto")
+    hb_abort(
+      c("That file unpacks to {shown}, more than the {allowed} harbouR
+         opens.",
+        "i" = "Raise {.code options(harbouR.max_dtable_bytes = )} for a
+               file you trust."),
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  invisible(NULL)
+}
+
+#' Refuse an assets_dir that already holds an asset tree
+#'
+#' Extracting into it would mix that tree with this base's, and
+#' [hb_write_dtable()] would then pack both - another base's attachments
+#' shipped without a word.
+#'
+#' @param dir The extraction directory.
+#' @param call The frame to blame for the error.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_check_assets_dir <- function(dir, call = rlang::caller_env()) {
+  target <- file.path(dir, .hb_dtable_asset_dir)
+  link <- Sys.readlink(target)
+  occupied <- (!is.na(link) && nzchar(link)) ||
+    (file.exists(target) && !dir.exists(target)) ||
+    length(list.files(target, all.files = TRUE, no.. = TRUE)) > 0L
+  if (occupied) {
+    hb_abort(
+      c("{.arg assets_dir} already holds an asset tree.",
+        "x" = "{.path {target}} is not empty.",
+        "i" = "Extract each base into a folder of its own, or leave
+               {.arg assets_dir} out for a new temporary one."),
+      class = "harbour_error_bad_argument", call = call
+    )
+  }
+  invisible(NULL)
+}
+
+#' Unpack a file's asset tree into a directory
+#'
+#' The archive is unpacked into a private folder and the asset tree moved
+#' into place. When every entry can be unpacked safely, all of them are:
+#' naming the entries to unpack makes `zip::unzip()` look each name up in
+#' the session's encoding, and a C locale - a cron job, a container -
+#' cannot find one that is not ASCII. An archive with an unsafe entry
+#' outside the asset tree has only its asset entries unpacked, by name.
+#'
+#' @param path The `.dtable` file.
+#' @param dir The extraction directory.
+#' @param files The names of the asset entries.
+#' @param whole Whether every entry of the archive is safe to unpack.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_extract_assets <- function(path, dir, files, whole) {
+  staging <- tempfile("harbour-unzip-")
+  dir.create(staging)
+  on.exit(unlink(staging, recursive = TRUE), add = TRUE)
+  if (whole) {
+    zip::unzip(path, exdir = staging)
+  } else {
+    zip::unzip(path, files = files, exdir = staging)
+  }
+  from <- file.path(staging, .hb_dtable_asset_dir)
+  to <- file.path(dir, .hb_dtable_asset_dir)
+  # An empty folder left there is replaced; a full one was refused before.
+  if (dir.exists(to)) unlink(to, recursive = TRUE)
+  if (!file.rename(from, to)) {
+    # A rename cannot cross file systems; a copy can.
+    dir.create(to, showWarnings = FALSE)
+    file.copy(
+      list.files(from, full.names = TRUE, all.files = TRUE, no.. = TRUE),
+      to, recursive = TRUE
+    )
+  }
+  invisible(NULL)
+}
+
+#' Warn about object keys JSON cannot keep
+#'
+#' jsonlite writes an empty key as the element's position and renames a
+#' repeated one, so such a value would change on the way to disk. Only
+#' lists are visited, so a base's many scalar cells cost nothing.
+#'
+#' @param content The base's parsed `content.json`.
+#' @param call The frame to report the warning from.
+#' @return `NULL`, invisibly.
+#' @keywords internal
+#' @noRd
+.hb_warn_json_keys <- function(content, call = rlang::caller_env()) {
+  # An environment rather than <<-, as in hb_validate_dtable().
+  state <- new.env(parent = emptyenv())
+  state$found <- character()
+  visit <- function(x, where) {
+    keys <- names(x)
+    if (!is.null(keys) && (any(!nzchar(keys)) || anyDuplicated(keys) > 0L)) {
+      state$found <- c(state$found, where)
+    }
+    for (i in seq_along(x)) {
+      if (is.list(x[[i]])) {
+        visit(x[[i]], sprintf("%s[[%d]]", where, i))
+      }
+    }
+  }
+  visit(content, "content")
+  found <- state$found
+  if (length(found) > 0L) {
+    shown <- utils::head(found, 5L)
+    cli::cli_warn(
+      c("{length(found)} object{?s} in {.file content.json} {?has/have} an
+         empty or repeated key: {.field {shown}}.",
+        "i" = "JSON keeps neither, so those values change on the way to
+               disk."),
+      class = "harbour_warning_json_keys",
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 .hb_warn_format_version <- function(version) {
   version <- suppressWarnings(as.integer(version %||% NA))
   if (!is.na(version) && version > .hb_dtable_format_version) {
@@ -784,13 +1050,19 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
       .hb_chr_field(options, "id"), .hb_chr_field(options, "name")
     )
   })
+  date_only <- vapply(
+    columns,
+    function(column) identical(column$data$format, "YYYY-MM-DD"),
+    logical(1)
+  )
   rows <- vector("list", nrow(data))
   stamp <- .hb_dtable_timestamp()
   for (r in seq_len(nrow(data))) {
     row <- list(`_id` = .hb_new_row_id(), `_ctime` = stamp, `_mtime` = stamp)
     for (i in seq_along(data)) {
       value <- .hb_cell_out(
-        data[[i]][[r]], columns[[i]]$type, option_ids[[i]]
+        data[[i]][[r]], columns[[i]]$type, option_ids[[i]],
+        date_only = date_only[[i]]
       )
       # An empty cell is absent from the row entirely, which is what
       # SeaTable itself writes.
@@ -860,7 +1132,9 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     data <- list(options = .hb_select_options(unique(used[!is.na(used)])))
   }
   if (type == "date") {
-    data <- list(format = "YYYY-MM-DD HH:mm")
+    data <- list(
+      format = if (.hb_is_calendar_date(values)) "YYYY-MM-DD" else "YYYY-MM-DD HH:mm"
+    )
   }
   list(
     key = key,
@@ -907,6 +1181,25 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 
 #' @keywords internal
 #' @noRd
+#' Does a date column hold calendar dates rather than times?
+#'
+#' A `Date` does. So does a date-time column whose every value is midnight
+#' UTC: that is how [hb_read_table()] reads a date-only column, so a table
+#' read from SeaTable keeps its date columns when written as a base.
+#'
+#' @param values A `Date` or `POSIXt` vector.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_is_calendar_date <- function(values) {
+  if (inherits(values, "Date")) {
+    return(TRUE)
+  }
+  seconds <- unclass(as.POSIXct(values))
+  seconds <- seconds[is.finite(seconds)]
+  length(seconds) > 0L && all(seconds %% 86400 == 0)
+}
+
 .hb_infer_column_type <- function(values) {
   if (is.factor(values)) {
     return("single-select")
@@ -931,11 +1224,12 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @param value A single cell value.
 #' @param type The SeaTable column type.
 #' @param option_ids For a select column, option ids named by option name.
+#' @param date_only For a date column, whether it holds calendar dates.
 #' @return The JSON-ready value, or `NULL` when the cell is empty - in
 #'   which case the key is omitted from the row, as SeaTable does.
 #' @keywords internal
 #' @noRd
-.hb_cell_out <- function(value, type, option_ids = NULL) {
+.hb_cell_out <- function(value, type, option_ids = NULL, date_only = FALSE) {
   if (is.null(value) || length(value) == 0L) {
     return(NULL)
   }
@@ -946,7 +1240,13 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     return(NULL)
   }
   if (type == "date") {
-    return(format(as.POSIXct(value), "%Y-%m-%dT%H:%M:%S", tz = "UTC"))
+    instant <- as.POSIXct(value)
+    if (date_only) {
+      return(format(instant, "%Y-%m-%d", tz = "UTC"))
+    }
+    # With its offset: SeaTable reads a time without one in the zone its
+    # server runs in, and an import put it hours off.
+    return(format(instant, "%Y-%m-%dT%H:%M:%S+00:00", tz = "UTC"))
   }
   if (type == "single-select") {
     return(.hb_option_id(as.character(value), option_ids))

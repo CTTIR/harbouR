@@ -20,6 +20,8 @@ A single path, or \code{NA_character_} if the asset is not bundled.
 Attachment cells in an export point at
 \verb{file://dtable-bundle/asset/...}. When the base was read with
 \code{assets = "extract"}, this gives the path the file was extracted to.
+The URL may be escaped, as SeaTable's export writes it -
+\verb{my\%20report\%20\%281\%29.txt} for \verb{my report (1).txt}.
 }
 \examples{
 path <- system.file("extdata", "example.dtable", package = "harbouR")

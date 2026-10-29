@@ -619,3 +619,74 @@ test_that("the flattening message names every column, however many", {
     expect_match(text, paste0("Wide$", column), fixed = TRUE)
   }
 })
+
+# --- findings of the 2026-10-29 audit ----------------------------------------
+
+test_that("table names keep their letters in CSV file names", {
+  # Every letter outside A to Z became "_", so two Chinese table names
+  # both became _.csv and the export was refused.
+  base <- hb_dtable(
+    `样本` = data.frame(x = 1),
+    `数据` = data.frame(x = 2),
+    `Probenübersicht` = data.frame(x = 3)
+  )
+  dir <- withr::local_tempdir()
+  hb_write_csv(base, dir)
+  expect_setequal(
+    list.files(dir),
+    c("样本.csv", "数据.csv", "Probenübersicht.csv")
+  )
+  back <- hb_read_csv(file.path(dir, "Probenübersicht.csv"))
+  expect_identical(hb_list_tables(back)$name, "Probenübersicht")
+  # Characters a file name cannot hold are still replaced.
+  expect_identical(harbouR:::.hb_safe_filename("a/b:c*d?"), "a_b_c_d_")
+})
+
+test_that("a cell with a missing or repeated field flattens", {
+  # A geolocation with no latitude, or a link to a formula whose display
+  # value is an array, stopped every export with "values must be length 1".
+  flat <- harbouR:::.hb_flatten_column(list(
+    list(lng = 11.57, lat = NULL),
+    list(list(display_value = list("a", "b"))),
+    list(list(name = "report.pdf"))
+  ))
+  expect_identical(flat, c("11.57", "a, b", "report.pdf"))
+})
+
+test_that("sheet names are made legal for Excel by harbouR itself", {
+  # writexl before 2.0.0 refused such a name with an error naming no table.
+  expect_identical(
+    harbouR:::.hb_sheet_names(c("a/b:c?", "[x]*\\", strrep("y", 40))),
+    c("a_b_c_", "_x___", strrep("y", 31))
+  )
+})
+
+test_that("text longer than a workbook cell holds is refused, naming it", {
+  skip_if_not_installed("writexl")
+  base <- hb_dtable(T = data.frame(long = strrep("x", 32768)))
+  err <- expect_error(
+    hb_write_xlsx(base, withr::local_tempfile(fileext = ".xlsx")),
+    class = "harbour_error_bad_argument"
+  )
+  expect_match(conditionMessage(err), "long", fixed = TRUE)
+})
+
+test_that("hb_read_xlsx() keeps the spaces around text", {
+  skip_if_not_installed("writexl")
+  skip_if_not_installed("readxl")
+  path <- withr::local_tempfile(fileext = ".xlsx")
+  hb_write_xlsx(hb_dtable(T = data.frame(x = c("  padded  ", "a"))), path)
+  expect_identical(
+    hb_read_table(hb_read_xlsx(path), "T")$x, c("  padded  ", "a")
+  )
+})
+
+test_that("a leading plus keeps a CSV column text", {
+  # read.csv() read +4917612345678 as the number 4917612345678.
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("phone,plain", "+4917612345678,1.5", "+4915112345678,2"), path)
+  base <- hb_read_csv(path)
+  out <- hb_read_table(base, hb_list_tables(base)$name)
+  expect_identical(out$phone, c("+4917612345678", "+4915112345678"))
+  expect_identical(out$plain, c(1.5, 2))
+})

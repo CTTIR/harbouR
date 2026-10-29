@@ -18,7 +18,12 @@ is well-formed.
 }
 \description{
 Reports structural issues that would make SeaTable reject the file, or
-that indicate the base was built incorrectly in R.
+that indicate the base was built incorrectly in R: missing top-level
+keys; a table without a name or an \verb{_id}; repeated table names, table
+ids, column keys, column names or row ids; a column without a key, a
+type or a name, or one named \verb{_id}; rows without an \verb{_id}; and empty
+table or view settings that would be written as \verb{[]} where SeaTable
+expects \code{{}}.
 }
 \examples{
 base <- hb_dtable(Samples = data.frame(x = 1))

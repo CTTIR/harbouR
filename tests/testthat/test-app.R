@@ -152,7 +152,7 @@ test_that("download names are derived from the base and are filesystem-safe", {
   state$source$base_name <- "Data - Wiebke/2026"
   expect_identical(
     harbouR:::.hb_download_name(state, "dtable"),
-    "Data_-_Wiebke_2026.dtable"
+    "Data - Wiebke_2026.dtable"
   )
 })
 
