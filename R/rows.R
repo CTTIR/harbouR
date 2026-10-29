@@ -123,10 +123,39 @@ hb_read_table.harbour_client <- function(x,
   }
   rows <- do.call(c, c(list(list()), pages))
   if (length(rows) > n_max) rows <- rows[seq_len(n_max)]
+  cols <- .hb_columns_for_rows(x, table, cols, rows)
+  hidden <- character()
   if (!is.null(view)) {
-    .hb_warn_hidden_columns(x$.metadata, table, view, cols, rows)
+    hidden <- .hb_warn_hidden_columns(x$.metadata, table, view, cols, rows)
   }
-  .hb_rows_to_tibble(rows, cols)
+  out <- .hb_rows_to_tibble(rows, cols)
+  # Recorded so that hb_update_rows() does not send the NAs back.
+  if (length(hidden) > 0L) attr(out, "harbour_hidden_columns") <- hidden
+  out
+}
+
+#' Fetch the metadata again when the rows name a column it lacks
+#'
+#' The columns come from the cached metadata, so a column someone added,
+#' or renamed, since it was read would be missing from the result and its
+#' values dropped without a word. Fields beginning with an underscore are
+#' the row's own - `_id`, `_locked`, `_archived` - not columns.
+#'
+#' @param client A `harbour_client`.
+#' @param table The table's name.
+#' @param columns The table's column objects from the cache.
+#' @param rows The rows the server returned.
+#' @return The column objects to read the rows with.
+#' @keywords internal
+#' @noRd
+.hb_columns_for_rows <- function(client, table, columns, rows) {
+  fields <- as.character(unique(unlist(lapply(rows, names), use.names = FALSE)))
+  fields <- fields[!startsWith(fields, "_")]
+  if (length(setdiff(fields, .hb_chr_field(columns, "name"))) == 0L) {
+    return(columns)
+  }
+  hb_metadata(client)
+  .hb_columns_from_metadata(client$.metadata, table)
 }
 
 #' How many pages a read may take before harbouR gives up
@@ -157,20 +186,21 @@ hb_read_table.harbour_client <- function(x,
 #' @param columns The table's column objects.
 #' @param rows The rows the server returned.
 #' @param call The frame to report the warning from.
-#' @return `NULL`, invisibly.
+#' @return The names of the hidden columns that came back empty,
+#'   invisibly; an empty character vector if there are none.
 #' @keywords internal
 #' @noRd
 .hb_warn_hidden_columns <- function(metadata, table, view, columns, rows,
                                     call = rlang::caller_env()) {
   if (length(rows) == 0L) {
-    return(invisible(NULL))
+    return(invisible(character()))
   }
   tbls <- metadata$tables %||% list()
   views <- tbls[[match(table, .hb_chr_field(tbls, "name"))]]$views %||%
     list()
   idx <- match(view, .hb_chr_field(views, "name"))
   if (is.na(idx)) {
-    return(invisible(NULL))
+    return(invisible(character()))
   }
   keys <- as.character(
     unlist(views[[idx]]$hidden_columns %||% list(), use.names = FALSE)
@@ -194,12 +224,15 @@ hb_read_table.harbour_client <- function(x,
          {?it is/they are} {.code NA} in the result: {.field {hidden}}.",
         "i" = "SeaTable leaves a view's hidden columns out of its rows. Show
                them in the view, or read without {.arg view}, to get their
-               values."),
+               values.",
+        "i" = "{cli::qty(length(hidden))}{.fn hb_update_rows} leaves
+               {?it/them} out while {?it is/they are} still {.code NA}, so
+               writing the result back does not erase {?it/them}."),
       class = "harbour_warning_hidden_columns",
       call = call
     )
   }
-  invisible(NULL)
+  invisible(unname(hidden))
 }
 
 #' Validate and clamp a page size against SeaTable's server maximum
@@ -279,7 +312,7 @@ hb_query <- function(client, sql, ..., parameters = NULL,
   .check_client(client)
   .check_string(sql)
   .check_flag(convert_keys)
-  if (.hb_sql_lacks_limit(sql)) {
+  if (.hb_sql_is_select(sql) && .hb_sql_lacks_limit(sql)) {
     # SeaTable applies an implicit LIMIT 100. A query that looks like it
     # wants everything but silently gets a hundred rows is a wrong answer.
     # The rate limit is per query: a loop does not repeat the warning, but
@@ -318,7 +351,19 @@ hb_query <- function(client, sql, ..., parameters = NULL,
       col$name <- col$key %||% col$name
       col
     })
-  } else if (.hb_cells_keyed_by_key(rows, columns, resp$is_join_stmt)) {
+  }
+  if (.hb_cells_keyed_by_position(rows, columns)) {
+    # Looked up by position; the names, or the keys, stay the names.
+    columns <- Map(
+      function(col, position) {
+        col$key <- position
+        col
+      },
+      columns, sprintf("%04d", seq_along(columns) - 1L)
+    )
+    by <- "key"
+  } else if (convert_keys &&
+               .hb_cells_keyed_by_key(rows, columns, resp$is_join_stmt)) {
     # Reading by key keeps the reported names as the column names. A
     # column with no key is looked up by its name.
     columns <- lapply(columns, function(col) {
@@ -357,6 +402,47 @@ hb_query <- function(client, sql, ..., parameters = NULL,
     "\\blimit\\b", bare,
     ignore.case = TRUE, perl = TRUE, useBytes = TRUE
   )
+}
+
+#' Is a statement a SELECT?
+#'
+#' Only a SELECT has rows to cut short; an UPDATE, INSERT or DELETE has no
+#' LIMIT to add. Comments in front of the statement are passed over.
+#'
+#' @param sql A single SQL string.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_sql_is_select <- function(sql) {
+  bare <- gsub("(?s)/\\*.*?\\*/", " ", sql, perl = TRUE, useBytes = TRUE)
+  bare <- gsub("--[^\n]*", " ", bare, perl = TRUE, useBytes = TRUE)
+  grepl("^[\\s(]*select\\b", bare,
+        ignore.case = TRUE, perl = TRUE, useBytes = TRUE)
+}
+
+#' Are a query's result cells keyed by their place in the select list?
+#'
+#' A SeaTable 6.2 server keys a join's cells neither by name nor by column
+#' key but by position - `"0000"`, `"0001"`, ... - in the order the
+#' metadata lists the columns. Such a reply is recognised by cells that
+#' carry only those positions while some column's own key is absent: the
+#' first position can coincide with a key, since the Name column's key is
+#' `"0000"`.
+#'
+#' @param rows The result rows.
+#' @param columns The result schema.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_cells_keyed_by_position <- function(rows, columns) {
+  fields <- setdiff(unique(unlist(lapply(rows, names), use.names = FALSE)),
+                    "_id")
+  if (length(fields) == 0L || length(columns) == 0L) {
+    return(FALSE)
+  }
+  keys <- .hb_chr_field(columns, "key")
+  positions <- sprintf("%04d", seq_along(columns) - 1L)
+  all(fields %in% positions) && !all(keys %in% fields)
 }
 
 #' Are a query's result cells keyed by column key?
@@ -443,6 +529,7 @@ hb_get_row <- function(client, table, row_id, ...) {
   if (is.null(body) || length(body) == 0L) {
     return(.hb_rows_to_tibble(list(), cols))
   }
+  cols <- .hb_columns_for_rows(client, table, cols, list(body))
   .hb_rows_to_tibble(list(body), cols)
 }
 
@@ -582,6 +669,12 @@ hb_append_rows <- function(client, table, data, ...,
 
 #' Update rows in a table
 #'
+#' Every column of `data` that the table can store is written, so an `NA`
+#' clears its cell. The exception is a tibble read through a view with
+#' [hb_read_table()]: the columns the view hides come back as `NA`, and
+#' they are left out of the write for as long as every value in them is
+#' still missing, so writing such a tibble back does not erase them.
+#'
 #' @inheritParams hb_append_rows
 #' @param row_id_col Name of the column in `data` that holds row IDs.
 #'   Default `"_id"`.
@@ -645,6 +738,14 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
   # calendar date, and a cell that cannot be sent as it is is reported once
   # for the whole write.
   write <- setdiff(intersect(names(data), writable), row_id_col)
+  # A read through a view gives the columns it hides as NA. Sent back,
+  # those NAs would clear the cells, so such a column is left out while
+  # nothing in it has been filled in.
+  hidden <- intersect(attr(data, "harbour_hidden_columns"), write)
+  untouched <- hidden[vapply(
+    hidden, function(col) .hb_all_missing(data[[col]]), logical(1)
+  )]
+  write <- setdiff(write, untouched)
   cells <- .hb_serialise_rows(
     data, types[write],
     date_only = .hb_date_only_columns(cols)

@@ -170,9 +170,18 @@ test_that("a live table keeps its name in a .dtable, whatever it is called", {
   cl$.metadata$tables[[1L]]$name <- "collaborators"
   cl$.metadata$tables[[2L]]$name <- "base_name"
   base <- NULL
+  tables <- cl$.metadata$tables
+  # Both tables are sent a Name cell, which the second has no column for;
+  # the read then asks for the metadata again, and gets the same tables.
+  server <- function(path, method, query, body) {
+    if (grepl("metadata", path, fixed = TRUE)) {
+      return(list(metadata = list(tables = tables)))
+    }
+    list(rows = list(list(`_id` = "row1", Name = "S-1")))
+  }
   with_mocked_request(
     base <- harbouR:::.hb_as_dtable(cl),
-    response = list(rows = list(list(`_id` = "row1", Name = "S-1")))
+    response = server
   )
   expect_identical(names(base), c("collaborators", "base_name"))
   expect_length(base$content$collaborators, 0L)

@@ -120,6 +120,58 @@ test_that("convert_keys = FALSE still names a join's columns by key", {
   expect_identical(out$rLfY, c("Widget", "Gizmo"))
 })
 
+# What a SeaTable 6.2.1 server sends for an implicit join, as captured
+# from one: every cell is keyed by its place in the select list - "0000",
+# "0001", ... - in the order the metadata lists the columns, neither by
+# name nor by column key.
+positional_join_reply <- function(first_key = "RSIT") {
+  list(
+    success = TRUE, error_message = "", is_join_stmt = TRUE,
+    metadata = list(
+      list(key = first_key, name = "v", type = "number"),
+      list(key = "Ni1D", name = "w", type = "text")
+    ),
+    results = list(
+      list(`0000` = 1L, `0001` = "x"),
+      list(`0000` = 2L, `0001` = "y")
+    )
+  )
+}
+
+test_that("a join's cells keyed by position are read in metadata order", {
+  cl <- mock_client()
+  with_mocked_request(
+    out <- hb_query(cl, join_sql),
+    response = positional_join_reply()
+  )
+  expect_named(out, c("v", "w", "_id"))
+  expect_identical(out$v, c(1, 2))
+  expect_identical(out$w, c("x", "y"))
+})
+
+test_that("a positional join is read by position when a key is 0000", {
+  # The Name column's key is 0000, which is also the first position, so
+  # one cell looks keyed by key and the next does not.
+  cl <- mock_client()
+  with_mocked_request(
+    out <- hb_query(cl, join_sql),
+    response = positional_join_reply(first_key = "0000")
+  )
+  expect_identical(out$v, c(1, 2))
+  expect_identical(out$w, c("x", "y"))
+})
+
+test_that("convert_keys = FALSE names a positional join's columns by key", {
+  cl <- mock_client()
+  with_mocked_request(
+    out <- hb_query(cl, join_sql, convert_keys = FALSE),
+    response = positional_join_reply()
+  )
+  expect_named(out, c("RSIT", "Ni1D", "_id"))
+  expect_identical(out$RSIT, c(1, 2))
+  expect_identical(out$Ni1D, c("x", "y"))
+})
+
 # --- hb_query(): the missing-LIMIT warning ----------------------------------
 
 test_that("the LIMIT check ignores the word in strings and quoted names", {
@@ -196,6 +248,34 @@ test_that("a long query without LIMIT is warned about, not refused", {
   expect_gt(nchar(sql, type = "bytes"), 10000L)
   expect_warning(
     with_mocked_request(hb_query(cl, sql), response = empty_sql_reply()),
+    class = "harbour_warning_query_limit"
+  )
+})
+
+test_that("a statement that is not a SELECT is not warned about LIMIT", {
+  cl <- mock_client()
+  withr::local_options(rlib_warning_verbosity = "verbose")
+  # SeaTable's reply to an UPDATE, as a 6.2.1 server sends it.
+  reply <- list(
+    error_message = "", success = TRUE, metadata = NULL,
+    is_join_stmt = FALSE, results = NULL
+  )
+  expect_no_warning(with_mocked_request(
+    out <- hb_query(cl, "UPDATE Samples SET Status = 'x' WHERE Name = 'a'"),
+    response = reply
+  ))
+  expect_s3_class(out, "tbl_df")
+  expect_identical(dim(out), c(0L, 0L))
+  expect_no_warning(with_mocked_request(
+    hb_query(cl, "  -- tidy up\n  /* old */ delete from Samples where Name = 'a'"),
+    response = reply
+  ))
+  # A SELECT behind a comment is still a SELECT.
+  expect_warning(
+    with_mocked_request(
+      hb_query(cl, "/* all */ select * from Samples where Name = 'b'"),
+      response = empty_sql_reply()
+    ),
     class = "harbour_warning_query_limit"
   )
 })
@@ -363,6 +443,40 @@ test_that("a hidden column the server still sends is not reported", {
     regexp = "hides 1 column"
   )
   expect_identical(out$Status, c("Done", "Done"))
+})
+
+test_that("writing back a view read leaves its hidden columns alone", {
+  # On a live server the NAs of the hidden columns were sent back as nulls,
+  # which erased those cells.
+  cl <- hidden_view_client()
+  suppressWarnings(with_mocked_request(
+    out <- hb_read_table(cl, "Samples", view = "Lab"),
+    response = view_server
+  ))
+  out$Name <- c("S1b", "S2b")
+  rec <- with_mocked_request(
+    hb_update_rows(cl, "Samples", out),
+    response = list()
+  )
+  row <- rec$calls[[1L]]$body$updates[[1L]]$row
+  expect_identical(row$Name, "S1b")
+  expect_false(any(c("Concentration", "Status") %in% names(row)))
+})
+
+test_that("a hidden column given values on purpose is still written", {
+  cl <- hidden_view_client()
+  suppressWarnings(with_mocked_request(
+    out <- hb_read_table(cl, "Samples", view = "Lab"),
+    response = view_server
+  ))
+  out$Status <- c("Done", "draft")
+  rec <- with_mocked_request(
+    hb_update_rows(cl, "Samples", out),
+    response = list()
+  )
+  row <- rec$calls[[1L]]$body$updates[[1L]]$row
+  expect_identical(row$Status, "Done")
+  expect_false("Concentration" %in% names(row))
 })
 
 # --- hb_read_table(): paging ------------------------------------------------
@@ -547,4 +661,55 @@ test_that("the type lookup reads the cache unless asked to refresh", {
   )
   expect_identical(type, "single-select")
   expect_length(rec$calls, 0L)
+})
+
+# --- stale metadata -----------------------------------------------------------
+
+test_that("a column the cached metadata does not know is fetched", {
+  # A column added by someone else since the metadata was read was left
+  # out of every read until hb_metadata() was called again.
+  cl <- narrow_client()
+  fresh <- list(tables = list(list(
+    name = "T",
+    columns = list(
+      list(name = "Name", type = "text", key = "0000"),
+      list(name = "Later", type = "number", key = "k9")
+    )
+  )))
+  server <- function(path, method, query, body) {
+    if (grepl("metadata", path, fixed = TRUE)) {
+      return(list(metadata = fresh))
+    }
+    list(rows = list(list(
+      `_id` = "r1", Name = "a", Later = 3,
+      `_locked` = FALSE, `_archived` = FALSE
+    )))
+  }
+  rec <- with_mocked_request(out <- hb_read_table(cl, "T"), response = server)
+  expect_named(out, c("Name", "Later", "_id"))
+  expect_identical(out$Later, 3)
+  expect_identical(sum(grepl("metadata", vapply(rec$calls, `[[`, "", "path"))), 1L)
+
+  # The fields every row carries are not columns, and ask for nothing.
+  rec <- with_mocked_request(out <- hb_read_table(cl, "T"), response = server)
+  expect_false(any(grepl("metadata", vapply(rec$calls, `[[`, "", "path"))))
+})
+
+test_that("hb_get_row also fetches a column the cache does not know", {
+  cl <- narrow_client()
+  fresh <- list(tables = list(list(
+    name = "T",
+    columns = list(
+      list(name = "Name", type = "text", key = "0000"),
+      list(name = "Later", type = "text", key = "k9")
+    )
+  )))
+  server <- function(path, method, query, body) {
+    if (grepl("metadata", path, fixed = TRUE)) {
+      return(list(metadata = fresh))
+    }
+    list(`_id` = "r1", Name = "a", Later = "new", `_locked_by` = "")
+  }
+  with_mocked_request(out <- hb_get_row(cl, "T", "r1"), response = server)
+  expect_identical(out$Later, "new")
 })

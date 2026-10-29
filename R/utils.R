@@ -273,6 +273,26 @@
   invisible(client)
 }
 
+#' Is every value of a column missing?
+#'
+#' A value is missing when it is `NA`, or, in a list-column, `NULL`, empty
+#' or `NA` throughout.
+#'
+#' @param x A column of a data frame.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_all_missing <- function(x) {
+  if (!is.list(x)) {
+    return(all(is.na(x)))
+  }
+  all(vapply(
+    x,
+    function(value) length(value) == 0L || all(is.na(unlist(value))),
+    logical(1)
+  ))
+}
+
 #' Count the elements of one list field across SeaTable objects
 #'
 #' @param x A list of named lists.

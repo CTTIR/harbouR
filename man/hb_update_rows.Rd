@@ -33,7 +33,11 @@ Invisibly, a one-row tibble with columns \code{table} (chr),
 \code{n_rows} (int) and \code{n_requests} (int).
 }
 \description{
-Update rows in a table
+Every column of \code{data} that the table can store is written, so an \code{NA}
+clears its cell. The exception is a tibble read through a view with
+\code{\link[=hb_read_table]{hb_read_table()}}: the columns the view hides come back as \code{NA}, and
+they are left out of the write for as long as every value in them is
+still missing, so writing such a tibble back does not erase them.
 }
 \examples{
 \dontrun{
