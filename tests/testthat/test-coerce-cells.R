@@ -698,6 +698,7 @@ test_that("a number read into a text column is written out in full", {
   expect_identical(cell(0.6), "0.6")
   expect_identical(cell(list("a", "b")), "a, b")
   expect_identical(cell(TRUE), "TRUE")
+  expect_identical(cell(list("", "")), NA_character_)
 })
 
 test_that("an empty string reads as NA, as SeaTable's API reports it", {

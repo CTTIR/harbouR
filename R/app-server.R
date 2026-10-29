@@ -303,7 +303,7 @@
       if (ncol(state$query) == 0L) {
         return(.hb_placeholder(
           "The statement ran and returned no columns. A statement other
-           than SELECT changes the base."
+           than SELECT may have changed the base."
         ))
       }
       reactable::reactableOutput("query_table")

@@ -188,9 +188,10 @@ summary.harbour_dtable <- function(object, ...) {
 #'
 #' @param values The coerced column.
 #' @param lookup A named character vector from `.hb_select_lookup()`.
-#' @return The column, with ids replaced by names. An id whose option no
-#'   longer exists reads as `NA` in a single-select column and is dropped
-#'   from a multiple-select cell, as SeaTable's API reports such a cell.
+#' @return The column, with ids replaced by names. A value that is
+#'   already an option's name is kept. An id whose option no longer exists
+#'   reads as `NA` in a single-select column and is dropped from a
+#'   multiple-select cell, as SeaTable's API reports such a cell.
 #' @keywords internal
 #' @noRd
 .hb_apply_select_lookup <- function(values, lookup) {
@@ -199,7 +200,14 @@ summary.harbour_dtable <- function(object, ...) {
   }
   # The id of an option that has since been deleted names nothing: the
   # server sends such a cell as empty, so it reads as NA here as well.
-  translate <- function(x) unname(lookup[as.character(x)])
+  translate <- function(x) {
+    x <- as.character(x)
+    hit <- unname(lookup[x])
+    # A cell may hold the option's name rather than its id.
+    named <- is.na(hit) & x %in% lookup
+    hit[named] <- x[named]
+    hit
+  }
   if (is.list(values)) {
     return(lapply(values, function(x) {
       names_ <- translate(x)

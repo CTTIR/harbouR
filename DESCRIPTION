@@ -58,7 +58,7 @@ Suggests:
     testthat (>= 3.2.0),
     tidyr,
     withr,
-    writexl (>= 2.0.0)
+    writexl
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0

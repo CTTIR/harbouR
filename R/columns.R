@@ -151,6 +151,8 @@ hb_add_columns <- function(client, table, columns, ...) {
     )
   }
   specs <- .hb_column_specs(columns)
+  # Whatever happens below, the batch may have made columns already.
+  on.exit(.hb_invalidate_metadata(client), add = TRUE)
   reply <- .hb_request(
     client, .hb_base_path(client, "batch-append-columns", ""),
     service = "gateway", auth = "base", method = "POST",

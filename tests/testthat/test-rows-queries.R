@@ -713,3 +713,55 @@ test_that("hb_get_row also fetches a column the cache does not know", {
   with_mocked_request(out <- hb_get_row(cl, "T", "r1"), response = server)
   expect_identical(out$Later, "new")
 })
+
+test_that("an ordinary query keyed by column key is not read by position", {
+  # Only the Name column, key 0000, came back, which looked positional:
+  # its values landed in the first column.
+  cl <- mock_client()
+  reply <- list(
+    is_join_stmt = FALSE,
+    metadata = list(
+      list(key = "k7", name = "Notes", type = "text"),
+      list(key = "0000", name = "Name", type = "text")
+    ),
+    results = list(list(`_id` = "r1", `0000` = "a"))
+  )
+  with_mocked_request(
+    out <- hb_query(cl, "select Notes, Name from T where Notes is null limit 5",
+                    convert_keys = FALSE),
+    response = reply
+  )
+  expect_identical(out[["0000"]], "a")
+  expect_identical(out$k7, NA_character_)
+})
+
+test_that("a join of two Name columns is read by position", {
+  # Both keys are 0000, so key lookup gave the second the first's values.
+  cl <- mock_client()
+  reply <- list(
+    is_join_stmt = TRUE,
+    metadata = list(
+      list(key = "0000", name = "Name", type = "text"),
+      list(key = "0000", name = "Name", type = "text")
+    ),
+    results = list(list(`0000` = "a", `0001` = "b"))
+  )
+  with_mocked_request(
+    out <- hb_query(cl, "select a.Name, b.Name from a, b where a.k = b.k limit 5"),
+    response = reply
+  )
+  expect_identical(unname(unlist(out[1, 1:2])), c("a", "b"))
+})
+
+test_that("a hidden column filled in on some rows leaves the others alone", {
+  cl <- hidden_view_client()
+  suppressWarnings(with_mocked_request(
+    out <- hb_read_table(cl, "Samples", view = "Lab"),
+    response = view_server
+  ))
+  out$Status[1] <- "Done"
+  rec <- with_mocked_request(hb_update_rows(cl, "Samples", out), response = list())
+  updates <- rec$calls[[1L]]$body$updates
+  expect_identical(updates[[1L]]$row$Status, "Done")
+  expect_false("Status" %in% names(updates[[2L]]$row))
+})

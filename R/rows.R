@@ -225,9 +225,9 @@ hb_read_table.harbour_client <- function(x,
         "i" = "SeaTable leaves a view's hidden columns out of its rows. Show
                them in the view, or read without {.arg view}, to get their
                values.",
-        "i" = "{cli::qty(length(hidden))}{.fn hb_update_rows} leaves
-               {?it/them} out while {?it is/they are} still {.code NA}, so
-               writing the result back does not erase {?it/them}."),
+        "i" = "{cli::qty(length(hidden))}{.fn hb_update_rows} leaves out
+               the cells of {?it/them} you have not filled in, so writing
+               the result back does not erase them."),
       class = "harbour_warning_hidden_columns",
       call = call
     )
@@ -352,7 +352,7 @@ hb_query <- function(client, sql, ..., parameters = NULL,
       col
     })
   }
-  if (.hb_cells_keyed_by_position(rows, columns)) {
+  if (.hb_cells_keyed_by_position(rows, columns, resp$is_join_stmt)) {
     # Looked up by position; the names, or the keys, stay the names.
     columns <- Map(
       function(col, position) {
@@ -424,25 +424,27 @@ hb_query <- function(client, sql, ..., parameters = NULL,
 #'
 #' A SeaTable 6.2 server keys a join's cells neither by name nor by column
 #' key but by position - `"0000"`, `"0001"`, ... - in the order the
-#' metadata lists the columns. Such a reply is recognised by cells that
-#' carry only those positions while some column's own key is absent: the
-#' first position can coincide with a key, since the Name column's key is
-#' `"0000"`.
+#' metadata lists the columns. Only a join is read so. Its cells must
+#' carry nothing but positions, and something must prove them positions:
+#' one that is no column's key, or keys that repeat - two Name columns
+#' both have the key `"0000"`, which is also the first position.
 #'
 #' @param rows The result rows.
 #' @param columns The result schema.
+#' @param is_join The reply's `is_join_stmt` field.
 #' @return A single `TRUE` or `FALSE`.
 #' @keywords internal
 #' @noRd
-.hb_cells_keyed_by_position <- function(rows, columns) {
-  fields <- setdiff(unique(unlist(lapply(rows, names), use.names = FALSE)),
-                    "_id")
-  if (length(fields) == 0L || length(columns) == 0L) {
+.hb_cells_keyed_by_position <- function(rows, columns, is_join) {
+  if (!isTRUE(is_join) || length(columns) == 0L) {
     return(FALSE)
   }
+  fields <- setdiff(unique(unlist(lapply(rows, names), use.names = FALSE)),
+                    "_id")
   keys <- .hb_chr_field(columns, "key")
   positions <- sprintf("%04d", seq_along(columns) - 1L)
-  all(fields %in% positions) && !all(keys %in% fields)
+  length(fields) > 0L && all(fields %in% positions) &&
+    (any(!fields %in% keys) || anyDuplicated(keys) > 0L)
 }
 
 #' Are a query's result cells keyed by column key?
@@ -672,9 +674,9 @@ hb_append_rows <- function(client, table, data, ...,
 #'
 #' Every column of `data` that the table can store is written, so an `NA`
 #' clears its cell. The exception is a tibble read through a view with
-#' [hb_read_table()]: the columns the view hides come back as `NA`, and
-#' they are left out of the write for as long as every value in them is
-#' still missing, so writing such a tibble back does not erase them.
+#' [hb_read_table()]: the columns the view hides come back as `NA`, and a
+#' cell of theirs is left out of the write unless it has been filled in,
+#' so writing such a tibble back does not erase them.
 #'
 #' @inheritParams hb_append_rows
 #' @param row_id_col Name of the column in `data` that holds row IDs.
@@ -739,18 +741,23 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
   # calendar date, and a cell that cannot be sent as it is is reported once
   # for the whole write.
   write <- setdiff(intersect(names(data), writable), row_id_col)
-  # A read through a view gives the columns it hides as NA. Sent back,
-  # those NAs would clear the cells, so such a column is left out while
-  # nothing in it has been filled in.
-  hidden <- intersect(attr(data, "harbour_hidden_columns"), write)
-  untouched <- hidden[vapply(
-    hidden, function(col) .hb_all_missing(data[[col]]), logical(1)
-  )]
-  write <- setdiff(write, untouched)
   cells <- .hb_serialise_rows(
     data, types[write],
     date_only = .hb_date_only_columns(cols)
   )
+  # A read through a view gives the columns it hides as NA. Sent back,
+  # those NAs would clear the cells, so a cell of such a column is left
+  # out of its row unless it has been filled in.
+  hidden <- intersect(attr(data, "harbour_hidden_columns"), write)
+  for (col in hidden) {
+    for (r in which(vapply(
+      seq_len(nrow(data)),
+      function(r) .hb_all_missing(data[[col]][r]),
+      logical(1)
+    ))) {
+      cells[[r]][[col]] <- NULL
+    }
+  }
   updates <- lapply(seq_len(nrow(data)), function(r) {
     list(row_id = ids[[r]], row = cells[[r]])
   })

@@ -379,11 +379,14 @@ test_that("a transfer is limited by stalling, not by its length", {
   src <- withr::local_tempfile(fileext = ".txt")
   writeLines("x", src)
   hb_upload_file(cl, src)
+  expect_length(captured, 2L)
   for (req in captured) {
     expect_null(req$options$timeout_ms)
     expect_equal(req$options$connecttimeout_ms, 10000)
-    expect_equal(req$options$low_speed_time, 10)
-    expect_equal(req$options$low_speed_limit, 1)
   }
-  expect_length(captured, 2L)
+  # A download stalls when no data moves; an upload, once sent, waits for
+  # the server to store it, which is no stall.
+  expect_equal(captured[[1]]$options$low_speed_time, 10)
+  expect_equal(captured[[1]]$options$low_speed_limit, 1)
+  expect_null(captured[[2]]$options$low_speed_time)
 })

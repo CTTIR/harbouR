@@ -82,9 +82,9 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
     )
   }
   names(sheets) <- sheet[match(names(sheets), distinct)]
-  # writexl shortens a long name and replaces the characters Excel does not
-  # allow, which can make two names clash that the check above passed;
-  # libxlsxwriter then fails with an error that names neither table.
+  # The names are already legal and distinct, so libxlsxwriter should never
+  # refuse one; should it, its error names neither table, so this says
+  # what to do.
   rlang::try_fetch(
     writexl::write_xlsx(sheets, path = path),
     error = function(cnd) {
@@ -282,6 +282,11 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
       )
     )
   })
+  # The column names are trimmed as readxl always trimmed them.
+  frames <- lapply(frames, function(frame) {
+    names(frame) <- trimws(names(frame))
+    frame
+  })
   names(frames) <- wanted
   .hb_import_base(frames, base_name, call = rlang::current_env())
 }
@@ -434,10 +439,11 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
            "[eE][-+]?)\\s*$"),
     values, perl = TRUE
   )
-  # A leading plus, as a telephone number has, is lost as well: +49 17...
-  # would read as 4917... Hex codes, exponents and Inf are typed as
-  # read.csv() types them, which scripts may rely on.
-  lossy <- lossy | grepl("(*UCP)^\\s*\\+[0-9.]", values, perl = TRUE)
+  # The leading plus of a telephone number is lost as well: +4917... would
+  # read as 4917... A signed number such as +1.5 is still a number. Hex
+  # codes, exponents and Inf are typed as read.csv() types them, which
+  # scripts may rely on.
+  lossy <- lossy | grepl("(*UCP)^\\s*\\+[0-9]{6,}\\s*$", values, perl = TRUE)
   if (any(lossy)) {
     return(values)
   }
@@ -536,12 +542,6 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
   .hb_dtable_from_frames(frames, base_name)
 }
 
-#' Does a column hold SeaTable row ids, and nothing else?
-#'
-#' @param x A column.
-#' @return A single `TRUE` or `FALSE`; `TRUE` for a column with no values.
-#' @keywords internal
-#' @noRd
 #' Drop the columns named _id from a table's data
 #'
 #' The exporters, and [hb_read_table()], give the row identifier as a
@@ -575,6 +575,12 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
   frame
 }
 
+#' Does a column hold SeaTable row ids, and nothing else?
+#'
+#' @param x A column.
+#' @return A single `TRUE` or `FALSE`; `TRUE` for a column with no values.
+#' @keywords internal
+#' @noRd
 .hb_holds_row_ids <- function(x) {
   values <- as.character(x)
   values <- values[!is.na(values) & nzchar(values)]

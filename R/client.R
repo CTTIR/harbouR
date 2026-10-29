@@ -32,7 +32,7 @@
 #' @param timeout Per-request timeout in seconds, a positive number of
 #'   at most 2147483, or `Inf` for no limit. Default `30`. An upload or a
 #'   download is not cut off after that long: it is limited to that long
-#'   connecting, and to that long without moving data.
+#'   connecting, and a download to that long without moving data.
 #'
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A `harbour_client` object.

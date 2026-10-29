@@ -793,3 +793,26 @@ test_that("an archive replacing a private file is never readable by others", {
   expect_error(hb_write_dtable(hb_dtable(T = data.frame(x = 2)), path))
   expect_identical(seen, "600")
 })
+
+test_that("an entry outside the asset tree is never unpacked", {
+  # The whole archive was unpacked when every entry was safe, so a large
+  # entry outside asset/ - which the size limit does not count - was
+  # written to disk.
+  path <- dtable_with(c(
+    "pad.bin" = strrep("0", 50000),
+    "asset/files/a.txt" = "a"
+  ))
+  withr::local_options(harbouR.max_dtable_bytes = 10000)
+  unpacked <- NULL
+  real_unzip <- zip::unzip
+  testthat::local_mocked_bindings(
+    unzip = function(zipfile, files = NULL, ...) {
+      unpacked <<- c(unpacked, files %||% zip::zip_list(zipfile)$filename)
+      real_unzip(zipfile, files = files, ...)
+    },
+    .package = "zip"
+  )
+  base <- hb_read_dtable(path, assets = "extract")
+  expect_false("pad.bin" %in% unpacked)
+  expect_true(file.exists(file.path(base$assets_dir, "asset", "files", "a.txt")))
+})

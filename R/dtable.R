@@ -98,7 +98,7 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
     .hb_extract_assets(
       path, dir, asset_rows$filename,
-      whole = length(.hb_unsafe_entries(listing)) == 0L
+      whole = .hb_only_base_entries(listing)
     )
     .hb_check_extracted(dir, asset_rows$filename)
   }
@@ -765,6 +765,22 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   invisible(NULL)
 }
 
+#' Does an archive hold only a base, safely?
+#'
+#' Only then is all of it unpacked: an entry outside the asset tree is
+#' counted by no size limit, and a large one would be written to disk.
+#'
+#' @param listing The archive's `zip::zip_list()` listing.
+#' @return A single `TRUE` or `FALSE`.
+#' @keywords internal
+#' @noRd
+.hb_only_base_entries <- function(listing) {
+  name <- listing$filename
+  ours <- name == .hb_dtable_entry |
+    startsWith(name, paste0(.hb_dtable_asset_dir, "/"))
+  all(ours) && length(.hb_unsafe_entries(listing)) == 0L
+}
+
 #' The entries of an archive that would not extract inside its directory
 #'
 #' @param entries Rows of a `zip::zip_list()` listing.
@@ -855,8 +871,6 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   invisible(NULL)
 }
 
-#' @keywords internal
-#' @noRd
 #' Refuse a file that would unpack to more than harbouR opens
 #'
 #' The listing gives every entry's size once unpacked, so this costs
@@ -930,16 +944,16 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' Unpack a file's asset tree into a directory
 #'
 #' The archive is unpacked into a private folder and the asset tree moved
-#' into place. When every entry can be unpacked safely, all of them are:
-#' naming the entries to unpack makes `zip::unzip()` look each name up in
-#' the session's encoding, and a C locale - a cron job, a container -
-#' cannot find one that is not ASCII. An archive with an unsafe entry
-#' outside the asset tree has only its asset entries unpacked, by name.
+#' into place. When it holds nothing but `content.json` and safe asset
+#' entries, all of it is: naming the entries to unpack makes
+#' `zip::unzip()` look each name up in the session's encoding, and a C
+#' locale - a cron job, a container - cannot find one that is not ASCII.
+#' Any other archive has only its asset entries unpacked, by name.
 #'
 #' @param path The `.dtable` file.
 #' @param dir The extraction directory.
 #' @param files The names of the asset entries.
-#' @param whole Whether every entry of the archive is safe to unpack.
+#' @param whole Whether the archive holds only a base, safely.
 #' @return `NULL`, invisibly.
 #' @keywords internal
 #' @noRd
@@ -1009,6 +1023,8 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   invisible(NULL)
 }
 
+#' @keywords internal
+#' @noRd
 .hb_warn_format_version <- function(version) {
   version <- suppressWarnings(as.integer(version %||% NA))
   if (!is.na(version) && version > .hb_dtable_format_version) {
@@ -1186,8 +1202,6 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
     any(vapply(values, is.list, logical(1)))
 }
 
-#' @keywords internal
-#' @noRd
 #' Does a date column hold calendar dates rather than times?
 #'
 #' A `Date` does. So does a date-time column whose every value is midnight
@@ -1207,6 +1221,8 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   length(seconds) > 0L && all(seconds %% 86400 == 0)
 }
 
+#' @keywords internal
+#' @noRd
 .hb_infer_column_type <- function(values) {
   if (is.factor(values)) {
     return("single-select")

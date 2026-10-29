@@ -675,3 +675,18 @@ test_that("object keys JSON cannot keep are reported when writing", {
   base$content$extra <- stats::setNames(list(1), "")
   expect_warning(hb_write_dtable(base, path), class = "harbour_warning_json_keys")
 })
+
+test_that("a time the clocks skipped is read, not lost", {
+  # 02:30 on the night Berlin springs forward does not exist there.
+  withr::local_options(harbouR.dtable_tz = "Europe/Berlin")
+  out <- hb_read_table(naive_time_base("2024-03-31 02:30"), "T")
+  expect_false(is.na(out$t))
+  expect_identical(format(out$t, tz = "UTC"), "2024-03-31 01:30:00")
+})
+
+test_that("a select cell holding an option's name keeps it", {
+  expect_identical(
+    harbouR:::.hb_apply_select_lookup(c("o1", "alpha", "gone"), c(o1 = "alpha")),
+    c("alpha", "alpha", NA)
+  )
+})

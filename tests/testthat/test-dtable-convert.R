@@ -684,9 +684,20 @@ test_that("hb_read_xlsx() keeps the spaces around text", {
 test_that("a leading plus keeps a CSV column text", {
   # read.csv() read +4917612345678 as the number 4917612345678.
   path <- withr::local_tempfile(fileext = ".csv")
-  writeLines(c("phone,plain", "+4917612345678,1.5", "+4915112345678,2"), path)
+  writeLines(c("phone,plain,signed", "+4917612345678,1.5,+1.5",
+               "+4915112345678,2,-0.25"), path)
   base <- hb_read_csv(path)
   out <- hb_read_table(base, hb_list_tables(base)$name)
   expect_identical(out$phone, c("+4917612345678", "+4915112345678"))
   expect_identical(out$plain, c(1.5, 2))
+  # A signed number is still a number.
+  expect_identical(out$signed, c(1.5, -0.25))
+})
+
+test_that("hb_read_xlsx() trims the column names, as readxl always did", {
+  skip_if_not_installed("writexl")
+  skip_if_not_installed("readxl")
+  path <- withr::local_tempfile(fileext = ".xlsx")
+  writexl::write_xlsx(list(T = data.frame(` Sample ID ` = "a", check.names = FALSE)), path)
+  expect_identical(hb_list_columns(hb_read_xlsx(path), "T")$name, "Sample ID")
 })

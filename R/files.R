@@ -72,7 +72,7 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
   req <- httr2::request(upload_url) |>
     httr2::req_url_query(`ret-json` = 1L) |>
     httr2::req_user_agent(.hb_user_agent()) |>
-    .hb_transfer_timeout(client$timeout) |>
+    .hb_transfer_timeout(client$timeout, stall = FALSE) |>
     httr2::req_options(followlocation = FALSE) |>
     httr2::req_headers(
       Authorization = .hb_auth_header(client, "api")
@@ -104,23 +104,29 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
 #' Limit a transfer by how long it stalls, not by how long it takes
 #'
 #' A large file can take longer to move than any sensible request timeout
-#' while data flows the whole time. The client's timeout bounds connecting,
-#' and any stretch in which less than a byte a second moves; `Inf` sets no
-#' limit.
+#' while data flows the whole time. The client's timeout bounds connecting
+#' and, for a download, any stretch in which less than a byte a second
+#' moves; `Inf` sets no limit. An upload is bounded by connecting alone:
+#' once it is sent, the server stores it before it answers, and that wait
+#' would count as a stall.
 #'
 #' @param req An httr2 request.
 #' @param timeout The client's timeout in seconds, or `NULL` for 30.
+#' @param stall Whether to bound a stretch without data as well.
 #' @return The request.
 #' @keywords internal
 #' @noRd
-.hb_transfer_timeout <- function(req, timeout) {
+.hb_transfer_timeout <- function(req, timeout, stall = TRUE) {
   timeout <- timeout %||% 30
   if (is.infinite(timeout)) {
     return(req)
   }
+  req <- httr2::req_options(req, connecttimeout_ms = round(timeout * 1000))
+  if (!stall) {
+    return(req)
+  }
   httr2::req_options(
     req,
-    connecttimeout_ms = round(timeout * 1000),
     # Whole seconds, as curl counts them, and at least one.
     low_speed_time = max(1, ceiling(timeout)),
     low_speed_limit = 1

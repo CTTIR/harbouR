@@ -11,8 +11,8 @@ First release.
 * **Writing back a view read no longer erases the columns it hides.**
   `hb_read_table(view = )` returns those columns as `NA`, and
   `hb_update_rows()` sent the `NA`s back, which cleared the cells on the
-  server. They are now left out of the write while nothing in them has
-  been filled in, and the warning on reading says so.
+  server. A cell of such a column is now left out of the write unless it
+  has been filled in, and the warning on reading says so.
 
 * **`hb_add_select_option()` adds the option.** A SeaTable 6.2 server
   refuses an option that lacks either colour, so every call failed with
@@ -243,8 +243,8 @@ First release.
     had uploaded itself.
   * The client's `timeout` cut a download off after 30 seconds however
     fast it arrived, and an upload had no limit at all. Both are now
-    limited to that long connecting and to that long without moving
-    data. An upload folder that climbs out with `..` is refused.
+    limited to that long connecting, and a download to that long without
+    moving data. An upload folder that climbs out with `..` is refused.
 
 * The client:
 
@@ -356,13 +356,13 @@ First release.
     the export was refused, and `Probenübersicht` re-imported as
     `Proben_bersicht`. Only what a file name cannot hold is replaced.
   * harbouR makes sheet names legal for Excel itself, so `writexl` before
-    2.0.0 no longer fails on a table name holding `/` or `?`; `writexl`
-    2.0.0 is the minimum `DESCRIPTION` lists. Text longer than the 32,767
-    characters a workbook cell holds is refused, naming its column,
-    instead of failing inside `libxlsxwriter`.
+    2.0.0 no longer fails on a table name holding `/` or `?`. Text longer
+    than the 32,767 characters a workbook cell holds is refused, naming
+    its column, instead of failing inside `libxlsxwriter`.
   * `hb_read_xlsx()` keeps the spaces around text, which `readxl`
-    stripped, and `hb_read_csv()` keeps a column text when a value has a
-    leading plus, as a telephone number does.
+    stripped from values, and `hb_read_csv()` keeps a column text when it
+    holds a telephone number with a leading plus; a signed number such as
+    `+1.5` is still a number.
 
 * The explorer:
 

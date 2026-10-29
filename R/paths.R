@@ -58,6 +58,7 @@
   segments <- c(...)
   .hb_check_segments(segments, call = call)
   uuid <- .hb_base_uuid(client, call = call)
+  .hb_check_segments(uuid, call = call)
   encoded <- vapply(
     segments,
     function(segment) {

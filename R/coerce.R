@@ -321,6 +321,15 @@ hb_column_types <- function() {
     day <- suppressWarnings(lubridate::ymd(s, tz = zone, quiet = TRUE))
     parsed <- if (is.na(day)) .POSIXct(NA_real_, tz = zone) else as.POSIXct(day)
   }
+  if (is.na(parsed) && !identical(zone, "UTC")) {
+    # A local time the clocks skipped - 02:30 on the night they spring
+    # forward - exists in no zone that changes; it is read as the time it
+    # would have been, an hour on, rather than lost.
+    utc <- .hb_parse_date_value(s, tz = "UTC")
+    if (!is.na(utc)) {
+      parsed <- lubridate::force_tz(utc, zone, roll_dst = c("post", "pre"))
+    }
+  }
   parsed <- as.POSIXct(parsed)
   attr(parsed, "tzone") <- tz
   parsed
@@ -429,12 +438,11 @@ hb_column_types <- function() {
     value <- unlist(value, use.names = FALSE)
   }
   text <- if (is.numeric(value)) .hb_number_text(value) else as.character(value)
-  text <- text[!is.na(text)]
+  text <- text[!is.na(text) & nzchar(text)]
   if (length(text) == 0L) {
     return(NA_character_)
   }
-  text <- paste(text, collapse = ", ")
-  if (nzchar(text)) text else NA_character_
+  paste(text, collapse = ", ")
 }
 
 #' Write numbers as text, in full and without an exponent
@@ -909,8 +917,8 @@ hb_column_types <- function() {
     }
     # NA, taken from an ordinary vector, is no object: sent as [null] it was
     # stored as a cell that later broke every export of the base.
-    missing <- !is.list(value) && all(is.na(value))
-    if (length(value) == 0L || missing) {
+    absent <- !is.list(value) && all(is.na(value))
+    if (length(value) == 0L || absent) {
       # NA reaches the server as null, which clears the cell.
       return(NA)
     }
