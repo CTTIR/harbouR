@@ -47,9 +47,6 @@ Imports:
     zip
 Suggests:
     bslib (>= 0.6.0),
-    dplyr,
-    DT,
-    ggplot2,
     htmltools,
     knitr,
     reactable,

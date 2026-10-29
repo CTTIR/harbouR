@@ -49,12 +49,14 @@ JSON
 KISSKI
 lgl
 lifecycle
+LLM
 lubridate
 Mainz
 md
 metadata
 multiselect
 nominative
+NUL
 openapi
 OpenAPI
 ORCID
@@ -94,6 +96,7 @@ URLs
 UUID
 var
 viridis
+vLLM
 WCAG
 webhooks
 wordmark
