@@ -196,3 +196,120 @@ test_that("a live base exports to a .dtable that reads back", {
     expect_identical(hb_read_table(again, table), hb_read_table(base, table))
   }
 })
+
+# ---- Server contracts a mocked test cannot see ----------------------------
+#
+# Each of these failed against a SeaTable 6.2.1 server while every mocked
+# test passed: the mocks encoded what harbouR assumed the server does.
+
+# A table of this run's own, deleted when the calling test ends. Letters,
+# digits and underscores only, so SQL can name it without quoting.
+live_table <- function(client, columns, env = parent.frame()) {
+  name <- paste0(
+    "harbouR_test_", Sys.getpid(), "_",
+    gsub("[^0-9]", "", format(Sys.time(), "%H%M%OS3"))
+  )
+  hb_create_table(client, name, columns = columns)
+  withr::defer(try(hb_delete_table(client, name), silent = TRUE), envir = env)
+  name
+}
+
+# SQL reads a copy of the base that can trail a write by a moment.
+live_query <- function(client, sql, ok) {
+  for (i in seq_len(20L)) {
+    out <- hb_query(client, sql)
+    if (isTRUE(ok(out))) break
+    Sys.sleep(0.5)
+  }
+  out
+}
+
+test_that("a join's values come back, not NA", {
+  client <- live_client()
+  a <- live_table(client, list(list(name = "k", type = "text"),
+                               list(name = "v", type = "number")))
+  b <- live_table(client, list(list(name = "k", type = "text"),
+                               list(name = "w", type = "text")))
+  hb_append_rows(client, a, tibble::tibble(k = c("x", "y"), v = c(1, 2)))
+  hb_append_rows(client, b, tibble::tibble(k = c("x", "y"), w = c("p", "q")))
+  sql <- sprintf(
+    "select %s.v, %s.w from %s, %s where %s.k = %s.k limit 10",
+    a, b, a, b, a, b
+  )
+  out <- live_query(client, sql, function(x) nrow(x) == 2L)
+  expect_setequal(out$v, c(1, 2))
+  expect_setequal(out$w, c("p", "q"))
+})
+
+test_that("select options are added, renamed and deleted", {
+  client <- live_client()
+  table <- live_table(client, list(list(name = "Status", type = "single-select")))
+  hb_add_select_option(client, table, "Status", "open")
+  hb_append_rows(client, table, tibble::tibble(Status = "open"))
+  hb_update_select_option(client, table, "Status", "open", "done")
+  expect_identical(hb_read_table(client, table)$Status, "done")
+  hb_delete_select_option(client, table, "Status", "done")
+  options <- hb_list_columns(client, table, refresh = TRUE)$data[[1L]]$options
+  expect_length(options, 0L)
+})
+
+test_that("writing back a view read keeps the columns it hides", {
+  client <- live_client()
+  table <- live_table(client, list(list(name = "T", type = "text"),
+                                   list(name = "Keep", type = "text")))
+  hb_append_rows(client, table, tibble::tibble(T = "a", Keep = "kept"))
+  hb_create_view(client, table, "lean")
+  keys <- hb_list_columns(client, table, refresh = TRUE)
+  hb_update_view(client, table, "lean",
+                 list(hidden_columns = keys$key[keys$name == "Keep"]))
+  read <- suppressWarnings(hb_read_table(client, table, view = "lean"))
+  read$T <- "changed"
+  hb_update_rows(client, table, read)
+  after <- hb_read_table(client, table)
+  expect_identical(after$T, "changed")
+  expect_identical(after$Keep, "kept")
+})
+
+test_that("NA in list columns is stored empty, and the base still exports", {
+  client <- live_client()
+  table <- live_table(client, list(
+    list(name = "T", type = "text"), list(name = "G", type = "geolocation"),
+    list(name = "C", type = "collaborator"), list(name = "I", type = "image")
+  ))
+  hb_append_rows(client, table, tibble::tibble(
+    T = "x", G = NA, C = NA_character_, I = NA_character_
+  ))
+  raw <- live_raw_rows(client, table)[[1L]]
+  expect_true(length(raw$G) == 0L)
+  expect_true(length(raw$C) == 0L)
+  read <- hb_read_table(client, table)
+  expect_identical(read$G, list(list()))
+  expect_s3_class(hb_dtable(T = read), "harbour_dtable")
+})
+
+test_that("a formula column added in a batch is created", {
+  client <- live_client()
+  table <- live_table(client, list(list(name = "N", type = "number")))
+  hb_add_columns(client, table, list(
+    list(name = "F", type = "formula", data = list(formula = "{N} * 2")),
+    list(name = "T", type = "text")
+  ))
+  expect_true(all(c("F", "T") %in% hb_list_columns(client, table, refresh = TRUE)$name))
+})
+
+test_that("a date-time keeps its instant and a date its day", {
+  client <- live_client()
+  table <- live_table(client, list(
+    list(name = "When", type = "date", data = list(format = "YYYY-MM-DD HH:mm")),
+    list(name = "Day", type = "date", data = list(format = "YYYY-MM-DD"))
+  ))
+  instant <- as.POSIXct("2030-07-04 23:45:00", tz = "UTC")
+  withr::with_timezone("Pacific/Auckland", {
+    hb_append_rows(client, table, tibble::tibble(
+      When = instant, Day = as.Date("2030-07-04")
+    ))
+  })
+  read <- hb_read_table(client, table)
+  expect_identical(as.numeric(read$When), as.numeric(instant))
+  expect_identical(as.Date(read$Day), as.Date("2030-07-04"))
+})
