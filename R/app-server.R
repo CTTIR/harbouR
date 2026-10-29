@@ -310,7 +310,9 @@
     })
 
     output$query_table <- reactable::renderReactable({
-      shiny::req(state$query)
+      # A result with no columns is the panel's to explain; a table still
+      # on screen from an earlier query would otherwise try to draw it.
+      shiny::req(state$query, ncol(state$query) > 0L)
       reactable::reactable(
         .hb_display_frame(state$query),
         searchable = TRUE, compact = TRUE, defaultPageSize = 15

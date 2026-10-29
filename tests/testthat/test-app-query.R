@@ -133,6 +133,12 @@ test_that("a statement that returns no columns says so, with no LIMIT notice", {
       session$setInputs(run_sql = 1)
       panel <- as.character(htmltools::renderTags(output$query_panel$html)$html)
       expect_match(panel, "returned no columns", fixed = TRUE)
+      # A results table still on screen from an earlier SELECT re-renders
+      # once before the panel changes; it must not try to draw nothing.
+      drawn <- tryCatch(output$query_table, error = identity)
+      expect_true(
+        !inherits(drawn, "error") || inherits(drawn, "shiny.silent.error")
+      )
     }),
     response = reply
   )
