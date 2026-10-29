@@ -1,6 +1,8 @@
 # Add several columns at once
 
-Add several columns at once
+The columns are sent in one request. SeaTable's batch endpoint skips
+some column types without an error - a formula column among them - so
+any column its reply leaves out is then created on its own.
 
 ## Usage
 

@@ -90,7 +90,11 @@ as well.</p></dd>
 <dd><p>The server returned a non-2xx status that
 has no more specific subclass, or the request got no complete
 answer (status <code>NA</code>). Fields: <code>status</code>, <code>url</code> and <code>response_body</code> -
-the parsed JSON, or the text when the server did not send JSON. A
+the parsed JSON, or the text when the server did not send JSON. It
+is also raised for a redirect (a 3xx status), which harbouR reports
+rather than follows, and for a reply that is not JSON whatever its
+status, a 2xx included; <code>response_body</code> then holds the start of its
+text. A
 request that got no answer - a refused connection, a DNS or TLS
 failure, a timeout, a dropped connection - also carries httr2's
 classes <code>httr2_failure</code> and <code>httr2_error</code>, and has no
@@ -169,8 +173,24 @@ read as <code>TRUE</code> or <code>FALSE</code> as <code>null</code>. Field: <co
 <dd><p><code><a href="hb_write_dtable.html">hb_write_dtable()</a></code> left symbolic
 links in the asset tree out of the archive.</p></dd>
 
+<dt><code>harbour_warning_dtable_tz</code></dt>
+<dd><p><code><a href="hb_read_table.html">hb_read_table()</a></code> read date-times
+from a <code>.dtable</code> that carry no time zone, as a server's export
+stores them, as UTC, because <code>options(harbouR.dtable_tz)</code> names
+none. Given once a session.</p></dd>
+
+<dt><code>harbour_warning_json_keys</code></dt>
+<dd><p><code><a href="hb_write_dtable.html">hb_write_dtable()</a></code> met object
+keys that JSON cannot keep - empty, or repeated - so those values
+change on the way to disk.</p></dd>
+
+<dt><code>harbour_warning_json_text</code></dt>
+<dd><p><code><a href="hb_read_dtable.html">hb_read_dtable()</a></code> met a NUL
+character in <code>content.json</code>, which R cannot keep in a string.</p></dd>
+
 <dt><code>harbour_warning_id_column</code></dt>
-<dd><p><code><a href="hb_read_csv.html">hb_read_csv()</a></code> or <code><a href="hb_read_xlsx.html">hb_read_xlsx()</a></code>
+<dd><p><code><a href="hb_dtable.html">hb_dtable()</a></code>, <code><a href="hb_read_csv.html">hb_read_csv()</a></code> or
+<code><a href="hb_read_xlsx.html">hb_read_xlsx()</a></code>
 dropped a column named <code>_id</code> that held values other than SeaTable
 row ids.</p></dd>
 

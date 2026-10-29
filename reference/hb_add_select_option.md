@@ -1,6 +1,7 @@
 # Add a single-select option
 
-Add a single-select option
+The option is created in amber, with dark text: SeaTable requires both
+colours. Change them in SeaTable if you prefer others.
 
 ## Usage
 

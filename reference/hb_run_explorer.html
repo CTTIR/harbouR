@@ -82,7 +82,10 @@ tables, read the schema, run SQL, and download the result as
 
 
 <dt id="arg-host">host<a class="anchor" aria-label="anchor" href="#arg-host"></a></dt>
-<dd><p>Host to bind. Default <code>"127.0.0.1"</code>.</p></dd>
+<dd><p>Host to bind. Default <code>"127.0.0.1"</code>, this computer only.
+The app has no login: bound to an address others can reach, it hands
+them a client passed to it - its token, and a SQL box that can change
+the base - and whatever file is open.</p></dd>
 
 
 <dt id="arg-port">port<a class="anchor" aria-label="anchor" href="#arg-port"></a></dt>

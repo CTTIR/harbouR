@@ -24,9 +24,12 @@ function does not have - keep the classes rlang gives them.
   The server returned a non-2xx status that has no more specific
   subclass, or the request got no complete answer (status `NA`). Fields:
   `status`, `url` and `response_body` - the parsed JSON, or the text
-  when the server did not send JSON. A request that got no answer - a
-  refused connection, a DNS or TLS failure, a timeout, a dropped
-  connection - also carries httr2's classes `httr2_failure` and
+  when the server did not send JSON. It is also raised for a redirect (a
+  3xx status), which harbouR reports rather than follows, and for a
+  reply that is not JSON whatever its status, a 2xx included;
+  `response_body` then holds the start of its text. A request that got
+  no answer - a refused connection, a DNS or TLS failure, a timeout, a
+  dropped connection - also carries httr2's classes `httr2_failure` and
   `httr2_error`, and has no `response_body`. After a timeout or a
   dropped connection the server may already have applied a write, so a
   status of `NA` alone does not make sending the write again safe.
@@ -117,8 +120,28 @@ class of their own, and inherit from `rlang_warning`:
   [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
   left symbolic links in the asset tree out of the archive.
 
+- `harbour_warning_dtable_tz`:
+
+  [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+  read date-times from a `.dtable` that carry no time zone, as a
+  server's export stores them, as UTC, because
+  `options(harbouR.dtable_tz)` names none. Given once a session.
+
+- `harbour_warning_json_keys`:
+
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  met object keys that JSON cannot keep - empty, or repeated - so those
+  values change on the way to disk.
+
+- `harbour_warning_json_text`:
+
+  [`hb_read_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_dtable.md)
+  met a NUL character in `content.json`, which R cannot keep in a
+  string.
+
 - `harbour_warning_id_column`:
 
+  [`hb_dtable()`](https://cttir.github.io/harbouR/reference/hb_dtable.md),
   [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
   or
   [`hb_read_xlsx()`](https://cttir.github.io/harbouR/reference/hb_read_xlsx.md)

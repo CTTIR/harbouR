@@ -98,9 +98,10 @@ value does not change that:</p><ul><li><p>A column of numbers becomes <code>numb
 <code>TRUE</code> or <code>FALSE</code> becomes <code>checkbox</code>.</p></li>
 <li><p>A value written <code>NA</code> is read as missing.</p></li>
 <li><p>Dates and date-times arrive as text.</p></li>
-</ul><p>Two exceptions avoid losing data. A column holding an integer with a
-leading zero, such as <code>"0001"</code>, or an integer of more than 15 digits
-stays text, rather than losing the zeros or having its digits rounded,
+</ul><p>Some exceptions avoid losing data. A column holding an integer with a
+leading zero, such as <code>"0001"</code>, a value with a leading plus, such as
+the telephone number <code>"+4917612345678"</code>, or an integer of more than 15
+digits stays text, rather than losing the zeros, the plus or digits,
 and so does one holding a code such as <code>"12E"</code>, which
 <code><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">utils::read.csv()</a></code> reads as <code>12</code> in R before 4.4.1. A column with no
 values at all is text, not a checkbox column that would read <code>FALSE</code>

@@ -38,6 +38,9 @@ hb_read_dtable(path, ..., assets = c("none", "extract"), assets_dir = NULL)
 - assets_dir:
 
   Where to extract assets to. Defaults to a session temporary directory.
+  A folder that already holds an `asset/` tree is refused: the next
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  would pack that tree as well.
 
 ## Value
 
@@ -61,6 +64,20 @@ Keeping the tree untouched is what makes
 [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
 lossless; rebuilding it from a typed intermediate would quietly drop
 whatever harbouR did not know about.
+
+## Options
+
+- `harbouR.dtable_tz`: the time zone of the SeaTable server a file comes
+  from, such as `"Europe/Berlin"`. A server stores a date-time as the
+  time it shows, with no offset, and its export keeps it so; such a
+  value is read in this zone. Unset, it is read as UTC, with a warning
+  once a session. Date-only cells, and values that carry an offset, need
+  no zone.
+
+- `harbouR.max_dtable_bytes`: how large `content.json`, plus the assets
+  when they are extracted, may be once unpacked. Default 4 GiB. A larger
+  file is refused before anything is read, since a small archive can
+  unpack to enough to fill memory or disk.
 
 ## See also
 

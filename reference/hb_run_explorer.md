@@ -23,7 +23,10 @@ hb_run_explorer(x = NULL, ..., host = "127.0.0.1", port = NULL)
 
 - host:
 
-  Host to bind. Default `"127.0.0.1"`.
+  Host to bind. Default `"127.0.0.1"`, this computer only. The app has
+  no login: bound to an address others can reach, it hands them a client
+  passed to it - its token, and a SQL box that can change the base - and
+  whatever file is open.
 
 - port:
 

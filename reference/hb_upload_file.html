@@ -88,7 +88,8 @@ into a <code>file</code>-typed cell via <code><a href="hb_update_rows.html">hb_u
 <code>files/&lt;YYYY-MM&gt;</code> for the current month, or <code>images/&lt;YYYY-MM&gt;</code> when
 <code>path</code> has an image extension (<code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.gif</code>,
 <code>.bmp</code>, <code>.webp</code> or <code>.svg</code>). Passing <code>"files"</code> yourself does the same.
-Any other value is used as given.</p></dd>
+Any other value is used as given, but may not climb out of the asset
+root with <code>..</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

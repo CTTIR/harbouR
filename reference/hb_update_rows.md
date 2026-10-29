@@ -1,6 +1,11 @@
 # Update rows in a table
 
-Update rows in a table
+Every column of `data` that the table can store is written, so an `NA`
+clears its cell. The exception is a tibble read through a view with
+[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md):
+the columns the view hides come back as `NA`, and a cell of theirs is
+left out of the write unless it has been filled in, so writing such a
+tibble back does not erase them.
 
 ## Usage
 

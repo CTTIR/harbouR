@@ -44,8 +44,9 @@ samples |>
   dplyr::arrange(.data$Collected)
 ```
 
-Everything in harbouR also works fully offline against bundled example
-data — handy for exploring the data model before you connect anything:
+Reading a base works fully offline, against the bundled example data too
+— handy for exploring the data model before you connect anything.
+Writing to a base, SQL and file uploads need a server:
 
 ``` r
 

@@ -39,6 +39,19 @@ A list-column holding objects - file, image or location cells read from
 a live base - is flattened to `text`: a new base has none of the assets
 those cells point at.
 
+A `Date` column, or a date-time column whose every value is midnight
+UTC - which is how
+[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+reads a date-only column - becomes a date column showing the date alone.
+Other date-times are written with their UTC offset, so the server stores
+the instant whatever zone it runs in.
+
+A column named `_id`, such as the one
+[`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+adds, is dropped: SeaTable keeps that name for the row identifier, and
+the new base has identifiers of its own. One that holds anything but
+SeaTable row ids is dropped with a `harbour_warning_id_column` warning.
+
 New row ids, table ids, column keys and select-option ids are drawn from
 the session's random number generator, so building a base advances
 `.Random.seed`: a random draw made after `hb_dtable()` differs from the

@@ -34,9 +34,9 @@ hb_append_rows(client, table, data, ..., chunk_size = 1000L)
 ## Value
 
 Invisibly, a one-row tibble with columns `table` (chr), `n_rows` (int) -
-the count the server confirmed - and `n_requests` (int). The server's
-reply also lists the new rows' `_id`s; harbouR's summary does not
-include them.
+the count the server confirmed, or the number of rows sent when its
+reply gives none - and `n_requests` (int). The server's reply also lists
+the new rows' `_id`s; harbouR's summary does not include them.
 
 ## See also
 

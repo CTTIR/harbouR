@@ -23,7 +23,9 @@ hb_ping(client, ...)
 
 ## Value
 
-The `client`, invisibly. Errors if the server is unreachable.
+The `client`, invisibly. Errors with a `harbour_error_http` condition if
+the server cannot be reached, and with the class of the answer -
+`harbour_error_not_found` for a 404, say - if it answers with an error.
 
 ## Details
 

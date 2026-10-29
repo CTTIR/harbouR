@@ -94,7 +94,8 @@ only in case may not all be extracted, and a warning names them.</p></dd>
 
 <dt id="arg-assets-dir">assets_dir<a class="anchor" aria-label="anchor" href="#arg-assets-dir"></a></dt>
 <dd><p>Where to extract assets to. Defaults to a session
-temporary directory.</p></dd>
+temporary directory. A folder that already holds an <code>asset/</code> tree is
+refused: the next <code><a href="hb_write_dtable.html">hb_write_dtable()</a></code> would pack that tree as well.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -117,6 +118,21 @@ Keeping the tree untouched is what makes <code><a href="hb_write_dtable.html">hb
 rebuilding it from a typed intermediate would quietly drop whatever
 harbouR did not know about.</p>
     </div>
+    <div class="section level2">
+    <h2 id="options">Options<a class="anchor" aria-label="anchor" href="#options"></a></h2>
+
+
+<ul><li><p><code>harbouR.dtable_tz</code>: the time zone of the SeaTable server a file
+comes from, such as <code>"Europe/Berlin"</code>. A server stores a date-time as
+the time it shows, with no offset, and its export keeps it so; such a
+value is read in this zone. Unset, it is read as UTC, with a warning
+once a session. Date-only cells, and values that carry an offset,
+need no zone.</p></li>
+<li><p><code>harbouR.max_dtable_bytes</code>: how large <code>content.json</code>, plus the
+assets when they are extracted, may be once unpacked. Default 4 GiB.
+A larger file is refused before anything is read, since a small
+archive can unpack to enough to fill memory or disk.</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="hb_write_dtable.html">hb_write_dtable()</a></code>, <code><a href="hb_dtable.html">hb_dtable()</a></code></p>

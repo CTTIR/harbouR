@@ -34,12 +34,13 @@ hb_write_xlsx(x, path, ..., tables = NULL)
 
 ## Details
 
-Each sheet is named after its table. `writexl` may adjust a name to fit
-Excel's rules for sheet names: at most 31 characters, and none of `/`,
-`\`, `?`, `*`, `:` or a square bracket. Excel compares sheet names
-ignoring case, so table names that differ only in the case of the
-letters A to Z, such as `Samples` and `samples`, are rejected before
-anything is written.
+Each sheet is named after its table, made to fit Excel's rules for sheet
+names: cut to 31 characters, with each of `/`, `\`, `?`, `*`, `:` or a
+square bracket replaced by `_`. Excel compares sheet names ignoring
+case, so table names that would give sheet names differing only in the
+case of the letters A to Z, such as `Samples` and `samples`, are
+rejected before anything is written. So is text longer than the 32,767
+characters a workbook cell holds.
 
 ## What is lost
 

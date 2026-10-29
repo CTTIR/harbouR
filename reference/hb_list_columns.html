@@ -94,7 +94,11 @@ base metadata. Default <code>FALSE</code>.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble with one row per column and columns <code>name</code> (chr),
-<code>type</code> (chr), <code>key</code> (chr), <code>editable</code> (lgl) and <code>data</code> (list). The
+<code>type</code> (chr), <code>key</code> (chr), <code>editable</code> (lgl) and <code>data</code> (list).
+<code>editable</code> says whether harbouR writes the column: it is <code>FALSE</code> for
+the types <code><a href="hb_column_types.html">hb_column_types()</a></code> marks <code>read_only</code>. SeaTable's own
+<code>editable</code> flag is not used, since it is set for formula columns too.
+The
 <code>data</code> list-column holds the column's type-specific configuration -
 for a select column, its options.</p>
     </div>

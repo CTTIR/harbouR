@@ -37,8 +37,8 @@ describes, holding one table per sheet read.
 ## Details
 
 A column's type follows its cells, judged over every row of the sheet. A
-column with no values at all is text. A column named `_id`, such as the
-one
+column with no values at all is text. The spaces around a text value are
+kept. A column named `_id`, such as the one
 [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md)
 writes, is dropped, with a warning when it holds anything but SeaTable
 row ids.

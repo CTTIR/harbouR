@@ -46,10 +46,11 @@ them, and quoting a value does not change that:
 
 - Dates and date-times arrive as text.
 
-Two exceptions avoid losing data. A column holding an integer with a
-leading zero, such as `"0001"`, or an integer of more than 15 digits
-stays text, rather than losing the zeros or having its digits rounded,
-and so does one holding a code such as `"12E"`, which
+Some exceptions avoid losing data. A column holding an integer with a
+leading zero, such as `"0001"`, a value with a leading plus, such as the
+telephone number `"+4917612345678"`, or an integer of more than 15
+digits stays text, rather than losing the zeros, the plus or digits, and
+so does one holding a code such as `"12E"`, which
 [`utils::read.csv()`](https://rdrr.io/r/utils/read.table.html) reads as
 `12` in R before 4.4.1. A column with no values at all is text, not a
 checkbox column that would read `FALSE` in every row.

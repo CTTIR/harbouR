@@ -80,7 +80,10 @@ to test whether the client's credentials are accepted.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The <code>client</code>, invisibly. Errors if the server is unreachable.</p>
+    <p>The <code>client</code>, invisibly. Errors with a <code>harbour_error_http</code>
+condition if the server cannot be reached, and with the class of the
+answer - <code>harbour_error_not_found</code> for a 404, say - if it answers
+with an error.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

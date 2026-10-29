@@ -40,9 +40,12 @@ hb_list_columns(x, table, ...)
 ## Value
 
 A tibble with one row per column and columns `name` (chr), `type` (chr),
-`key` (chr), `editable` (lgl) and `data` (list). The `data` list-column
-holds the column's type-specific configuration - for a select column,
-its options.
+`key` (chr), `editable` (lgl) and `data` (list). `editable` says whether
+harbouR writes the column: it is `FALSE` for the types
+[`hb_column_types()`](https://cttir.github.io/harbouR/reference/hb_column_types.md)
+marks `read_only`. SeaTable's own `editable` flag is not used, since it
+is set for formula columns too. The `data` list-column holds the
+column's type-specific configuration - for a select column, its options.
 
 ## See also
 

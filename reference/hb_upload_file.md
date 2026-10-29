@@ -33,7 +33,8 @@ hb_upload_file(client, path, ..., relative_path = "files")
   the folder the upload link names: `files/<YYYY-MM>` for the current
   month, or `images/<YYYY-MM>` when `path` has an image extension
   (`.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.webp` or `.svg`). Passing
-  `"files"` yourself does the same. Any other value is used as given.
+  `"files"` yourself does the same. Any other value is used as given,
+  but may not climb out of the asset root with `..`.
 
 ## Value
 

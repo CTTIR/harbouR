@@ -2,8 +2,10 @@
 
 Writes one `.csv` per table into `dir`. Subject to the same losses as
 [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md);
-see its documentation. Table names that produce the same filename
-(ignoring case) are rejected before any files are written.
+see its documentation. Each file is named after its table, with the
+characters a file name cannot hold on some system - `/ \ : * ? " < > |`
+and control characters - replaced by `_`. Table names that produce the
+same filename (ignoring case) are rejected before any files are written.
 
 ## Usage
 

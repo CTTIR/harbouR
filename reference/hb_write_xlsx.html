@@ -92,12 +92,13 @@ have no faithful representation.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Each sheet is named after its table. <code>writexl</code> may adjust a name to fit
-Excel's rules for sheet names: at most 31 characters, and none of
-<code>/</code>, <code>\</code>, <code>?</code>, <code>*</code>, <code>:</code> or a square bracket. Excel compares sheet names
-ignoring case, so table names that differ only in the case of the
-letters A to Z, such as <code>Samples</code> and <code>samples</code>, are rejected before
-anything is written.</p>
+    <p>Each sheet is named after its table, made to fit Excel's rules for
+sheet names: cut to 31 characters, with each of <code>/</code>, <code>\</code>, <code>?</code>, <code>*</code>,
+<code>:</code> or a square bracket replaced by <code>_</code>. Excel compares sheet names
+ignoring case, so table names that would give sheet names differing
+only in the case of the letters A to Z, such as <code>Samples</code> and
+<code>samples</code>, are rejected before anything is written. So is text longer
+than the 32,767 characters a workbook cell holds.</p>
     </div>
     <div class="section level2">
     <h2 id="what-is-lost">What is lost<a class="anchor" aria-label="anchor" href="#what-is-lost"></a></h2>

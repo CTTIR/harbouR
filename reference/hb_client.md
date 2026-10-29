@@ -37,7 +37,8 @@ format(x, ...)
 - api_token:
 
   Long-lived per-base API token. Defaults to the `SEATABLE_API_TOKEN`
-  env var. Mutually exclusive with `username`/`password`.
+  env var, which is not read when `username` or `password` is given.
+  Mutually exclusive with `username`/`password`.
 
 - ...:
 
@@ -63,7 +64,10 @@ format(x, ...)
 
 - timeout:
 
-  Per-request timeout in seconds, a positive number. Default `30`.
+  Per-request timeout in seconds, a positive number of at most 2147483,
+  or `Inf` for no limit. Default `30`. An upload or a download is not
+  cut off after that long: it is limited to that long connecting, and a
+  download to that long without moving data.
 
 - x:
 

@@ -2,7 +2,8 @@
 
 Attachment cells in an export point at `file://dtable-bundle/asset/...`.
 When the base was read with `assets = "extract"`, this gives the path
-the file was extracted to.
+the file was extracted to. The URL may be escaped, as SeaTable's export
+writes it - `my%20report%20%281%29.txt` for `my report (1).txt`.
 
 ## Usage
 
@@ -52,5 +53,5 @@ Other dtable:
 path <- system.file("extdata", "example.dtable", package = "harbouR")
 base <- hb_read_dtable(path, assets = "extract")
 hb_asset_path(base, "file://dtable-bundle/asset/files/2026-07/readme.txt")
-#> [1] "/tmp/RtmpeKs7dW/harbour-assets-19517a0c11cf/asset/files/2026-07/readme.txt"
+#> [1] "/tmp/Rtmp9VlPRL/harbour-assets-19587d0eeb74/asset/files/2026-07/readme.txt"
 ```
