@@ -15,7 +15,8 @@
 #'   `files/<YYYY-MM>` for the current month, or `images/<YYYY-MM>` when
 #'   `path` has an image extension (`.png`, `.jpg`, `.jpeg`, `.gif`,
 #'   `.bmp`, `.webp` or `.svg`). Passing `"files"` yourself does the same.
-#'   Any other value is used as given.
+#'   Any other value is used as given, but may not climb out of the asset
+#'   root with `..`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
 #' @return A named list describing the uploaded asset.
@@ -39,6 +40,13 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
     )
   }
   .check_string(relative_path)
+  if (".." %in% strsplit(relative_path, "[/\\\\]")[[1L]]) {
+    hb_abort(
+      c("{.arg relative_path} must stay inside the base's assets.",
+        "x" = "{.val {relative_path}} climbs out with {.val ..}."),
+      class = "harbour_error_bad_argument"
+    )
+  }
   link <- .hb_request(client, "/api/v2.1/dtable/app-upload-link/",
     service = "web", auth = "api", method = "GET"
   )
@@ -64,6 +72,8 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
   req <- httr2::request(upload_url) |>
     httr2::req_url_query(`ret-json` = 1L) |>
     httr2::req_user_agent(.hb_user_agent()) |>
+    .hb_transfer_timeout(client$timeout) |>
+    httr2::req_options(followlocation = FALSE) |>
     httr2::req_headers(
       Authorization = .hb_auth_header(client, "api")
     ) |>
@@ -88,6 +98,32 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
       workspace_id = link$workspace_id %||% client$.workspace_id,
       parent_path = link$parent_path
     )
+  )
+}
+
+#' Limit a transfer by how long it stalls, not by how long it takes
+#'
+#' A large file can take longer to move than any sensible request timeout
+#' while data flows the whole time. The client's timeout bounds connecting,
+#' and any stretch in which less than a byte a second moves; `Inf` sets no
+#' limit.
+#'
+#' @param req An httr2 request.
+#' @param timeout The client's timeout in seconds, or `NULL` for 30.
+#' @return The request.
+#' @keywords internal
+#' @noRd
+.hb_transfer_timeout <- function(req, timeout) {
+  timeout <- timeout %||% 30
+  if (is.infinite(timeout)) {
+    return(req)
+  }
+  httr2::req_options(
+    req,
+    connecttimeout_ms = round(timeout * 1000),
+    # Whole seconds, as curl counts them, and at least one.
+    low_speed_time = max(1, ceiling(timeout)),
+    low_speed_limit = 1
   )
 }
 
@@ -247,7 +283,7 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
   on.exit(unlink(partial), add = TRUE)
   req <- httr2::request(source) |>
     httr2::req_user_agent(.hb_user_agent()) |>
-    httr2::req_timeout(client$timeout %||% 30)
+    .hb_transfer_timeout(client$timeout)
   resp <- .hb_perform_raw(req, path = partial)
   if (httr2::resp_status(resp) >= 400L) {
     hb_abort(
@@ -516,7 +552,11 @@ hb_delete_asset <- function(client, url, ...) {
   # The same front as .hb_url_host() reads, so a scheme spelt in capitals
   # is stripped as well.
   stripped <- sub(.hb_origin_pattern, "", url)
-  relative <- sub("^/workspace/[^/]+/asset(-preview)?/[^/]+", "", stripped)
+  # Anywhere in the path, not only at its start: a server can be reached
+  # under a prefix such as /seatable.
+  relative <- sub(
+    "^.*?/workspace/[^/]+/asset(-preview)?/[^/]+", "", stripped, perl = TRUE
+  )
   if (!nzchar(relative)) relative <- stripped
   if (!startsWith(relative, "/")) relative <- paste0("/", relative)
   utils::URLdecode(relative)

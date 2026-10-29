@@ -314,3 +314,76 @@ test_that(".hb_asset_url returns NA rather than a wrong URL when unbound", {
   expect_identical(harbouR:::.hb_asset_url(cl, "files", "a.pdf"),
                    NA_character_)
 })
+
+test_that("an asset URL on a server under a path prefix reduces to its path", {
+  # Only a URL with the asset segment right after the host was stripped,
+  # so download and delete of an upload on https://example.org/seatable
+  # sent the server's own path along.
+  expect_identical(
+    harbouR:::.hb_asset_path(paste0(
+      "https://example.org/seatable/workspace/42/asset/uu-id/",
+      "files/2026-10/report%201.pdf"
+    )),
+    "/files/2026-10/report 1.pdf"
+  )
+})
+
+test_that("an upload folder that climbs out of the asset root is refused", {
+  cl <- mock_client()
+  src <- withr::local_tempfile(fileext = ".txt")
+  writeLines("x", src)
+  called <- FALSE
+  testthat::local_mocked_bindings(
+    .hb_request = function(...) {
+      called <<- TRUE
+      list()
+    },
+    .package = "harbouR"
+  )
+  for (bad in c("../x", "files/../../x", "files\\..\\x", "..")) {
+    expect_error(
+      hb_upload_file(cl, src, relative_path = bad),
+      class = "harbour_error_bad_argument"
+    )
+  }
+  expect_false(called)
+})
+
+test_that("a transfer is limited by stalling, not by its length", {
+  # The client's timeout covered the whole download, so a large file was
+  # cut off after 30 seconds however fast it arrived, and an upload had no
+  # limit at all.
+  cl <- mock_client()
+  dest <- withr::local_tempfile(fileext = ".bin")
+  captured <- list()
+  testthat::local_mocked_bindings(
+    req_perform = function(req, path = NULL, ...) {
+      captured[[length(captured) + 1L]] <<- req
+      if (!is.null(path)) writeLines("payload", path)
+      httr2::response(
+        200L,
+        headers = list(`Content-Type` = "application/json"),
+        body = charToRaw('[{"name": "a.txt", "size": 2}]')
+      )
+    },
+    .package = "httr2"
+  )
+  hb_download_file(cl, "https://x.example.org/file", dest)
+  testthat::local_mocked_bindings(
+    .hb_request = function(client, path, ...) list(
+      upload_link = "https://up.example.org/upload",
+      parent_path = "/asset/demo-uuid", file_relative_path = "files/2026-07"
+    ),
+    .package = "harbouR"
+  )
+  src <- withr::local_tempfile(fileext = ".txt")
+  writeLines("x", src)
+  hb_upload_file(cl, src)
+  for (req in captured) {
+    expect_null(req$options$timeout_ms)
+    expect_equal(req$options$connecttimeout_ms, 10000)
+    expect_equal(req$options$low_speed_time, 10)
+    expect_equal(req$options$low_speed_limit, 1)
+  }
+  expect_length(captured, 2L)
+})

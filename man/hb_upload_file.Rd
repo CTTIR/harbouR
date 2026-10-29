@@ -18,7 +18,8 @@ hb_upload_file(client, path, ..., relative_path = "files")
 \verb{files/<YYYY-MM>} for the current month, or \verb{images/<YYYY-MM>} when
 \code{path} has an image extension (\code{.png}, \code{.jpg}, \code{.jpeg}, \code{.gif},
 \code{.bmp}, \code{.webp} or \code{.svg}). Passing \code{"files"} yourself does the same.
-Any other value is used as given.}
+Any other value is used as given, but may not climb out of the asset
+root with \code{..}.}
 }
 \value{
 A named list describing the uploaded asset.

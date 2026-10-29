@@ -47,7 +47,9 @@ when \code{api_token} is used, since an API token names its base
 implicitly.}
 
 \item{timeout}{Per-request timeout in seconds, a positive number of
-at most 2147483, or \code{Inf} for no limit. Default \code{30}.}
+at most 2147483, or \code{Inf} for no limit. Default \code{30}. An upload or a
+download is not cut off after that long: it is limited to that long
+connecting, and to that long without moving data.}
 
 \item{x}{A \code{harbour_client}.}
 }
