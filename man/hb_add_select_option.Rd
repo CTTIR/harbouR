@@ -21,7 +21,8 @@ hb_add_select_option(client, table, name, option, ...)
 Invisibly returns the client.
 }
 \description{
-Add a single-select option
+The option is created in amber, with dark text: SeaTable requires both
+colours. Change them in SeaTable if you prefer others.
 }
 \examples{
 \dontrun{

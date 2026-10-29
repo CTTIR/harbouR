@@ -19,7 +19,10 @@ hb_delete_view(client, table, view, ...)
 Invisibly returns the client.
 }
 \description{
-Delete a view
+SeaTable's API addresses one view by its name in the URL, and its
+server reads a slash in that name as a path separator and a name of one
+or two dots as a folder. Such a view cannot be deleted through the API, and
+harbouR says so before sending anything: rename it in SeaTable first.
 }
 \examples{
 \dontrun{

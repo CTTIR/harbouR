@@ -167,3 +167,51 @@ test_that("column_data alone keeps the column's current type", {
     class = "harbour_error_not_found"
   )
 })
+
+test_that("a new select option is sent with the colours SeaTable requires", {
+  # A SeaTable 6.2 server answers "options invalid" to an option that lacks
+  # either colour, so an option sent by name alone was never added.
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    hb_add_select_option(cl, "Samples", "Status", "Done"),
+    response = list(success = TRUE)
+  )
+  opt <- rec$calls[[1]]$body$options[[1]]
+  expect_identical(opt$name, "Done")
+  expect_match(opt$color, "^#[0-9A-F]{6}$")
+  expect_match(opt$textColor, "^#[0-9A-F]{6}$")
+})
+
+test_that("a column the batch endpoint leaves out is created on its own", {
+  # SeaTable 6.2 answers a batch holding a formula column with 200 and
+  # the columns it made - all but the formula one.
+  cl <- mock_client()
+  server <- function(path, method, query, body) {
+    if (grepl("batch-append-columns", path, fixed = TRUE)) {
+      return(list(columns = list(list(key = "k8", name = "T", type = "text"))))
+    }
+    list(key = "k9", name = body$column_name, type = body$column_type)
+  }
+  rec <- with_mocked_request(
+    hb_add_columns(cl, "Samples", list(
+      list(name = "F", type = "formula", data = list(formula = "{N}+1")),
+      list(name = "T", type = "text")
+    )),
+    response = server
+  )
+  expect_length(rec$calls, 2L)
+  expect_match(rec$calls[[2]]$path, "/columns/$")
+  expect_identical(rec$calls[[2]]$method, "POST")
+  expect_identical(rec$calls[[2]]$body$column_name, "F")
+  expect_identical(rec$calls[[2]]$body$column_type, "formula")
+  expect_identical(rec$calls[[2]]$body$column_data, list(formula = "{N}+1"))
+})
+
+test_that("a batch reply that lists no columns is not second-guessed", {
+  cl <- mock_client()
+  rec <- with_mocked_request(
+    hb_add_columns(cl, "Samples", list(list(name = "T", type = "text"))),
+    response = list(success = TRUE)
+  )
+  expect_length(rec$calls, 1L)
+})

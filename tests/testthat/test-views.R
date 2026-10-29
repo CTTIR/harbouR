@@ -122,3 +122,50 @@ test_that("the default view is recognised by its id", {
   )
   expect_true(res$is_default)
 })
+
+# A view whose name holds a slash cannot be addressed by SeaTable's API:
+# its proxy decodes %2F into a path separator, and "." or ".." are
+# resolved away. Such views were met with a 404 that blamed the base.
+slashed_view_client <- function() {
+  cl <- mock_client()
+  cl$.metadata$tables[[1L]]$views <- c(cl$.metadata$tables[[1L]]$views, list(
+    list(`_id` = "Sl01", name = "a/b", type = "table",
+         filters = list(), sorts = list(), hidden_columns = list("k2"))
+  ))
+  cl
+}
+
+test_that("a view with a slash in its name is read from the metadata", {
+  cl <- slashed_view_client()
+  meta <- cl$.metadata
+  server <- function(path, method, query, body) {
+    # The list of a table's views names none in its path; anything below
+    # it would name this one.
+    if (!endsWith(path, "/views/")) {
+      stop("a per-view request was sent: ", path)
+    }
+    list(views = meta$tables[[1L]]$views)
+  }
+  with_mocked_request(out <- hb_get_view(cl, "Samples", "a/b"), response = server)
+  expect_identical(out$name, "a/b")
+  expect_identical(out$hidden_columns, list("k2"))
+})
+
+test_that("a view the server cannot address is not updated or deleted", {
+  cl <- slashed_view_client()
+  for (name in c("a/b", ".", "..")) {
+    rec <- new_request_recorder()
+    expect_error(
+      with_mocked_request(
+        hb_update_view(cl, "Samples", name, list(name = "x")),
+        recorder = rec
+      ),
+      class = "harbour_error_unsupported"
+    )
+    expect_error(
+      with_mocked_request(hb_delete_view(cl, "Samples", name), recorder = rec),
+      class = "harbour_error_unsupported"
+    )
+    expect_length(rec$calls, 0L)
+  }
+})

@@ -21,7 +21,10 @@ A one-row tibble with columns \code{name} (chr), \code{type} (chr),
 \code{hidden_columns} (list of chr).
 }
 \description{
-Get a view's settings
+SeaTable's API addresses one view by its name in the URL, and its
+server reads a slash in that name as a path separator and a name of one
+or two dots as a folder. Such a view is looked up in the table's list of
+views instead.
 }
 \examples{
 \dontrun{

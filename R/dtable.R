@@ -889,7 +889,7 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   for (i in seq_along(labels)) {
     id <- .hb_new_short_id(ids)
     ids <- c(ids, id)
-    options[[i]] <- list(id = id, name = labels[[i]], color = "#eaa700")
+    options[[i]] <- c(list(id = id, name = labels[[i]]), .hb_option_colours)
   }
   options
 }

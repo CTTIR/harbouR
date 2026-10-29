@@ -112,6 +112,11 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 }
 
 #' Add several columns at once
+#'
+#' The columns are sent in one request. SeaTable's batch endpoint skips
+#' some column types without an error - a formula column among them - so
+#' any column its reply leaves out is then created on its own.
+#'
 #' @inheritParams hb_add_column
 #' @param columns A list of column specs, each a named list with `name`,
 #'   `type` and optionally `data` - the same shape [hb_create_table()]
@@ -141,13 +146,36 @@ hb_add_columns <- function(client, table, columns, ...) {
       class = "harbour_error_bad_argument"
     )
   }
-  .hb_request(client, .hb_base_path(client, "batch-append-columns", ""),
+  specs <- .hb_column_specs(columns)
+  reply <- .hb_request(client, .hb_base_path(client, "batch-append-columns", ""),
     service = "gateway", auth = "base", method = "POST",
-    body = list(table_name = table, columns = .hb_column_specs(columns))
+    body = list(table_name = table, columns = specs)
   )
+  # The reply lists the columns made. SeaTable 6.2 answers 200 and leaves
+  # a formula column out, so each column the reply omits is created on its
+  # own, where it is either made or refused with an error.
+  if (!is.null(reply$columns)) {
+    made <- .hb_chr_field(reply$columns, "name")
+    for (spec in specs) {
+      if (spec$column_name %in% made) next
+      .hb_request(client, .hb_base_path(client, "columns", ""),
+        service = "gateway", auth = "base", method = "POST",
+        body = c(list(table_name = table), spec)
+      )
+    }
+  }
   .hb_invalidate_metadata(client)
   invisible(client)
 }
+
+#' The colours of a select option harbouR creates
+#'
+#' SeaTable needs both: a 6.2 server refuses an option that lacks either.
+#' Amber under near-black text reads well on light and dark themes.
+#'
+#' @keywords internal
+#' @noRd
+.hb_option_colours <- list(color = "#EAA700", textColor = "#202428")
 
 #' Update a column
 #' @inheritParams hb_add_column
@@ -244,6 +272,10 @@ hb_delete_column <- function(client, table, name, ...) {
 }
 
 #' Add a single-select option
+#'
+#' The option is created in amber, with dark text: SeaTable requires both
+#' colours. Change them in SeaTable if you prefer others.
+#'
 #' @inheritParams hb_add_column
 #' @param option Option name to add.
 #' @param ... These dots are for future extensions and must be empty.
@@ -265,7 +297,7 @@ hb_add_select_option <- function(client, table, name, option, ...) {
     service = "gateway", auth = "base", method = "POST",
     body = list(
       table_name = table, column = name,
-      options = list(list(name = option))
+      options = list(c(list(name = option), .hb_option_colours))
     )
   )
   .hb_invalidate_metadata(client)

@@ -371,11 +371,19 @@ test_that("names with spaces, slashes and non-ASCII survive the path", {
   )
 
   rec2 <- with_mocked_request(
+    try(hb_get_row(cl, "Samples", "a/b"), silent = TRUE),
+    response = list()
+  )
+  # A slash in a segment must not split the path into two segments.
+  expect_identical(rec2$calls[[1L]]$path, paste0(GATEWAY, "rows/a%2Fb/"))
+
+  # SeaTable's proxy decodes %2F anyway, so a view named that way is found
+  # in the list of views instead.
+  rec3 <- with_mocked_request(
     try(hb_get_view(cl, "Samples", "a/b"), silent = TRUE),
     response = list()
   )
-  # A slash in a view name must not split the path into two segments.
-  expect_identical(rec2$calls[[1L]]$path, paste0(GATEWAY, "views/a%2Fb/"))
+  expect_identical(rec3$calls[[1L]]$path, paste0(GATEWAY, "views/"))
 })
 
 test_that("base tokens are sent as Bearer, web tokens as Token", {
