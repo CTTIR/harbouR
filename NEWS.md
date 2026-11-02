@@ -245,6 +245,12 @@ First release.
 
 * The explorer:
 
+  * The SQL box in `hb_run_explorer()` had no accessible name, and source
+    badges were difficult to read on the dark header. The box now has a
+    visible label, and the badges use contrasting solid backgrounds.
+  * A `.dtable` download could lose attachments without telling the
+    browser user. The Export panel now reports missing extracted files,
+    and warnings raised during the download remain visible in the app.
   * `hb_run_explorer()` used a compact symbol in its header; it now shows
     the named v5 artwork. Missing packaged artwork raises
     `harbour_error_package_asset` and identifies the missing file.

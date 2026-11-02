@@ -142,7 +142,7 @@
        query engine."
     ),
     shiny::textAreaInput(
-      "sql", NULL, width = "100%", height = "110px",
+      "sql", "SQL query", width = "100%", height = "110px",
       placeholder = "select * from Samples limit 100"
     ),
     shiny::uiOutput("run_sql_ui"),

@@ -122,28 +122,67 @@ test_that("only the flattening report is shown as one", {
   expect_length(seen$text, 0L)
 })
 
-test_that("the Export panel promises a lossless .dtable only for a file", {
+test_that("the Export panel describes the attachments available to a file", {
   skip_if_no_ui()
   whole <- export_note(hb_read_dtable(example_path(), assets = "extract"))
-  expect_match(whole, "A .dtable keeps everything", fixed = TRUE)
+  expect_match(whole, "attachments available when downloaded", fixed = TRUE)
 
   # Read without its assets, a file's .dtable cannot carry them.
   bare <- export_note(hb_read_dtable(example_path()))
-  expect_false(grepl("keeps everything", bare, fixed = TRUE))
-  expect_match(bare, "opened without its attachments", fixed = TRUE)
+  expect_match(bare, "Some bundled attachments are unavailable", fixed = TRUE)
   # A listing of folders alone holds no attachment to lose.
   folders <- hb_read_dtable(example_path())
   folders$assets <- folders$assets[endsWith(folders$assets$filename, "/"), ]
-  expect_match(export_note(folders), "keeps everything", fixed = TRUE)
+  expect_match(export_note(folders), "attachments available when downloaded",
+               fixed = TRUE)
 
   live <- NULL
   with_mocked_request(
     live <- export_note(mock_client()),
     response = list(rows = list())
   )
-  expect_false(grepl("keeps everything", live, fixed = TRUE))
   expect_match(live, "rebuilt from its rows", fixed = TRUE)
   expect_match(live, "attachments or views", fixed = TRUE)
+})
+
+test_that("a missing attachment is reported in the panel and on download", {
+  skip_if_no_ui()
+  base <- hb_read_dtable(example_path(), assets = "extract")
+  files <- base$assets$filename[!endsWith(base$assets$filename, "/")]
+  unlink(file.path(base$assets_dir, files[[1L]]))
+  note <- export_note(base)
+  expect_match(note, "Some bundled attachments are unavailable", fixed = TRUE)
+  expect_match(note, "reopen the original file", fixed = TRUE)
+
+  seen <- local_notifications()
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    out <- expect_no_warning(output$dl_dtable)
+    expect_identical(hb_read_dtable(out)$content, base$content)
+    expect_false(files[[1L]] %in% zip::zip_list(out)$filename)
+    expect_true(all(files[-1L] %in% zip::zip_list(out)$filename))
+  })
+  expect_length(seen$text, 1L)
+  expect_match(seen$text, "While writing the .dtable", fixed = TRUE)
+  expect_match(seen$text, files[[1L]], fixed = TRUE)
+})
+
+test_that("a replaced asset root is excluded with a browser warning", {
+  skip_if_no_ui()
+  skip_on_os("windows")
+  base <- hb_read_dtable(example_path(), assets = "extract")
+  root <- file.path(base$assets_dir, "asset")
+  moved <- withr::local_tempfile()
+  expect_true(file.rename(root, moved))
+  expect_true(file.symlink(moved, root))
+  seen <- local_notifications()
+  shiny::testServer(harbouR:::.hb_app_server(preset = base), {
+    out <- expect_no_warning(output$dl_dtable)
+    expect_identical(hb_read_dtable(out)$content, base$content)
+    expect_false(any(startsWith(zip::zip_list(out)$filename, "asset/")))
+  })
+  expect_length(seen$text, 1L)
+  expect_match(seen$text, "While writing the .dtable", fixed = TRUE)
+  expect_match(seen$text, "not followed", fixed = TRUE)
 })
 
 test_that("a .dtable of a live base says what it does not keep", {

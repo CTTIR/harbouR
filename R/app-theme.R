@@ -191,11 +191,11 @@ body { background: var(--hb-paper); }
 .hb-source {
   display: inline-flex; align-items: center; gap: 0.35rem;
   font-size: 0.78rem; padding: 0.1rem 0.5rem; border-radius: 999px;
-  background: rgba(29, 158, 117, 0.14); color: var(--hb-deep);
+  background: var(--hb-paper); color: var(--hb-deep);
   font-weight: 500;
 }
-.hb-source.hb-file { background: rgba(128, 203, 196, 0.28); }
-.hb-source.hb-demo { background: rgba(253, 231, 37, 0.35); }
+.hb-source.hb-file { background: var(--hb-foam); }
+.hb-source.hb-demo { background: var(--hb-beacon); }
 
 :focus-visible { outline: 2px solid var(--hb-tide); outline-offset: 2px; }
 
