@@ -64,8 +64,8 @@ samples |>
   dplyr::arrange(.data$Collected)
 ```
 
-Everything in harbouR also works fully offline against bundled example
-data — handy for exploring the data model before you connect anything:
+The bundled example data let you explore the data model fully offline
+before connecting a server:
 
 ``` r
 library(harbouR)
@@ -111,8 +111,10 @@ hb_read_table(base, "Samples")[, 1:4]
 #> 2 S-002 Rendered elsewhere.               8.1      NA
 ```
 
-Writing one back is lossless, and `hb_dtable()` builds a base out of
-ordinary data frames so you can import R results into SeaTable:
+Writing one back preserves its base content and available extracted
+attachments. Missing attachments or symbolic links left out of an export
+produce a warning. `hb_dtable()` builds a base out of ordinary data
+frames so you can import R results into SeaTable:
 
 ``` r
 # extract the assets, so the attachments are written back too
