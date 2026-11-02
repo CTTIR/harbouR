@@ -401,11 +401,6 @@ hb_column_types <- function() {
 .hb_rows_to_tibble <- function(rows, columns, by = c("name", "key"),
                                tz = "UTC") {
   by <- rlang::arg_match(by)
-  if (length(columns) == 0L) {
-    # Documented to always carry _id, so a column-less table is 0 x 1,
-    # not 0 x 0.
-    return(tibble::tibble(`_id` = character()))
-  }
   col_names <- .hb_chr_field(columns, "name")
   col_types <- .hb_chr_field(columns, "type", default = "text")
   # The API keys cells by display name; a .dtable file keys them by the

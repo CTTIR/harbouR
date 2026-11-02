@@ -159,6 +159,10 @@ First release.
 
 * `.dtable` files:
 
+  * `hb_read_table()` returned no rows for a table with no data columns,
+    even when its stored rows had identifiers. It now keeps those rows
+    and their `_id` values. An ID-only CSV imported by `hb_read_csv()`
+    also keeps its rows, with new identifiers as for other CSV imports.
   * `hb_read_dtable(assets = "extract")` extracted only one of two
     attachments whose names differ only in case, on any system, since
     `zip::unzip()` finds an entry without regard to case; writing the
