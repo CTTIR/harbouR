@@ -12,11 +12,11 @@ hb_metadata(client, ...)
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A \code{harbour_metadata} object — a list with components
+A \code{harbour_metadata} object - a list with components
 \code{base_name} (chr), \code{tables} (list), \code{version} (chr).
 }
 \description{
-Retrieves the structural metadata for a SeaTable base — the list of
+Retrieves the structural metadata for a SeaTable base - the list of
 tables, their columns (with SeaTable types) and views. The result is
 cached on the client.
 }

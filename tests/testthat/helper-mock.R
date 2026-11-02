@@ -17,7 +17,7 @@ mock_client <- function(server = "https://demo.example.org",
 # Record every .hb_request() call made by the code under test and return a
 # canned body. Returns an environment whose `$calls` list grows with each
 # invocation, so tests can assert on path / method / body without touching
-# the network. Use inside withr::with_… / test_that via with_mocked_request().
+# the network. Use inside withr::with_... / test_that via with_mocked_request().
 new_request_recorder <- function(response = list()) {
   rec <- new.env(parent = emptyenv())
   rec$calls <- list()

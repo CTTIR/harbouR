@@ -287,6 +287,9 @@ First release.
 
 * Documentation and tests:
 
+  * Source comments and two test literals still contained non-ASCII
+    characters despite the portability convention. The source is now
+    ASCII, with Unicode escapes preserving the test values in every locale.
   * README and vignette pages used different logos; they now use
     standardised named v5 artwork in matching light and dark forms.
   * The examples that need a server are wrapped in `\dontrun{}`. They

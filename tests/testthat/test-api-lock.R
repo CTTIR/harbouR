@@ -1,5 +1,5 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# API lock — do not edit to make a build pass.
+# -----------------------------------------------------------------------------
+# API lock - do not edit to make a build pass.
 #
 # This package is FROZEN: it underpins manuscripts written or in press, so its
 # observable behaviour must not change. This file pins the public surface: the
@@ -16,9 +16,9 @@
 # Legitimate reasons to accept a new snapshot:
 #   * a NEW export was added (additive; existing lines must be untouched)
 #
-# Everything else — a changed signature, a changed default, a removed export,
-# a changed return type — is a breaking change to a frozen package.
-# ─────────────────────────────────────────────────────────────────────────────
+# Everything else - a changed signature, a changed default, a removed export,
+# a changed return type - is a breaking change to a frozen package.
+# -----------------------------------------------------------------------------
 
 # testing_package() is the supported way to learn which package is under
 # test; packageName() returns NULL from inside a testthat test file.
@@ -68,7 +68,7 @@ test_that("exported API surface is unchanged", {
 test_that("registered S3 methods are unchanged", {
   ns <- asNamespace(pkg)
   # getNamespaceInfo() reflects the S3method() directives in NAMESPACE.
-  # .__S3MethodsTable__. is NOT equivalent — it holds only methods for
+  # .__S3MethodsTable__. is NOT equivalent - it holds only methods for
   # generics owned by other packages, and reads empty for many packages.
   s3 <- getNamespaceInfo(ns, "S3methods")
   methods <- if (length(s3)) {
