@@ -36,6 +36,11 @@ First release.
 
 * Security:
 
+  * `hb_read_dtable(assets = "extract")` reported an existing link out
+    of `assets_dir` only after writing through it. It now checks every
+    destination component before extraction, including dangling links.
+    `hb_write_dtable()` also leaves a linked `asset/` root out with a
+    warning; it previously included files from wherever that link led.
   * `hb_read_dtable(assets = "extract")` extracted whatever names an
     archive held, so a crafted `.dtable` - the explorer opens uploads
     this way - could write files outside `assets_dir`, `~/.Rprofile`
@@ -159,6 +164,9 @@ First release.
 
 * `.dtable` files:
 
+  * `hb_write_dtable()` silently omitted extracted attachments that had
+    since been removed. It now warns with `harbour_warning_missing_assets`,
+    naming those files, while still writing the base and available assets.
   * `hb_read_table()` returned no rows for a table with no data columns,
     even when its stored rows had identifiers. It now keeps those rows
     and their `_id` values. An ID-only CSV imported by `hb_read_csv()`

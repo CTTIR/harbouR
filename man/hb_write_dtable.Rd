@@ -43,7 +43,9 @@ removed, is written into once the archive is complete; that needs room
 for a second copy, and should it fail, the complete archive is kept
 beside \code{path} and the error says where. A symbolic link in the
 extracted asset tree is left out, with a warning, rather than followed
-to wherever it points.
+to wherever it points, including when \verb{asset/} itself is a link.
+Recorded attachments whose extracted files are missing are left out
+with a warning of class \code{harbour_warning_missing_assets} naming them.
 }
 \examples{
 path <- system.file("extdata", "example.dtable", package = "harbouR")
