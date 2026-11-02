@@ -64,6 +64,7 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
   req <- httr2::request(upload_url) |>
     httr2::req_url_query(`ret-json` = 1L) |>
     httr2::req_user_agent(.hb_user_agent()) |>
+    httr2::req_timeout(client$timeout %||% 30) |>
     httr2::req_headers(
       Authorization = .hb_auth_header(client, "api")
     ) |>
@@ -239,7 +240,7 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
       class = "harbour_error_bad_argument"
     )
   }
-  asset <- .hb_is_asset_url(url)
+  asset <- .hb_is_asset_url(url, server = client$server)
   source <- .hb_download_source(client, url)
   parent <- dirname(dest)
   if (!dir.exists(parent)) dir.create(parent, recursive = TRUE)
@@ -258,8 +259,8 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
       status = httr2::resp_status(resp)
     )
   }
-  if (asset && .hb_is_login_page(resp, url)) {
-    file <- .hb_asset_path(url)
+  if (asset && .hb_is_login_page(resp, url, server = client$server)) {
+    file <- .hb_asset_path(url, server = client$server)
     hb_abort(
       c("Download failed.",
         "x" = "SeaTable sent its login page instead of {.file {file}}.",
@@ -287,13 +288,14 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
 #' @keywords internal
 #' @noRd
 .hb_download_source <- function(client, url, call = rlang::caller_env()) {
-  if (!.hb_is_asset_url(url)) {
+  if (!.hb_is_asset_url(url, server = client$server)) {
     return(url)
   }
   .hb_check_asset_url(client, url, call = call)
   link <- .hb_request(client, "/api/v2.1/dtable/app-download-link/",
     service = "web", auth = "api", method = "GET",
-    query = list(path = .hb_asset_path(url)), call = call
+    query = list(path = .hb_asset_path(url, server = client$server)),
+    call = call
   )
   if (is.null(link$download_link)) {
     hb_abort("SeaTable did not return a download link.",
@@ -312,17 +314,18 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
 #'
 #' @param resp The `httr2_response` of the download.
 #' @param url The asset URL that was asked for.
+#' @param server The client's server URL, including any path prefix.
 #' @return A single `TRUE` or `FALSE`.
 #' @keywords internal
 #' @noRd
-.hb_is_login_page <- function(resp, url) {
+.hb_is_login_page <- function(resp, url, server = NULL) {
   final <- httr2::resp_url(resp) %||% ""
   if (grepl("/accounts/login", final, fixed = TRUE)) {
     return(TRUE)
   }
   type <- tolower(httr2::resp_content_type(resp))
   identical(type, "text/html") &&
-    !grepl("\\.html?$", .hb_asset_path(url), ignore.case = TRUE)
+    !grepl("\\.html?$", .hb_asset_path(url, server), ignore.case = TRUE)
 }
 
 #' A pattern for the scheme and host at the front of an absolute URL
@@ -337,32 +340,34 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
 #' Does this URL point at an asset of a base?
 #'
 #' @param url A URL.
+#' @param server The client's server URL, including any path prefix.
 #' @return A single `TRUE` or `FALSE`.
 #' @keywords internal
 #' @noRd
-.hb_is_asset_url <- function(url) {
-  !is.null(.hb_asset_uuid(url))
+.hb_is_asset_url <- function(url, server = NULL) {
+  !is.null(.hb_asset_uuid(url, server))
 }
 
 #' The base an asset URL belongs to
 #'
 #' A file or image cell holds `/workspace/<id>/asset/<base uuid>/...`,
 #' with the server in front or relative to it; a preview has
-#' `asset-preview` instead. The segment is looked for anywhere in the
-#' path, not only at its start: a URL with something in front of it is
-#' still an asset, and fetching it directly would save the login page.
+#' `asset-preview` instead. Only the start of the path, after the client's
+#' server prefix, identifies a base. The same segments later in an asset's
+#' filename are ordinary folder names.
 #'
 #' @param url A URL.
+#' @param server The client's server URL, including any path prefix.
 #' @return The base UUID as the URL spells it, or `NULL` if `url` is not
 #'   an asset URL.
 #' @keywords internal
 #' @noRd
-.hb_asset_uuid <- function(url) {
+.hb_asset_uuid <- function(url, server = NULL) {
   # Only the path counts: the same text in a query string or a fragment
   # does not make a URL an asset.
-  path <- sub("[?#].*$", "", sub(.hb_origin_pattern, "", url))
+  path <- sub("[?#].*$", "", .hb_asset_url_path(url, server))
   found <- regmatches(
-    path, regexec("/workspace/[^/]+/asset(-preview)?/([^/]+)/", path)
+    path, regexec("^/workspace/[^/]+/asset(-preview)?/([^/]+)/", path)
   )[[1L]]
   if (length(found) == 0L) NULL else found[[3L]]
 }
@@ -420,7 +425,7 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
       call = call
     )
   }
-  uuid <- .hb_asset_uuid(url)
+  uuid <- .hb_asset_uuid(url, server = client$server)
   # Without an API token the file endpoints refuse the client before any
   # request goes out, so there is nothing to protect, and logging in just
   # to learn the base would be wasted.
@@ -477,14 +482,15 @@ hb_delete_asset <- function(client, url, ...) {
   .check_client(client)
   .check_string(url)
   .hb_check_asset_url(client, url)
-  path <- .hb_asset_path(url)
+  path <- .hb_asset_path(url, server = client$server)
   # The endpoint deletes one attachment. The server itself, or an asset
   # URL cut short, reduces to the asset root or a folder, and what the
   # server would delete for that is nothing anyone asked for; so does a
   # path with a `.` or `..` in it, once the server resolves it.
   segments <- strsplit(path, "/", fixed = TRUE)[[1L]]
   root <- grepl(
-    "/workspace/[^/]+/asset(-preview)?/[^/]+$", sub("[?#].*$", "", url)
+    "^/workspace/[^/]+/asset(-preview)?/[^/]+$",
+    .hb_asset_url_path(url, server = client$server)
   )
   if (endsWith(path, "/") || root || any(segments %in% c(".", ".."))) {
     hb_abort(
@@ -502,6 +508,32 @@ hb_delete_asset <- function(client, url, ...) {
   invisible(client)
 }
 
+#' Remove the origin and configured server prefix from an asset URL
+#'
+#' An asset-relative path can contain any folder names. Only the server's
+#' exact prefix may precede the workspace and base root in an asset URL.
+#'
+#' @param url A full asset URL, or a relative path.
+#' @param server The client's server URL, including any path prefix.
+#' @return The undecoded path without the origin or server prefix.
+#' @keywords internal
+#' @noRd
+.hb_asset_url_path <- function(url, server = NULL) {
+  path <- sub(.hb_origin_pattern, "", url)
+  if (grepl(.hb_origin_pattern, url)) {
+    # Relative filenames may contain literal ? or #. Escaped punctuation
+    # in an absolute URL stays encoded until its structure has been read.
+    path <- sub("[?#].*$", "", path)
+  }
+  if (!is.null(server)) {
+    prefix <- sub("/+$", "", sub(.hb_origin_pattern, "", server))
+    if (nzchar(prefix) && startsWith(path, paste0(prefix, "/workspace/"))) {
+      path <- substring(path, nchar(prefix) + 1L)
+    }
+  }
+  path
+}
+
 #' Reduce an asset URL to the path SeaTable's asset endpoints take
 #'
 #' Cells store a full, percent-encoded URL; the download-link and delete
@@ -509,13 +541,12 @@ hb_delete_asset <- function(client, url, ...) {
 #' `/files/2026-07/report.pdf`.
 #'
 #' @param url A full asset URL, or an already-relative path.
+#' @param server The client's server URL, including any path prefix.
 #' @return A single string beginning with `/`.
 #' @keywords internal
 #' @noRd
-.hb_asset_path <- function(url) {
-  # The same front as .hb_url_host() reads, so a scheme spelt in capitals
-  # is stripped as well.
-  stripped <- sub(.hb_origin_pattern, "", url)
+.hb_asset_path <- function(url, server = NULL) {
+  stripped <- .hb_asset_url_path(url, server)
   relative <- sub("^/workspace/[^/]+/asset(-preview)?/[^/]+", "", stripped)
   if (!nzchar(relative)) relative <- stripped
   if (!startsWith(relative, "/")) relative <- paste0("/", relative)

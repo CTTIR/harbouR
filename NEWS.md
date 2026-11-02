@@ -133,6 +133,14 @@ First release.
 
 * Files:
 
+  * `hb_download_file()` and `hb_delete_asset()` kept the server prefix
+    in attachment paths, so files on a server below a URL prefix could
+    not be found. They now remove the configured prefix and absolute URL
+    query or fragment before decoding the filename. Ordinary nested
+    folders named `workspace` or `asset` remain part of the filename.
+  * `hb_upload_file()` ignored the client's timeout for its multipart
+    transfer. It now applies the same timeout as other requests, without
+    retrying a write that may already have reached the server.
   * `hb_download_file()` recognised an asset URL only when it began with
     the client's `server` exactly as typed. A relative URL, the form
     SeaTable writes into cells, failed, and a host in other capitals,

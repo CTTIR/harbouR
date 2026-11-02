@@ -175,6 +175,13 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
   )
   # Without ret-json the endpoint answers in plain text, not JSON.
   expect_match(captured$url, "ret-json=1", fixed = TRUE)
+  expect_equal(captured$options$timeout_ms, 10000)
+  cl$timeout <- 0.125
+  hb_upload_file(cl, src)
+  expect_equal(captured$options$timeout_ms, 125)
+  cl$timeout <- NULL
+  hb_upload_file(cl, src)
+  expect_equal(captured$options$timeout_ms, 30000)
 })
 
 test_that("hb_upload_file takes the workspace from the upload link", {
