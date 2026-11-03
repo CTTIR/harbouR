@@ -112,7 +112,7 @@
 <span><span class="va">samples</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.data</span><span class="op">$</span><span class="va">Status</span> <span class="op">==</span> <span class="st">"ready"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">.data</span><span class="op">$</span><span class="va">Collected</span><span class="op">)</span></span></code></pre></div>
-<p>Reading a base works fully offline, against the bundled example data too — handy for exploring the data model before you connect anything. Writing to a base, SQL and file uploads need a server:</p>
+<p>The bundled example data let you explore the data model fully offline before connecting a server: Writing to a base, SQL and file uploads need a server.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
 <span></span>
@@ -153,7 +153,7 @@
 <span><span class="co">#&gt;   &lt;chr&gt; &lt;chr&gt;                                &lt;dbl&gt; &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1 S-001 A plain **markdown** string.      0.000587  0.42</span></span>
 <span><span class="co">#&gt; 2 S-002 Rendered elsewhere.               8.1      NA</span></span></code></pre></div>
-<p>Writing one back is lossless, and <code><a href="reference/hb_dtable.html">hb_dtable()</a></code> builds a base out of ordinary data frames so you can import R results into SeaTable:</p>
+<p>Writing one back preserves its base content and available extracted attachments. Missing attachments or symbolic links left out of an export produce a warning. <code><a href="reference/hb_dtable.html">hb_dtable()</a></code> builds a base out of ordinary data frames so you can import R results into SeaTable:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract the assets, so the attachments are written back too</span></span>
 <span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hb_read_dtable.html">hb_read_dtable</a></span><span class="op">(</span><span class="va">path</span>, assets <span class="op">=</span> <span class="st">"extract"</span><span class="op">)</span></span>

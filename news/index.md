@@ -95,6 +95,12 @@ First release.
 
 - Security:
 
+  - `hb_read_dtable(assets = "extract")` reported an existing link out
+    of `assets_dir` only after writing through it. It now checks every
+    destination component before extraction, including dangling links.
+    [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+    also leaves a linked `asset/` root out with a warning; it previously
+    included files from wherever that link led.
   - `hb_read_dtable(assets = "extract")` extracted whatever names an
     archive held, so a crafted `.dtable` - the explorer opens uploads
     this way - could write files outside `assets_dir`, `~/.Rprofile`
@@ -277,6 +283,19 @@ First release.
 - Files:
 
   - [`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
+    and
+    [`hb_delete_asset()`](https://cttir.github.io/harbouR/reference/hb_delete_asset.md)
+    kept the server prefix in attachment paths, so files on a server
+    below a URL prefix could not be found. They now remove the
+    configured prefix and absolute URL query or fragment before decoding
+    the filename. Ordinary nested folders named `workspace` or `asset`
+    remain part of the filename.
+  - [`hb_upload_file()`](https://cttir.github.io/harbouR/reference/hb_upload_file.md)
+    ignored the client’s timeout for its multipart transfer. A finite
+    timeout now bounds the complete upload request, without retrying a
+    write that may already have reached the server. Check the remote
+    outcome before retrying a timed-out upload.
+  - [`hb_download_file()`](https://cttir.github.io/harbouR/reference/hb_download_file.md)
     recognised an asset URL only when it began with the client’s
     `server` exactly as typed. A relative URL, the form SeaTable writes
     into cells, failed, and a host in other capitals, `http` for `https`
@@ -306,7 +325,8 @@ First release.
   - The client’s `timeout` cut a download off after 30 seconds however
     fast it arrived, and an upload had no limit at all. Both are now
     limited to that long connecting, and a download to that long without
-    moving data. An upload folder that climbs out with `..` is refused.
+    moving data; uploads also have a total request deadline. An upload
+    folder that climbs out with `..` is refused.
 
 - The client:
 
@@ -332,6 +352,16 @@ First release.
 
 - `.dtable` files:
 
+  - [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+    silently omitted extracted attachments that had since been removed.
+    It now warns with `harbour_warning_missing_assets`, naming those
+    files, while still writing the base and available assets.
+  - [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+    returned no rows for a table with no data columns, even when its
+    stored rows had identifiers. It now keeps those rows and their `_id`
+    values. An ID-only CSV imported by
+    [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
+    also keeps its rows, with new identifiers as for other CSV imports.
   - `hb_read_dtable(assets = "extract")` extracted only one of two
     attachments whose names differ only in case, on any system, since
     [`zip::unzip()`](https://r-lib.github.io/zip/reference/unzip.html)
@@ -453,6 +483,14 @@ First release.
 
 - The explorer:
 
+  - The SQL box in
+    [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
+    had no accessible name, and source badges were difficult to read on
+    the dark header. The box now has a visible label, and the badges use
+    contrasting solid backgrounds.
+  - A `.dtable` download could lose attachments without telling the
+    browser user. The Export panel now reports missing extracted files,
+    and warnings raised during the download remain visible in the app.
   - [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
     used a compact symbol in its header; it now shows the named v5
     artwork. Missing packaged artwork raises
@@ -506,6 +544,11 @@ First release.
     longer listed. The README no longer says that everything works
     offline, and the help says what `hb_list_columns()$editable` and
     `hb_append_rows()$n_rows` mean.
+
+  - Source comments and two test literals still contained non-ASCII
+    characters despite the portability convention. The source is now
+    ASCII, with Unicode escapes preserving the test values in every
+    locale.
 
   - README and vignette pages used different logos; they now use
     standardised named v5 artwork in matching light and dark forms.

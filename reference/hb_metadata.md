@@ -1,6 +1,6 @@
 # Fetch base metadata
 
-Retrieves the structural metadata for a SeaTable base — the list of
+Retrieves the structural metadata for a SeaTable base - the list of
 tables, their columns (with SeaTable types) and views. The result is
 cached on the client.
 
@@ -22,7 +22,7 @@ hb_metadata(client, ...)
 
 ## Value
 
-A `harbour_metadata` object — a list with components `base_name` (chr),
+A `harbour_metadata` object - a list with components `base_name` (chr),
 `tables` (list), `version` (chr).
 
 ## See also

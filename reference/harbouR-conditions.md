@@ -118,7 +118,8 @@ class of their own, and inherit from `rlang_warning`:
 - `harbour_warning_asset_link`:
 
   [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
-  left symbolic links in the asset tree out of the archive.
+  left symbolic links in the asset tree, including a linked asset root,
+  out of the archive.
 
 - `harbour_warning_dtable_tz`:
 
@@ -138,6 +139,12 @@ class of their own, and inherit from `rlang_warning`:
   [`hb_read_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_dtable.md)
   met a NUL character in `content.json`, which R cannot keep in a
   string.
+
+- `harbour_warning_missing_assets`:
+
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  could not include recorded attachments whose extracted files are
+  missing. Field: `files`, their filenames inside the archive.
 
 - `harbour_warning_id_column`:
 

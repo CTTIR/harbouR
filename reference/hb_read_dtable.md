@@ -33,7 +33,9 @@ hb_read_dtable(path, ..., assets = c("none", "extract"), assets_dir = NULL)
   has a `..` component, between slashes or backslashes, or an entry that
   is a symbolic link - is refused before anything is extracted. Assets
   whose names differ only in case may not all be extracted, and a
-  warning names them.
+  warning names them. Existing paths inside `assets_dir` are checked
+  before extraction: links leading outside it or whose targets are
+  missing are refused.
 
 - assets_dir:
 

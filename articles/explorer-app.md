@@ -81,7 +81,10 @@ measurements looks different from one that is mostly text.
   as zipped CSVs - or just the table you are looking at, as one CSV
   holding all of its rows, however many the Data panel shows, each cell
   written as the panel shows it. A `.dtable` of a base opened from a
-  file keeps everything. A live base has no file behind it, so its
+  file keeps the base and the extracted attachments still available when
+  downloaded. Missing attachments and symbolic links left out of the
+  download produce a warning in the app; reopen the original file to
+  restore its attachments. A live base has no file behind it, so its
   `.dtable` is rebuilt from the rows: it keeps the values, but not the
   column types, select options, attachments or views, and the app says
   so when you download it. The workbook and the zipped CSVs flatten

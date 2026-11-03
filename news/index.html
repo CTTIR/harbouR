@@ -64,6 +64,8 @@
 <li>
 <p>Security:</p>
 <ul><li>
+<code>hb_read_dtable(assets = "extract")</code> reported an existing link out of <code>assets_dir</code> only after writing through it. It now checks every destination component before extraction, including dangling links. <code><a href="../reference/hb_write_dtable.html">hb_write_dtable()</a></code> also leaves a linked <code>asset/</code> root out with a warning; it previously included files from wherever that link led.</li>
+<li>
 <code>hb_read_dtable(assets = "extract")</code> extracted whatever names an archive held, so a crafted <code>.dtable</code> - the explorer opens uploads this way - could write files outside <code>assets_dir</code>, <code>~/.Rprofile</code> among them. An archive whose asset entries are absolute, climb out with <code>..</code> or are symbolic links is now refused before anything is extracted, and only entries under <code>asset/</code> count as assets.</li>
 <li>A <code>content.json</code>, or a server’s reply, that is a short string rather than JSON is no longer read as a file path or fetched as a URL, which <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html" class="external-link">jsonlite::fromJSON()</a></code> does with such a string. It is parsed as JSON text only.</li>
 <li>
@@ -120,12 +122,16 @@
 <li>
 <p>Files:</p>
 <ul><li>
+<code><a href="../reference/hb_download_file.html">hb_download_file()</a></code> and <code><a href="../reference/hb_delete_asset.html">hb_delete_asset()</a></code> kept the server prefix in attachment paths, so files on a server below a URL prefix could not be found. They now remove the configured prefix and absolute URL query or fragment before decoding the filename. Ordinary nested folders named <code>workspace</code> or <code>asset</code> remain part of the filename.</li>
+<li>
+<code><a href="../reference/hb_upload_file.html">hb_upload_file()</a></code> ignored the client’s timeout for its multipart transfer. A finite timeout now bounds the complete upload request, without retrying a write that may already have reached the server. Check the remote outcome before retrying a timed-out upload.</li>
+<li>
 <code><a href="../reference/hb_download_file.html">hb_download_file()</a></code> recognised an asset URL only when it began with the client’s <code>server</code> exactly as typed. A relative URL, the form SeaTable writes into cells, failed, and a host in other capitals, <code>http</code> for <code>https</code> or an explicit <code>:443</code> was fetched directly, saving SeaTable’s login page as the file. Asset URLs are now recognised by their path, and a download that ends on the login page fails.</li>
 <li>The download and delete endpoints act on the client’s base whatever a URL names, so a URL from another base downloaded, or deleted, this base’s file at the same path. <code><a href="../reference/hb_download_file.html">hb_download_file()</a></code> and <code><a href="../reference/hb_delete_asset.html">hb_delete_asset()</a></code> now refuse a URL of another base or server, and <code><a href="../reference/hb_delete_asset.html">hb_delete_asset()</a></code> refuses one that names no file - the server itself, an asset URL cut short, or a path with <code>.</code> or <code>..</code> in it - instead of asking to delete the asset root or a folder.</li>
 <li>
 <code><a href="../reference/hb_upload_file.html">hb_upload_file()</a></code> escapes the folders of a custom <code>relative_path</code> like the file name, and its file object has the type <code>"file"</code>, as SeaTable’s own file cells do, rather than a MIME type. Its help says what the default <code>relative_path = "files"</code> stands for.</li>
 <li>On a server reached under a path, such as <code>https://example.org/seatable</code>, download and delete sent that path as part of the asset’s, so harbouR could not fetch or remove a file it had uploaded itself.</li>
-<li>The client’s <code>timeout</code> cut a download off after 30 seconds however fast it arrived, and an upload had no limit at all. Both are now limited to that long connecting, and a download to that long without moving data. An upload folder that climbs out with <code>..</code> is refused.</li>
+<li>The client’s <code>timeout</code> cut a download off after 30 seconds however fast it arrived, and an upload had no limit at all. Both are now limited to that long connecting, and a download to that long without moving data; uploads also have a total request deadline. An upload folder that climbs out with <code>..</code> is refused.</li>
 </ul></li>
 <li>
 <p>The client:</p>
@@ -141,6 +147,10 @@
 <li>
 <p><code>.dtable</code> files:</p>
 <ul><li>
+<code><a href="../reference/hb_write_dtable.html">hb_write_dtable()</a></code> silently omitted extracted attachments that had since been removed. It now warns with <code>harbour_warning_missing_assets</code>, naming those files, while still writing the base and available assets.</li>
+<li>
+<code><a href="../reference/hb_read_table.html">hb_read_table()</a></code> returned no rows for a table with no data columns, even when its stored rows had identifiers. It now keeps those rows and their <code>_id</code> values. An ID-only CSV imported by <code><a href="../reference/hb_read_csv.html">hb_read_csv()</a></code> also keeps its rows, with new identifiers as for other CSV imports.</li>
+<li>
 <code>hb_read_dtable(assets = "extract")</code> extracted only one of two attachments whose names differ only in case, on any system, since <code><a href="https://r-lib.github.io/zip/reference/unzip.html" class="external-link">zip::unzip()</a></code> finds an entry without regard to case; writing the base back then lost the other without a word. It now warns, naming them, and the explorer shows that warning when it opens such a file.</li>
 <li>In R 4.1 and 4.2, the <code>_ctime</code> and <code>_mtime</code> of a base built by <code><a href="../reference/hb_dtable.html">hb_dtable()</a></code>, <code><a href="../reference/hb_read_csv.html">hb_read_csv()</a></code>, <code><a href="../reference/hb_read_xlsx.html">hb_read_xlsx()</a></code> or the explorer were the local time labelled as UTC. They are now UTC there as well.</li>
 <li>
@@ -175,7 +185,9 @@
 </ul></li>
 <li>
 <p>The explorer:</p>
-<ul><li>
+<ul><li>The SQL box in <code><a href="../reference/hb_run_explorer.html">hb_run_explorer()</a></code> had no accessible name, and source badges were difficult to read on the dark header. The box now has a visible label, and the badges use contrasting solid backgrounds.</li>
+<li>A <code>.dtable</code> download could lose attachments without telling the browser user. The Export panel now reports missing extracted files, and warnings raised during the download remain visible in the app.</li>
+<li>
 <code><a href="../reference/hb_run_explorer.html">hb_run_explorer()</a></code> used a compact symbol in its header; it now shows the named v5 artwork. Missing packaged artwork raises <code>harbour_error_package_asset</code> and identifies the missing file.</li>
 <li>
 <code><a href="../reference/hb_run_explorer.html">hb_run_explorer()</a></code> needs <code>bslib</code> 0.6.0 or later, now the minimum that <code>DESCRIPTION</code> lists. An older one gets the same informative error as a missing one, instead of a stack trace.</li>
@@ -192,6 +204,7 @@
 <p>Documentation and tests:</p>
 <ul><li><p>The live tests cover the server contracts the mocked tests cannot see - joins, select options, writing back a view read, <code>NA</code> in list columns, formula columns added in a batch, and date-time round trips. Five of the six failed against a SeaTable 6.2.1 server before these fixes, while every mocked test passed.</p></li>
 <li><p>The spelling test can fail; it reported its findings and passed. <code>DT</code>, <code>dplyr</code> and <code>ggplot2</code>, suggested but used nowhere, are no longer listed. The README no longer says that everything works offline, and the help says what <code>hb_list_columns()$editable</code> and <code>hb_append_rows()$n_rows</code> mean.</p></li>
+<li><p>Source comments and two test literals still contained non-ASCII characters despite the portability convention. The source is now ASCII, with Unicode escapes preserving the test values in every locale.</p></li>
 <li><p>README and vignette pages used different logos; they now use standardised named v5 artwork in matching light and dark forms.</p></li>
 <li><p>The examples that need a server are wrapped in <code>\dontrun{}</code>. They ran whenever R was interactive, so <code><a href="https://rdrr.io/r/utils/example.html" class="external-link">example()</a></code> sent their writes and deletes to the base that <code>SEATABLE_SERVER</code> and <code>SEATABLE_API_TOKEN</code> name. <code><a href="../reference/hb_read_table.html">hb_read_table()</a></code>, <code><a href="../reference/hb_list_tables.html">hb_list_tables()</a></code>, <code><a href="../reference/hb_list_columns.html">hb_list_columns()</a></code>, <code><a href="../reference/hb_list_views.html">hb_list_views()</a></code>, <code><a href="../reference/hb_client.html">hb_client()</a></code>, the <code>is_harbour_*()</code> predicates and the <code>harbour_metadata</code> methods gain examples that run offline. The <code><a href="../reference/hb_create_table.html">hb_create_table()</a></code> example names <code>columns</code>, which it passed into <code>...</code>; the <code><a href="../reference/hb_metadata.html">hb_metadata()</a></code> example calls <code><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">tibble::as_tibble()</a></code>; and the conditions example no longer depends on the caller’s token.</p></li>
 <li><p>The help pages of <code><a href="../reference/hb_read_table.html">hb_read_table()</a></code>, <code><a href="../reference/hb_list_tables.html">hb_list_tables()</a></code> and <code><a href="../reference/hb_list_views.html">hb_list_views()</a></code> are named after the function rather than its <code>.dtable</code> method. <code><a href="../reference/harbouR-package.html">?harbouR</a></code> no longer shows stray backslashes, the Get-started vignette no longer refers to a <code>NOTICE.md</code> the package does not ship, and the arguments of <code><a href="../reference/hb_update_select_option.html">hb_update_select_option()</a></code>, <code><a href="../reference/hb_delete_select_option.html">hb_delete_select_option()</a></code>, <code><a href="../reference/hb_lock_rows.html">hb_lock_rows()</a></code>, <code><a href="../reference/hb_unlock_rows.html">hb_unlock_rows()</a></code> and <code><a href="../reference/hb_update_view.html">hb_update_view()</a></code> say what those functions do with them. The help of the <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>, <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code>as_tibble()</code> methods no longer calls their <code>...</code> unused: it must be empty.</p></li>

@@ -171,7 +171,8 @@ read as <code>TRUE</code> or <code>FALSE</code> as <code>null</code>. Field: <co
 
 <dt><code>harbour_warning_asset_link</code></dt>
 <dd><p><code><a href="hb_write_dtable.html">hb_write_dtable()</a></code> left symbolic
-links in the asset tree out of the archive.</p></dd>
+links in the asset tree, including a linked asset root, out of the
+archive.</p></dd>
 
 <dt><code>harbour_warning_dtable_tz</code></dt>
 <dd><p><code><a href="hb_read_table.html">hb_read_table()</a></code> read date-times
@@ -187,6 +188,11 @@ change on the way to disk.</p></dd>
 <dt><code>harbour_warning_json_text</code></dt>
 <dd><p><code><a href="hb_read_dtable.html">hb_read_dtable()</a></code> met a NUL
 character in <code>content.json</code>, which R cannot keep in a string.</p></dd>
+
+<dt><code>harbour_warning_missing_assets</code></dt>
+<dd><p><code><a href="hb_write_dtable.html">hb_write_dtable()</a></code> could not
+include recorded attachments whose extracted files are missing.
+Field: <code>files</code>, their filenames inside the archive.</p></dd>
 
 <dt><code>harbour_warning_id_column</code></dt>
 <dd><p><code><a href="hb_dtable.html">hb_dtable()</a></code>, <code><a href="hb_read_csv.html">hb_read_csv()</a></code> or

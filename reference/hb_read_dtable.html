@@ -89,7 +89,9 @@ files. An archive whose asset entries could land outside
 <code>assets_dir</code> - a name that is absolute or has a <code>..</code> component,
 between slashes or backslashes, or an entry that is a symbolic link -
 is refused before anything is extracted. Assets whose names differ
-only in case may not all be extracted, and a warning names them.</p></dd>
+only in case may not all be extracted, and a warning names them.
+Existing paths inside <code>assets_dir</code> are checked before extraction:
+links leading outside it or whose targets are missing are refused.</p></dd>
 
 
 <dt id="arg-assets-dir">assets_dir<a class="anchor" aria-label="anchor" href="#arg-assets-dir"></a></dt>
