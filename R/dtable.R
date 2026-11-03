@@ -25,6 +25,8 @@
 #'   between slashes or backslashes, or an entry that is a symbolic link -
 #'   is refused before anything is extracted. Assets whose names differ
 #'   only in case may not all be extracted, and a warning names them.
+#'   Existing paths inside `assets_dir` are checked before extraction:
+#'   links leading outside it or whose targets are missing are refused.
 #' @param assets_dir Where to extract assets to. Defaults to a session
 #'   temporary directory. A folder that already holds an `asset/` tree is
 #'   refused: the next [hb_write_dtable()] would pack that tree as well.
@@ -96,6 +98,7 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
     dir <- assets_dir %||% tempfile("harbour-assets-")
     .hb_check_assets_dir(dir)
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+    .hb_check_extracted(dir, asset_rows$filename)
     .hb_extract_assets(
       path, dir, asset_rows$filename,
       whole = .hb_only_base_entries(listing)
@@ -131,7 +134,9 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #' for a second copy, and should it fail, the complete archive is kept
 #' beside `path` and the error says where. A symbolic link in the
 #' extracted asset tree is left out, with a warning, rather than followed
-#' to wherever it points.
+#' to wherever it points, including when `asset/` itself is a link.
+#' Recorded attachments whose extracted files are missing are left out
+#' with a warning of class `harbour_warning_missing_assets` naming them.
 #'
 #' @param x A `harbour_dtable`.
 #' @param path Destination path.
@@ -212,9 +217,23 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
 
   if (assets && !is.null(x$assets_dir) && dir.exists(x$assets_dir)) {
     from <- file.path(x$assets_dir, .hb_dtable_asset_dir)
+    staged <- TRUE
     if (dir.exists(from)) {
-      .hb_stage_assets(from, file.path(staging, .hb_dtable_asset_dir))
-      entries <- c(entries, .hb_dtable_asset_dir)
+      staged <- .hb_stage_assets(from, file.path(staging, .hb_dtable_asset_dir))
+      if (staged) entries <- c(entries, .hb_dtable_asset_dir)
+    }
+    if (staged) {
+      missing <- .hb_missing_assets(x)
+      if (length(missing) > 0L) {
+        cli::cli_warn(
+          c("{length(missing)} bundled asset{?s} {?is/are} missing.",
+            "x" = "Not written: {.file {missing}}.",
+            "i" = "Re-read the source with {.code assets = \"extract\"}
+                   to restore these attachments before writing."),
+          class = "harbour_warning_missing_assets",
+          files = missing
+        )
+      }
     }
   }
   parent <- dirname(path)
@@ -830,11 +849,12 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
   invisible(NULL)
 }
 
-#' Check that every extracted asset landed inside its directory
+#' Check existing asset destinations before and after extraction
 #'
-#' The names were checked before extracting. This catches what a name
-#' cannot show, such as a link already in a user-supplied `assets_dir`
-#' that leads out of it.
+#' An entry may not exist yet, but one of its parents can be a link that
+#' leads elsewhere. Inspect every component before extraction can write
+#' through it. A dangling link has no resolved destination to check, so
+#' it is refused too. The caller's extraction root itself may be a link.
 #'
 #' @param dir The extraction directory.
 #' @param entries The names of the entries extracted into it.
@@ -843,27 +863,35 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @keywords internal
 #' @noRd
 .hb_check_extracted <- function(dir, entries, call = rlang::caller_env()) {
-  # A name the session's encoding cannot hold - in a C locale, say - cannot
-  # be looked up; such a file was unpacked into a new private folder, so
-  # nothing already there could have led it out.
-  written <- vapply(
-    file.path(dir, entries),
-    function(file) {
-      tryCatch(
-        file.exists(file),
-        warning = function(cnd) FALSE, error = function(cnd) FALSE
-      )
-    },
-    logical(1),
-    USE.NAMES = FALSE
-  )
-  entries <- entries[written]
-  outside <- entries[!.hb_path_inside(file.path(dir, entries), dir)]
+  separator <- if (.Platform$OS.type == "windows") "[/\\\\]" else "/"
+  parts <- strsplit(entries, separator)
+  entries <- unique(unlist(lapply(parts, function(part) {
+    vapply(seq_along(part), function(i) {
+      paste(part[seq_len(i)], collapse = "/")
+    }, character(1))
+  }), use.names = FALSE))
+  paths <- file.path(dir, entries)
+  # A filename that the current locale cannot represent cannot be looked
+  # up after extraction. Keep upstream's safe skip for those names while
+  # checking every existing ancestor and any dangling link before writing.
+  exists <- vapply(paths, function(path) {
+    tryCatch(file.exists(path), warning = function(cnd) FALSE,
+             error = function(cnd) FALSE)
+  }, logical(1), USE.NAMES = FALSE)
+  links <- vapply(paths, function(path) {
+    tryCatch(Sys.readlink(path), warning = function(cnd) NA_character_,
+             error = function(cnd) NA_character_)
+  }, character(1), USE.NAMES = FALSE)
+  dangling <- !exists & !is.na(links) & nzchar(links)
+  unsafe <- dangling
+  unsafe[exists] <- !.hb_path_inside(paths[exists], dir)
+  outside <- entries[unsafe]
   if (length(outside) > 0L) {
     hb_abort(
-      c("Some assets were extracted outside {.path {dir}}.",
+      c("Assets cannot be extracted safely into {.path {dir}}.",
         "x" = "{.file {outside}}",
-        "i" = "Part of {.arg assets_dir} is a link that leads out of it."),
+        "i" = "An existing path is a link outside {.arg assets_dir},
+               or a link whose target is missing."),
       class = "harbour_error_bad_argument",
       call = call
     )
@@ -1367,10 +1395,23 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
 #' @param from The `asset/` directory to copy.
 #' @param to Where the copy goes. It must not exist yet.
 #' @param call The frame to blame for any error.
-#' @return `NULL`, invisibly.
+#' @return Whether the asset tree was staged, invisibly.
 #' @keywords internal
 #' @noRd
 .hb_stage_assets <- function(from, to, call = rlang::caller_env()) {
+  root_link <- Sys.readlink(from)
+  if ((!is.na(root_link) && nzchar(root_link)) ||
+        !.hb_path_inside(from, dirname(from))) {
+    cli::cli_warn(
+      c("Left the linked asset directory out of the archive.",
+        "x" = "{.file {basename(from)}}",
+        "i" = "Links in the asset tree are not followed: they can lead to
+               files anywhere on this machine."),
+      class = "harbour_warning_asset_link",
+      call = call
+    )
+    return(invisible(FALSE))
+  }
   entries <- list.files(from, recursive = TRUE, all.files = TRUE,
                         include.dirs = TRUE, no.. = TRUE)
   src <- file.path(from, entries)
@@ -1429,7 +1470,21 @@ new_harbour_dtable <- function(content, path, assets, assets_dir,
       call = call
     )
   }
-  invisible(NULL)
+  invisible(TRUE)
+}
+
+#' Find recorded attachments that are no longer extracted files
+#'
+#' @param x A `harbour_dtable`.
+#' @return A character vector of missing archive filenames.
+#' @keywords internal
+#' @noRd
+.hb_missing_assets <- function(x) {
+  files <- x$assets$filename %||% character()
+  files <- files[!endsWith(files, "/")]
+  if (is.null(x$assets_dir)) return(files)
+  paths <- file.path(x$assets_dir, files)
+  files[!file.exists(paths) | dir.exists(paths)]
 }
 
 #' Warn before writing a base whose bundled assets are not available

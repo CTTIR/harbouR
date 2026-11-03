@@ -133,9 +133,9 @@ test_that("cells can be looked up by column key as well as by name", {
 test_that("non-syntactic and non-ASCII column names survive", {
   columns <- list(
     list(name = "Luftfeuchtigkeit (%])", type = "number", key = "a"),
-    list(name = "Temperatur (°C)", type = "number", key = "b")
+    list(name = "Temperatur (\u00b0C)", type = "number", key = "b")
   )
   rows <- list(list(`_id` = "r1", a = 37.6, b = 20.7))
   out <- harbouR:::.hb_rows_to_tibble(rows, columns, by = "key")
-  expect_named(out, c("Luftfeuchtigkeit (%])", "Temperatur (°C)", "_id"))
+  expect_named(out, c("Luftfeuchtigkeit (%])", "Temperatur (\u00b0C)", "_id"))
 })

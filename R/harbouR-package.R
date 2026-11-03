@@ -67,7 +67,7 @@
 #' licence, and harbouR relies on none - it reproduces no documentation
 #' prose, and relies on the exclusion of the ideas and principles
 #' underlying a program's interfaces from copyright protection
-#' (Art. 1(2), Directive 2009/24/EC; \enc{§}{S} 69a(2) UrhG; CJEU
+#' (Art. 1(2), Directive 2009/24/EC; Section 69a(2) UrhG; CJEU
 #' C-406/10). SeaTable's own dtable-server EULA points the same way:
 #' applications using the API are "third-party software", and the
 #' EULA's provisions "do not apply to any such third-party software".

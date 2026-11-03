@@ -9,8 +9,8 @@ Environment variables read by harbouR
 \section{Environment variables}{
 
 \itemize{
-\item \code{SEATABLE_SERVER} — default server URL used by \code{\link[=hb_client]{hb_client()}}.
-\item \code{SEATABLE_API_TOKEN} — default API token used by \code{\link[=hb_client]{hb_client()}}.
+\item \code{SEATABLE_SERVER} - default server URL used by \code{\link[=hb_client]{hb_client()}}.
+\item \code{SEATABLE_API_TOKEN} - default API token used by \code{\link[=hb_client]{hb_client()}}.
 }
 
 These are read at call time; you can change them between calls without

@@ -33,6 +33,11 @@ into a \code{file}-typed cell via \code{\link[=hb_update_rows]{hb_update_rows()}
 SeaTable's file endpoints authenticate with the base's API token, so
 this needs a client created with \code{api_token}; a username/password
 client gets a \code{harbour_error_auth} condition.
+
+A finite client timeout bounds the complete upload request. A timeout can
+occur after the server has accepted the file; it does not establish that
+the upload was rolled back. Check the server before retrying to avoid
+creating a duplicate attachment. Uploads are not retried automatically.
 }
 \examples{
 \dontrun{

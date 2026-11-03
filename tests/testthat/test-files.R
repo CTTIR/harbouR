@@ -175,6 +175,13 @@ test_that("hb_upload_file requests a link then uploads and returns a file object
   )
   # Without ret-json the endpoint answers in plain text, not JSON.
   expect_match(captured$url, "ret-json=1", fixed = TRUE)
+  expect_equal(captured$options$timeout_ms, 10000)
+  cl$timeout <- 0.125
+  hb_upload_file(cl, src)
+  expect_equal(captured$options$timeout_ms, 125)
+  cl$timeout <- NULL
+  hb_upload_file(cl, src)
+  expect_equal(captured$options$timeout_ms, 30000)
 })
 
 test_that("hb_upload_file takes the workspace from the upload link", {
@@ -349,7 +356,7 @@ test_that("an upload folder that climbs out of the asset root is refused", {
   expect_false(called)
 })
 
-test_that("a transfer is limited by stalling, not by its length", {
+test_that("downloads bound stalls and uploads bound the complete request", {
   # The client's timeout covered the whole download, so a large file was
   # cut off after 30 seconds however fast it arrived, and an upload had no
   # limit at all.
@@ -381,12 +388,16 @@ test_that("a transfer is limited by stalling, not by its length", {
   hb_upload_file(cl, src)
   expect_length(captured, 2L)
   for (req in captured) {
-    expect_null(req$options$timeout_ms)
     expect_equal(req$options$connecttimeout_ms, 10000)
   }
+  expect_null(captured[[1]]$options$timeout_ms)
+  expect_equal(captured[[2]]$options$timeout_ms, 10000)
   # A download stalls when no data moves; an upload, once sent, waits for
   # the server to store it, which is no stall.
   expect_equal(captured[[1]]$options$low_speed_time, 10)
   expect_equal(captured[[1]]$options$low_speed_limit, 1)
   expect_null(captured[[2]]$options$low_speed_time)
+  cl$timeout <- Inf
+  hb_upload_file(cl, src)
+  expect_null(captured[[3]]$options$timeout_ms)
 })

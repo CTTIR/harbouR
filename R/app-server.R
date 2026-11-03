@@ -333,13 +333,14 @@
          options, attachments or views; a spreadsheet flattens the columns
          a cell cannot hold."
       } else if (.hb_assets_left_out(state$source)) {
-        "Download the whole base. This file was opened without its
-         attachments, so its .dtable leaves them out; open it from the
-         Source panel to keep them. A spreadsheet flattens the columns a
-         cell cannot hold."
+        "Download the whole base. Some bundled attachments are unavailable,
+         so its .dtable leaves them out; reopen the original file from the
+         Source panel to restore them. A spreadsheet flattens the columns
+         a cell cannot hold."
       } else {
-        "Download the whole base. A .dtable keeps everything; a spreadsheet
-         flattens the columns a cell cannot hold."
+        "Download the whole base. A .dtable keeps the base and the extracted
+         attachments available when downloaded. A spreadsheet flattens the
+         columns a cell cannot hold."
       }
       shiny::tagList(
         shiny::tags$p(class = "text-muted small", note),
@@ -374,7 +375,9 @@
       filename = function() .hb_download_name(state, "dtable"),
       content = function(file) {
         .hb_download(session, file, "Could not write the .dtable", {
-          .hb_export(state$source, "dtable", file)
+          .hb_notify_asset_warnings(session, {
+            .hb_export(state$source, "dtable", file)
+          })
           if (!is_harbour_dtable(state$source)) .hb_notify_rebuilt()
         })
       }
@@ -548,8 +551,8 @@
 #' Whether a .dtable written from a file would leave its attachments out
 #'
 #' A file read with `assets = "none"` keeps the cells that point at its
-#' attachments but not the files, so a download of it cannot carry them.
-#' Only file entries count: the listing has a row for each folder too.
+#' attachments but not the files. An extracted attachment can also be
+#' removed before downloading. Neither can be carried in the download.
 #'
 #' @param x A `harbour_dtable`.
 #' @return `TRUE` or `FALSE`.
@@ -558,7 +561,7 @@
 .hb_assets_left_out <- function(x) {
   bundled <- !endsWith(x$assets$filename %||% character(), "/")
   extracted <- !is.null(x$assets_dir) && dir.exists(x$assets_dir)
-  any(bundled) && !extracted
+  any(bundled) && (!extracted || length(.hb_missing_assets(x)) > 0L)
 }
 
 #' Build the download filename for the current base
@@ -721,6 +724,33 @@
       )
     ),
     type = "warning", duration = 12
+  )
+}
+
+#' Surface warnings about attachments left out of a download
+#'
+#' Assets can disappear or become symbolic links after opening a base.
+#' The writer checks them when the download is made, so its warning must
+#' reach the browser even when the Export panel was rendered earlier.
+#'
+#' @param session The shiny session.
+#' @param expr The .dtable export call.
+#' @return The value of `expr`.
+#' @keywords internal
+#' @noRd
+.hb_notify_asset_warnings <- function(session, expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(cnd) {
+      shiny::showNotification(
+        shiny::tags$div(
+          shiny::tags$strong("While writing the .dtable"),
+          shiny::tags$div(class = "small", .hb_plain_message(cnd))
+        ),
+        type = "warning", duration = NULL
+      )
+      invokeRestart("muffleWarning")
+    }
   )
 }
 

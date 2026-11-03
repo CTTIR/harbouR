@@ -99,6 +99,71 @@ test_that("a preview URL is an asset, and another port another server", {
   expect_length(server$calls, 1L)
 })
 
+test_that("asset URLs keep filenames across server prefixes", {
+  cl <- mock_client(server = "https://demo.example.org/seatable")
+  cl$.workspace_id <- 42L
+  url <- harbouR:::.hb_asset_url(
+    cl, "files/2026-07", "report ?#%.pdf"
+  )
+  urls <- c(
+    url,
+    sub("https://demo.example.org", "", url, fixed = TRUE),
+    paste0(url, "?download=1#page=2"),
+    sub("/asset/", "/asset-preview/", paste0(url, "#page=2"), fixed = TRUE)
+  )
+  for (url in urls) {
+    server <- local_fake_server()
+    dest <- withr::local_tempfile(fileext = ".pdf")
+    hb_download_file(cl, url, dest)
+    hb_delete_asset(cl, url)
+    expect_identical(readLines(dest), "payload")
+    expect_length(server$calls, 2L)
+    expect_identical(server$calls[[1L]]$query$path,
+                     "/files/2026-07/report ?#%.pdf")
+    expect_identical(server$calls[[2L]]$query$path,
+                     "/files/2026-07/report ?#%.pdf")
+  }
+})
+
+test_that("relative asset filenames retain literal question marks and hashes", {
+  paths <- c(
+    "/files/2026-07/report?final#1.pdf",
+    "/workspace/42/asset/demo-uuid/files/2026-07/report?final#1.pdf",
+    "/seatable/workspace/42/asset/demo-uuid/files/2026-07/report?final#1.pdf"
+  )
+  for (path in paths) {
+    cl <- mock_client(server = "https://demo.example.org/seatable")
+    rec <- with_mocked_request(hb_delete_asset(cl, path))
+    expect_identical(rec$calls[[1L]]$query$path,
+                     "/files/2026-07/report?final#1.pdf")
+  }
+})
+
+test_that("nested asset-like names remain part of the requested file path", {
+  paths <- c(
+    "/files/archive/workspace/42/asset/demo-uuid/report.pdf",
+    "/images/archive/workspace/42/asset/another-base/report.png",
+    "/custom/workspace/42/asset/another-base/report?final#1.pdf",
+    "/custom/archive/workspace/42/asset/another-base"
+  )
+  cl <- mock_client(server = "https://demo.example.org/seatable")
+  cl$.workspace_id <- 42L
+  for (path in paths) {
+    rec <- with_mocked_request(hb_delete_asset(cl, path))
+    expect_identical(rec$calls[[1L]]$query$path, path)
+    expect_false(harbouR:::.hb_is_asset_url(path))
+
+    url <- harbouR:::.hb_asset_url(cl, dirname(path), basename(path))
+    server <- local_fake_server()
+    dest <- withr::local_tempfile()
+    hb_download_file(cl, url, dest)
+    hb_delete_asset(cl, url)
+    expect_identical(readLines(dest), "payload")
+    expect_identical(server$calls[[1L]]$query$path, path)
+    expect_identical(server$calls[[2L]]$query$path, path)
+  }
+})
+
 test_that("an asset URL on another server is refused, not fetched", {
   server <- local_fake_server()
   dest <- withr::local_tempfile(fileext = ".pdf")

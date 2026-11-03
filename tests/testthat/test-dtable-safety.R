@@ -218,7 +218,7 @@ test_that("a link in the asset tree refuses the archive", {
   expect_setequal(everything_under(sandbox), c("outside", "secret.txt"))
 })
 
-test_that("extracted files that resolve outside assets_dir are refused", {
+test_that("existing external links refuse extraction before any writes", {
   skip_on_os("windows")
   sandbox <- withr::local_tempdir()
   target <- file.path(sandbox, "target")
@@ -232,6 +232,64 @@ test_that("extracted files that resolve outside assets_dir are refused", {
     hb_read_dtable(fixture(), assets = "extract", assets_dir = target),
     class = "harbour_error_bad_argument"
   )
+  expect_identical(list.files(elsewhere, recursive = TRUE), character())
+})
+
+test_that("unlisted parents and dangling links are checked before extraction", {
+  skip_on_os("windows")
+  archive <- dtable_with(c("asset/files/report.txt" = "replacement"))
+  sandbox <- withr::local_tempdir()
+  outside <- file.path(sandbox, "outside")
+  dir.create(outside)
+  original <- file.path(outside, "report.txt")
+  writeLines("original", original)
+  for (kind in c("parent", "file", "dangling")) {
+    target <- file.path(sandbox, kind)
+    dir.create(file.path(target, "asset", "files"), recursive = TRUE)
+    if (kind == "parent") {
+      unlink(file.path(target, "asset", "files"), recursive = TRUE)
+      expect_true(file.symlink(outside, file.path(target, "asset", "files")))
+    } else {
+      destination <- if (kind == "file") original else {
+        file.path(outside, "new.txt")
+      }
+      expect_true(file.symlink(
+        destination, file.path(target, "asset", "files", "report.txt")
+      ))
+    }
+    expect_error(
+      hb_read_dtable(archive, assets = "extract", assets_dir = target),
+      class = "harbour_error_bad_argument"
+    )
+    expect_identical(readLines(original), "original")
+    expect_identical(list.files(outside), "report.txt")
+  }
+})
+
+test_that("a chosen root works but an occupied asset tree is refused", {
+  skip_on_os("windows")
+  sandbox <- withr::local_tempdir()
+  actual <- file.path(sandbox, "actual")
+  target <- file.path(sandbox, "chosen")
+  dir.create(file.path(actual, "asset"), recursive = TRUE)
+  dir.create(file.path(actual, "kept"))
+  expect_true(file.symlink(actual, target))
+  expect_true(file.symlink(file.path(actual, "kept"),
+                           file.path(actual, "asset", "files")))
+  archive <- dtable_with(c("asset/files/report.txt" = "kept"))
+  expect_error(
+    hb_read_dtable(archive, assets = "extract", assets_dir = target),
+    class = "harbour_error_bad_argument"
+  )
+  expect_identical(list.files(file.path(actual, "kept")), character())
+  expect_identical(Sys.readlink(file.path(actual, "asset", "files")),
+                   file.path(actual, "kept"))
+  unlink(file.path(actual, "asset", "files"))
+  base <- hb_read_dtable(archive, assets = "extract", assets_dir = target)
+  path <- hb_asset_path(base, "file://dtable-bundle/asset/files/report.txt")
+  expect_identical(readLines(path, warn = FALSE), "kept")
+  expect_identical(normalizePath(path),
+                   normalizePath(file.path(actual, "asset", "files", "report.txt")))
 })
 
 test_that("the example file extracts and round-trips byte for byte", {
@@ -736,20 +794,20 @@ test_that("a .dtable larger than the size limit is refused before reading", {
 test_that("asset names that are not ASCII extract in a C locale", {
   # zip::unzip(files = ) could not find such an entry in a C locale - a
   # cron job, a container - and failed with an unclassed error.
-  path <- dtable_with(c("asset/files/my report ü.pdf" = "pdf"))
+  path <- dtable_with(c("asset/files/my report \u00fc.pdf" = "pdf"))
   out <- withr::with_locale(
     c(LC_CTYPE = "C"),
     hb_read_dtable(path, assets = "extract")
   )
   expect_true(file.exists(
-    file.path(out$assets_dir, "asset", "files", "my report ü.pdf")
+    file.path(out$assets_dir, "asset", "files", "my report \u00fc.pdf")
   ))
 })
 
 test_that("an attachment URL with escaped characters resolves to its file", {
   # SeaTable's export keeps a cell's URL escaped, while the archive holds
   # the file under its real name.
-  name <- "Bericht ä 1 (2).txt"
+  name <- "Bericht \u00e4 1 (2).txt"
   path <- dtable_with(stats::setNames("x", paste0("asset/files/2026-10/", name)))
   base <- hb_read_dtable(path, assets = "extract")
   url <- paste0(
@@ -815,4 +873,49 @@ test_that("an entry outside the asset tree is never unpacked", {
   base <- hb_read_dtable(path, assets = "extract")
   expect_false("pad.bin" %in% unpacked)
   expect_true(file.exists(file.path(base$assets_dir, "asset", "files", "a.txt")))
+})
+
+test_that("a linked asset root does not archive external files", {
+  skip_on_os("windows")
+  sandbox <- withr::local_tempdir()
+  base <- hb_read_dtable(fixture(), assets = "extract",
+                         assets_dir = file.path(sandbox, "extracted"))
+  outside <- file.path(sandbox, "outside")
+  dir.create(outside)
+  writeLines("external", file.path(outside, "private.txt"))
+  root <- file.path(base$assets_dir, "asset")
+  unlink(root, recursive = TRUE)
+  expect_true(file.symlink(outside, root))
+  out <- file.path(sandbox, "result.dtable")
+  expect_warning(hb_write_dtable(base, out),
+                 class = "harbour_warning_asset_link")
+  expect_identical(zip::zip_list(out)$filename, "content.json")
+  expect_identical(readLines(file.path(outside, "private.txt")), "external")
+})
+
+test_that("missing extracted attachments are named without blocking a write", {
+  sandbox <- withr::local_tempdir()
+  for (kind in c("file", "subtree", "root", "directory")) {
+    base <- hb_read_dtable(fixture(), assets = "extract",
+                           assets_dir = file.path(sandbox, kind))
+    files <- base$assets$filename[base$assets$type == "file"]
+    missing <- files[[1L]]
+    removed <- switch(kind,
+      file = missing,
+      subtree = dirname(missing),
+      root = "asset",
+      directory = missing
+    )
+    unlink(file.path(base$assets_dir, removed), recursive = TRUE)
+    if (kind == "root") missing <- files
+    if (kind == "directory") dir.create(file.path(base$assets_dir, removed))
+    out <- file.path(sandbox, paste0(kind, ".dtable"))
+    cnd <- expect_warning(hb_write_dtable(base, out),
+                           class = "harbour_warning_missing_assets")
+    expect_setequal(cnd$files, missing)
+    listing <- zip::zip_list(out)
+    written <- listing$filename[listing$type == "file"]
+    expect_setequal(written, c("content.json", setdiff(files, missing)))
+    expect_identical(hb_read_dtable(out)$content, base$content)
+  }
 })

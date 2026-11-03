@@ -1,13 +1,13 @@
 #' Fetch base metadata
 #'
-#' Retrieves the structural metadata for a SeaTable base — the list of
+#' Retrieves the structural metadata for a SeaTable base - the list of
 #' tables, their columns (with SeaTable types) and views. The result is
 #' cached on the client.
 #'
 #' @param client A `harbour_client`.
 #'
 #' @param ... These dots are for future extensions and must be empty.
-#' @return A `harbour_metadata` object — a list with components
+#' @return A `harbour_metadata` object - a list with components
 #'   `base_name` (chr), `tables` (list), `version` (chr).
 #'
 #' @family metadata
