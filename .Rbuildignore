@@ -26,3 +26,4 @@
 ^(.*/)?(HANDOVER|RESUME|CURRENT_STATE|TODO|PLAN|TASKS)([-_].*)?\.md$
 ^(.*/)?\.env(\..*)?$
 ^tools/branding$
+^\.git$
