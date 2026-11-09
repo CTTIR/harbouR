@@ -26,6 +26,7 @@ Invisibly, a one-row tibble with columns \code{table} (chr),
 Delete rows
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_delete_rows(client, "Samples", c("abc", "def"))

@@ -16,6 +16,7 @@
 #' @family client
 #' @seealso [hb_check_credentials()]
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_ping(client)
@@ -72,6 +73,7 @@ hb_ping <- function(client, ...) {
 #' @family client
 #' @seealso [hb_ping()]
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_check_credentials(client)
@@ -106,6 +108,7 @@ hb_check_credentials <- function(client, ...) {
 #'   `edition` (chr) where reported.
 #' @family client
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_server_info(client)

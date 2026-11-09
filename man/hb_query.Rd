@@ -33,6 +33,7 @@ when the query returns no rows.
 Run a SeaTable SQL query
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_query(client, "select * from Samples limit 5")

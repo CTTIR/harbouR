@@ -21,6 +21,7 @@ tables, their columns (with SeaTable types) and views. The result is
 cached on the client.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 meta <- hb_metadata(client)

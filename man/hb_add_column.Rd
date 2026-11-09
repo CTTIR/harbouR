@@ -28,6 +28,7 @@ Invisibly returns the client.
 Add a column to a table
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_add_column(client, "Samples", "Notes", "text")

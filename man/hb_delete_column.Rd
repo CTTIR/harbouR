@@ -22,6 +22,7 @@ Invisibly returns the client.
 Delete a column
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_delete_column(client, "Samples", "Old")

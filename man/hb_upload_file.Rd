@@ -40,6 +40,7 @@ the upload was rolled back. Check the server before retrying to avoid
 creating a duplicate attachment. Uploads are not retried automatically.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_upload_file(client, "report.pdf")

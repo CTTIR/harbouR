@@ -26,6 +26,7 @@ Invisibly returns the client.
 Update a single-select option
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_update_select_option(client, "Samples", "Status", "Done", "Complete")

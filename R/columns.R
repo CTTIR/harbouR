@@ -94,6 +94,7 @@ hb_list_columns.harbour_client <- function(x, table, ...,
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_add_column(client, "Samples", "Notes", "text")
@@ -130,6 +131,7 @@ hb_add_column <- function(client, table, name, type, ..., column_data = NULL) {
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_add_columns(
@@ -199,6 +201,7 @@ hb_add_columns <- function(client, table, columns, ...) {
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_update_column(client, "Samples", "Notes", new_name = "Comments")
@@ -260,6 +263,7 @@ hb_update_column <- function(client, table, name, ..., new_name = NULL,
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_delete_column(client, "Samples", "Old")
@@ -289,6 +293,7 @@ hb_delete_column <- function(client, table, name, ...) {
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_add_select_option(client, "Samples", "Status", "Done")
@@ -319,6 +324,7 @@ hb_add_select_option <- function(client, table, name, option, ...) {
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_update_select_option(client, "Samples", "Status", "Done", "Complete")
@@ -357,6 +363,7 @@ hb_update_select_option <- function(client,
 #' @return Invisibly returns the client.
 #' @family columns
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_delete_select_option(client, "Samples", "Status", "Old")

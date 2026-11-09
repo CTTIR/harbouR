@@ -27,6 +27,7 @@
 #' @return A named list describing the uploaded asset.
 #' @family files
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_upload_file(client, "report.pdf")
@@ -208,6 +209,7 @@ hb_upload_file <- function(client, path, ..., relative_path = "files") {
 #' @return Invisibly returns the client.
 #' @family files
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_attach_file(client, "Samples", "abc", "Reports", "report.pdf")
@@ -266,6 +268,7 @@ hb_attach_file <- function(client, table, row_id, column, path, ...) {
 #' @return Invisibly returns `dest`.
 #' @family files
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_download_file(client, "https://...", tempfile())
@@ -517,6 +520,7 @@ hb_download_file <- function(client, url, dest, ..., overwrite = FALSE) {
 #' @return Invisibly returns the client.
 #' @family files
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' # A path below the asset root, or the URL from a file or image cell

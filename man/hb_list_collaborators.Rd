@@ -19,6 +19,7 @@ A tibble with columns \code{email} (chr), \code{name} (chr) and
 List collaborators of the active base
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_list_collaborators(client)

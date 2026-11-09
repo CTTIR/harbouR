@@ -9,6 +9,7 @@
 #' @return Invisibly returns the client.
 #' @family tables
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_create_table(client, "NewTable",
@@ -40,6 +41,7 @@ hb_create_table <- function(client, table, ..., columns = list()) {
 #' @return Invisibly returns the client.
 #' @family tables
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_rename_table(client, "Old", "New")
@@ -65,6 +67,7 @@ hb_rename_table <- function(client, table, new_name, ...) {
 #' @return Invisibly returns the client.
 #' @family tables
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_delete_table(client, "DropMe")
@@ -96,6 +99,7 @@ hb_delete_table <- function(client, table, ...) {
 #' need a particular name.
 #' @family tables
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_duplicate_table(client, "Samples")

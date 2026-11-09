@@ -27,6 +27,7 @@ Returns the client invisibly, so it composes:
 \code{client |> hb_ping() |> hb_read_table("Samples")}.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_ping(client)

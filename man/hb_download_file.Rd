@@ -41,6 +41,7 @@ place only once complete, so a failed download never leaves a partial
 file and never destroys the file \code{overwrite = TRUE} would replace.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_download_file(client, "https://...", tempfile())

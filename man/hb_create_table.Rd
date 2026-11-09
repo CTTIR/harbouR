@@ -23,6 +23,7 @@ Invisibly returns the client.
 Create a table
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_create_table(client, "NewTable",

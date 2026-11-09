@@ -29,6 +29,7 @@ rows sent when its reply gives none - and
 Append rows to a table
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_append_rows(client, "Samples", tibble::tibble(Name = "S1"))

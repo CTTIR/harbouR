@@ -27,6 +27,7 @@ or two dots as a folder. Such a view is looked up in the table's list of
 views instead.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_get_view(client, "Samples", "Default")

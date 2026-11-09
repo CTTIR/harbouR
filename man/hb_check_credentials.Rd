@@ -28,6 +28,7 @@ Unlike \code{\link[=hb_ping]{hb_ping()}}, which only proves the server is up, th
 credentials are usable.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_check_credentials(client)

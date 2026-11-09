@@ -20,6 +20,7 @@ Returns the SeaTable server's reported version and basic info. This
 endpoint is unauthenticated.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_server_info(client)

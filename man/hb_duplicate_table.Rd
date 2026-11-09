@@ -31,6 +31,7 @@ need a particular name.
 }
 
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_duplicate_table(client, "Samples")

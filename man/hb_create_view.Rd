@@ -27,6 +27,7 @@ Invisibly returns the client.
 Create a view
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_create_view(client, "Samples", "Active")

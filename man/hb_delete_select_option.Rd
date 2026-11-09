@@ -24,6 +24,7 @@ Invisibly returns the client.
 Delete a single-select option
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_delete_select_option(client, "Samples", "Status", "Old")

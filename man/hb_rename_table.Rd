@@ -22,6 +22,7 @@ Invisibly returns the client.
 Rename a table
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_rename_table(client, "Old", "New")

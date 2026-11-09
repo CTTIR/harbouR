@@ -22,6 +22,7 @@ Invisibly returns the client.
 Lock rows
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_lock_rows(client, "Samples", "abc")

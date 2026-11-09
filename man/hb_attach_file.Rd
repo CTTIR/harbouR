@@ -35,6 +35,7 @@ new object from \code{\link[=hb_upload_file]{hb_upload_file()}} and write it bac
 \code{\link[=hb_update_rows]{hb_update_rows()}}.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_attach_file(client, "Samples", "abc", "Reports", "report.pdf")

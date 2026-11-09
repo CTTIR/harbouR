@@ -25,6 +25,7 @@ The option is created in amber, with dark text: SeaTable requires both
 colours. Change them in SeaTable if you prefer others.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_add_select_option(client, "Samples", "Status", "Done")

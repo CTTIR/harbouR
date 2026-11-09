@@ -78,6 +78,7 @@ hb_list_views.harbour_client <- function(x, table, ...,
 #'   `hidden_columns` (list of chr).
 #' @family views
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_get_view(client, "Samples", "Default")
@@ -129,6 +130,7 @@ hb_get_view <- function(client, table, view, ...) {
 #' @return Invisibly returns the client.
 #' @family views
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_create_view(client, "Samples", "Active")
@@ -168,6 +170,7 @@ hb_create_view <- function(client, table, view, ..., settings = list()) {
 #' @return Invisibly returns the client.
 #' @family views
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_update_view(client, "Samples", "Active", list(filter_conjunction = "And"))
@@ -208,6 +211,7 @@ hb_update_view <- function(client, table, view, settings, ...) {
 #' @return Invisibly returns the client.
 #' @family views
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_delete_view(client, "Samples", "Old")

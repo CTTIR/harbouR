@@ -31,6 +31,7 @@ or two dots as a folder. Such a view cannot be changed through the API, and
 harbouR says so before sending anything: rename it in SeaTable first.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_update_view(client, "Samples", "Active", list(filter_conjunction = "And"))

@@ -25,6 +25,7 @@ or two dots as a folder. Such a view cannot be deleted through the API, and
 harbouR says so before sending anything: rename it in SeaTable first.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_delete_view(client, "Samples", "Old")

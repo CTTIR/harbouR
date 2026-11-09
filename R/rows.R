@@ -301,6 +301,7 @@ hb_read_table.harbour_client <- function(x,
 #'   when the query returns no rows.
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_query(client, "select * from Samples limit 5")
@@ -512,6 +513,7 @@ hb_query <- function(client, sql, ..., parameters = NULL,
 #'   surfacing.
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_get_row(client, "Samples", "abc123")
@@ -551,6 +553,7 @@ hb_get_row <- function(client, table, row_id, ...) {
 #'   `_id`s; harbouR's summary does not include them.
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_append_rows(client, "Samples", tibble::tibble(Name = "S1"))
@@ -689,6 +692,7 @@ hb_append_rows <- function(client, table, data, ...,
 #'   `n_rows` (int) and `n_requests` (int).
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_update_rows(
@@ -788,6 +792,7 @@ hb_update_rows <- function(client, table, data, ..., row_id_col = "_id",
 #'   `n_rows` (int) and `n_requests` (int).
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_delete_rows(client, "Samples", c("abc", "def"))
@@ -842,6 +847,7 @@ hb_delete_rows <- function(client, table, row_ids, ...,
 #' @return Invisibly returns the client.
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_lock_rows(client, "Samples", "abc")
@@ -868,6 +874,7 @@ hb_lock_rows <- function(client, table, row_ids, ...) {
 #' @return Invisibly returns the client.
 #' @family rows
 #' @examples
+#' # needs a SeaTable server and an API token
 #' \dontrun{
 #' client <- hb_client()
 #' hb_unlock_rows(client, "Samples", "abc")

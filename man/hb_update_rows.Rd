@@ -40,6 +40,7 @@ cell of theirs is left out of the write unless it has been filled in,
 so writing such a tibble back does not erase them.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_update_rows(

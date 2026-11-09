@@ -40,6 +40,7 @@ Invisibly returns the client.
 Update a column
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_update_column(client, "Samples", "Notes", new_name = "Comments")

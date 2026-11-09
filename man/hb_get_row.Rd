@@ -26,6 +26,7 @@ surfacing.
 Get a single row by ID
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 hb_get_row(client, "Samples", "abc123")

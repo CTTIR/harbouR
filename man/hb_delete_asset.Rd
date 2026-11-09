@@ -30,6 +30,7 @@ another base, raises a \code{harbour_error_bad_argument} condition rather
 than deleting this base's file at the same path.
 }
 \examples{
+# needs a SeaTable server and an API token
 \dontrun{
 client <- hb_client()
 # A path below the asset root, or the URL from a file or image cell
