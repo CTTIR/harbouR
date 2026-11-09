@@ -47,6 +47,7 @@ Other rows:
 ## Examples
 
 ``` r
+# needs a SeaTable server and an API token
 if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_get_row(client, "Samples", "abc123")

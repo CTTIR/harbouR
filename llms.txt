@@ -147,7 +147,7 @@ citation("harbouR")
 #> 
 #>   Heller R, Elsinghorst P, Derz W, Ring M, Achatz G, Forstmeier V
 #>   (2026). _harbouR: R Client for SeaTable Collaborative Databases_. R
-#>   package version 0.1.0, <https://github.com/CTTIR/harbouR>.
+#>   package version 1.0.0, <https://github.com/CTTIR/harbouR>.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
@@ -155,7 +155,7 @@ citation("harbouR")
 #>     title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
 #>     author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
 #>     year = {2026},
-#>     note = {R package version 0.1.0},
+#>     note = {R package version 1.0.0},
 #>     url = {https://github.com/CTTIR/harbouR},
 #>   }
 ```

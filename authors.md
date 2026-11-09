@@ -23,12 +23,12 @@ Source:
 
 Heller R, Elsinghorst P, Derz W, Ring M, Achatz G, Forstmeier V (2026).
 *harbouR: R Client for SeaTable Collaborative Databases*. R package
-version 0.1.0, <https://github.com/CTTIR/harbouR>.
+version 1.0.0, <https://github.com/CTTIR/harbouR>.
 
     @Manual{,
       title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
       author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
       year = {2026},
-      note = {R package version 0.1.0},
+      note = {R package version 1.0.0},
       url = {https://github.com/CTTIR/harbouR},
     }

@@ -69,6 +69,7 @@ Other columns:
 ## Examples
 
 ``` r
+# needs a SeaTable server and an API token
 if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_update_column(client, "Samples", "Notes", new_name = "Comments")

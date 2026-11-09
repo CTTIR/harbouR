@@ -39,6 +39,7 @@ Other metadata:
 ## Examples
 
 ``` r
+# needs a SeaTable server and an API token
 if (FALSE) { # \dontrun{
 client <- hb_client()
 meta <- hb_metadata(client)

@@ -49,6 +49,7 @@ Other columns:
 ## Examples
 
 ``` r
+# needs a SeaTable server and an API token
 if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_add_select_option(client, "Samples", "Status", "Done")

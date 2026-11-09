@@ -1,5 +1,20 @@
 # Changelog
 
+## harbouR 1.0.0
+
+Initial CRAN submission.
+
+- The version moves from 0.1.0 to 1.0.0 to mark a stable interface. The
+  exported functions, their arguments and defaults, and the registered
+  S3 methods are those of 0.1.0, which the API lock pins.
+- The fixes listed under 0.1.0 below, made after the
+  `manuscript-anchor-2026-08-21` tag, are part of this release.
+- Examples that need a SeaTable server and an API token said nothing
+  about why they were not run; each now names that need in a comment
+  before its `\dontrun{}` block.
+- `CITATION.cff`, `.zenodo.json` and the README citation carry the new
+  version.
+
 ## harbouR 0.1.0
 
 First release.

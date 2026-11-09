@@ -50,6 +50,7 @@ Other views:
 ## Examples
 
 ``` r
+# needs a SeaTable server and an API token
 if (FALSE) { # \dontrun{
 client <- hb_client()
 hb_create_view(client, "Samples", "Active")
