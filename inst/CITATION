@@ -28,7 +28,7 @@ year <- if (!is.null(year) && nzchar(year)) {
   format(Sys.Date(), "%Y")
 }
 
-maintainer <- utils::person("Raban", "Heller", role = c("aut", "cre"))
+maintainer <- utils::person("R.", "Heller", role = c("aut", "cre"))
 rendered <- if (is.list(meta)) meta[["Author"]] else NULL
 authors_r <- if (is.list(meta)) meta[["Authors@R"]] else NULL
 people <- if (!is.null(rendered) && nzchar(rendered)) {

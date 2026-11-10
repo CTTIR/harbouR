@@ -28,12 +28,12 @@ test_that("the citation names every author when only Authors@R is given", {
   expect_identical(
     cited_names(cite),
     c(
-      "Raban Heller", "Paul Elsinghorst", "Wiebke Derz", "Matthias Ring",
+      "R. Heller", "Paul Elsinghorst", "Wiebke Derz", "Matthias Ring",
       "Gerhard Achatz", "Vinzent Forstmeier"
     )
   )
   bib <- paste(utils::toBibtex(cite), collapse = " ")
-  expect_match(bib, "Raban Heller and Paul Elsinghorst", fixed = TRUE)
+  expect_match(bib, "R. Heller and Paul Elsinghorst", fixed = TRUE)
   expect_match(bib, "and Vinzent Forstmeier", fixed = TRUE)
 })
 
@@ -88,7 +88,7 @@ test_that("evaluating Authors@R runs nothing beyond person() and c()", {
     expect_false(file.exists(marker))
     expect_s3_class(cite, "citation")
     if (inherits(cite, "citation")) {
-      expect_identical(cited_names(cite), "Raban Heller")
+      expect_identical(cited_names(cite), "R. Heller")
     }
   }
 })
@@ -97,5 +97,5 @@ test_that("with no author fields at all the maintainer is cited", {
   meta <- source_meta()
   meta[["Authors@R"]] <- NULL
   cite <- utils::readCitationFile(citation_file(), meta = meta)
-  expect_identical(cited_names(cite), "Raban Heller")
+  expect_identical(cited_names(cite), "R. Heller")
 })
