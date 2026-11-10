@@ -57,6 +57,7 @@ hb_write_dtable(base, out)
 
 # content.json round-trips exactly
 identical(hb_read_dtable(out)$content, base$content)
+unlink(out)
 }
 \seealso{
 \code{\link[=hb_read_dtable]{hb_read_dtable()}}

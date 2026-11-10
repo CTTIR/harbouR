@@ -35,6 +35,7 @@ holds anything but SeaTable row ids.
 path <- tempfile(fileext = ".xlsx")
 writexl::write_xlsx(list(Samples = data.frame(x = 1:2)), path)
 hb_read_xlsx(path)
+unlink(path)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

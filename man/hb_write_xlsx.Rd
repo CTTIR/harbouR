@@ -68,6 +68,7 @@ base <- hb_read_dtable(
 )
 out <- tempfile(fileext = ".xlsx")
 hb_write_xlsx(base, out)
+unlink(out)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

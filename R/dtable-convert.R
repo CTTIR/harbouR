@@ -53,6 +53,7 @@
 #' )
 #' out <- tempfile(fileext = ".xlsx")
 #' hb_write_xlsx(base, out)
+#' unlink(out)
 #' @export
 hb_write_xlsx <- function(x, path, ..., tables = NULL) {
   rlang::check_dots_empty()
@@ -130,6 +131,7 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
 #' dir <- tempfile()
 #' hb_write_csv(base, dir)
 #' list.files(dir)
+#' unlink(dir, recursive = TRUE)
 #' @export
 hb_write_csv <- function(x, dir, ..., tables = NULL) {
   rlang::check_dots_empty()
@@ -201,6 +203,7 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #' utils::write.csv(data.frame(x = 1:2, y = c("a", "b")), csv,
 #'                  row.names = FALSE)
 #' hb_read_csv(c(Measurements = csv))
+#' unlink(csv)
 #' @export
 hb_read_csv <- function(files, ..., base_name = "harbouR base") {
   rlang::check_dots_empty()
@@ -248,6 +251,7 @@ hb_read_csv <- function(files, ..., base_name = "harbouR base") {
 #' path <- tempfile(fileext = ".xlsx")
 #' writexl::write_xlsx(list(Samples = data.frame(x = 1:2)), path)
 #' hb_read_xlsx(path)
+#' unlink(path)
 #' @export
 hb_read_xlsx <- function(path, ..., sheets = NULL,
                          base_name = "harbouR base") {

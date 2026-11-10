@@ -58,6 +58,7 @@ csv <- tempfile(fileext = ".csv")
 utils::write.csv(data.frame(x = 1:2, y = c("a", "b")), csv,
                  row.names = FALSE)
 hb_read_csv(c(Measurements = csv))
+unlink(csv)
 }
 \seealso{
 Other dtable:

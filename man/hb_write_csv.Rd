@@ -33,6 +33,7 @@ base <- hb_read_dtable(
 dir <- tempfile()
 hb_write_csv(base, dir)
 list.files(dir)
+unlink(dir, recursive = TRUE)
 }
 \seealso{
 \code{\link[=hb_write_xlsx]{hb_write_xlsx()}}, \code{\link[=hb_write_dtable]{hb_write_dtable()}}

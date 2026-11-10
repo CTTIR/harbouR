@@ -160,6 +160,7 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #'
 #' # content.json round-trips exactly
 #' identical(hb_read_dtable(out)$content, base$content)
+#' unlink(out)
 #' @export
 hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
   rlang::check_dots_empty()
