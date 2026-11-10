@@ -71,4 +71,5 @@ hb_write_csv(base, dir)
 #>   structure.
 list.files(dir)
 #> [1] "Reference.csv" "Samples.csv"  
+unlink(dir, recursive = TRUE)
 ```

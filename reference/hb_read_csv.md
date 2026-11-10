@@ -99,4 +99,5 @@ hb_read_csv(c(Measurements = csv))
 #> • assets : 0
 #> 
 #> - Measurements (2 cols, 2 rows)
+unlink(csv)
 ```

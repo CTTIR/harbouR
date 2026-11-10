@@ -75,4 +75,5 @@ hb_read_xlsx(path)
 #> • assets : 0
 #> 
 #> - Samples (1 cols, 2 rows)
+unlink(path)
 ```

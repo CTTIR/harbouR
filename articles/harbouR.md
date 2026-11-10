@@ -144,7 +144,7 @@ citation("harbouR")
 #> 
 #>   @Manual{,
 #>     title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
-#>     author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
+#>     author = {R. Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
 #>     year = {2026},
 #>     note = {R package version 1.0.0},
 #>     url = {https://github.com/CTTIR/harbouR},

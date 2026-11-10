@@ -2,8 +2,7 @@
 
 ## Authors
 
-- **[Raban Heller](https://orcid.org/0000-0001-8006-9742)**. Author,
-  maintainer, copyright holder.
+- **R. Heller**. Author, maintainer, copyright holder.
   [](https://orcid.org/0000-0001-8006-9742)
 
 - **Paul Elsinghorst**. Author.
@@ -27,7 +26,7 @@ version 1.0.0, <https://github.com/CTTIR/harbouR>.
 
     @Manual{,
       title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
-      author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
+      author = {R. Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
       year = {2026},
       note = {R package version 1.0.0},
       url = {https://github.com/CTTIR/harbouR},

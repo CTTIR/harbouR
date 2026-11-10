@@ -113,4 +113,5 @@ hb_write_xlsx(base, out)
 #>   Samples$Where, Samples$Action, and Samples$Signature
 #> ℹ A spreadsheet cell holds one value. Use `hb_write_dtable()` to keep the
 #>   structure.
+unlink(out)
 ```
