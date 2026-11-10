@@ -3,7 +3,7 @@ Title: Work with Self-Hosted 'SeaTable' Servers and Data Files
 Version: 1.0.0
 Date: 2026-11-10
 Authors@R: c(
-    person("Raban", "Heller",
+    person("R.", "Heller",
            email = "raban.heller@uni-ulm.de",
            role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8006-9742")),
