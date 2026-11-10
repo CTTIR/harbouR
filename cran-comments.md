@@ -6,8 +6,9 @@ This is a new submission: harbouR 1.0.0.
 
 * Local: macOS 27 on Apple silicon, R 4.6.1 (aarch64-apple-darwin),
   `R CMD check --as-cran --no-manual` on the built tarball, with
-  `NOT_CRAN` unset. LaTeX is not installed on this machine, so the PDF
-  manual was not built locally; win-builder builds it.
+  `NOT_CRAN` unset. The PDF manual was built locally with TinyTeX (TeX Live
+  2026) via `R CMD Rd2pdf` without errors; the check run itself used
+  `--no-manual`.
 * GitHub Actions (r-lib/actions v2, `--as-cran`): macOS-latest (R
   release), windows-latest (R release), ubuntu-latest (R devel, R
   release, R oldrel-1).
