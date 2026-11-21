@@ -3,6 +3,7 @@ message: If you use this software, please cite it as below.
 type: software
 title: 'harbouR: R client for self-hosted SeaTable servers and data files'
 version: 1.0.0
+doi: 10.5281/zenodo.21889936
 date-released: '2026-11-10'
 authors:
 - family-names: Heller
@@ -20,3 +21,7 @@ authors:
   given-names: Vinzent
 repository-code: https://github.com/CTTIR/harbouR
 license: MIT
+identifiers:
+- type: doi
+  value: 10.5281/zenodo.21889936
+  description: Zenodo DOI (reserved; resolves once the record is published)
