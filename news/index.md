@@ -125,7 +125,7 @@ First release.
   - A `content.json`, or a server’s reply, that is a short string rather
     than JSON is no longer read as a file path or fetched as a URL,
     which
-    [`jsonlite::fromJSON()`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+    [`jsonlite::fromJSON()`](https://rdrr.io/pkg/jsonlite/man/fromJSON.html)
     does with such a string. It is parsed as JSON text only.
   - [`print()`](https://rdrr.io/r/base/print.html) on a client ran any
     `{...}` in the base name or server URL as R code, and so did
