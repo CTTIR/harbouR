@@ -11,7 +11,7 @@ development:
   mode: auto
 
 authors:
-  Raban Heller:
+  R. Heller:
     href: https://orcid.org/0000-0001-8006-9742
 navbar:
   bg: dark
@@ -27,6 +27,7 @@ reference:
   - harbouR-conditions
 
 - title: Client & authentication
+  desc: Describe a server and its credentials, and check that both work.
   contents:
   - hb_client
   - hb_ping
@@ -36,6 +37,7 @@ reference:
   - is_harbour_client
 
 - title: Metadata
+  desc: The tables, columns and collaborators of a base, and how column types map to R.
   contents:
   - hb_metadata
   - hb_list_tables
@@ -47,6 +49,7 @@ reference:
   - is_harbour_metadata
 
 - title: Rows
+  desc: Read rows as a tibble, query them with SQL, and add, change, lock or delete them.
   contents:
   - hb_read_table
   - hb_query
@@ -58,6 +61,7 @@ reference:
   - hb_unlock_rows
 
 - title: Tables
+  desc: Create, rename, duplicate and delete the tables of a base on a server.
   contents:
   - hb_create_table
   - hb_rename_table
@@ -65,6 +69,7 @@ reference:
   - hb_duplicate_table
 
 - title: Columns
+  desc: List, add, change and delete columns and the options of select columns.
   contents:
   - hb_list_columns
   - hb_add_column
@@ -76,6 +81,7 @@ reference:
   - hb_delete_select_option
 
 - title: Views
+  desc: List, read, create, change and delete the views of a table.
   contents:
   - hb_list_views
   - hb_get_view
@@ -84,6 +90,7 @@ reference:
   - hb_delete_view
 
 - title: Files
+  desc: Upload files, attach them to a row, download them and delete them.
   contents:
   - hb_upload_file
   - hb_attach_file
@@ -91,6 +98,7 @@ reference:
   - hb_delete_asset
 
 - title: Local .dtable files
+  desc: Read, build, check and write a base as a file, with no server involved.
   contents:
   - hb_read_dtable
   - hb_write_dtable
@@ -105,6 +113,7 @@ reference:
   - summary.harbour_dtable
 
 - title: Import and export
+  desc: Convert a base to and from Excel workbooks and CSV files.
   contents:
   - hb_write_xlsx
   - hb_write_csv
@@ -112,11 +121,13 @@ reference:
   - hb_read_csv
 
 - title: Example data
+  desc: Bundled metadata and rows for trying the package offline.
   contents:
   - hb_example_metadata
   - hb_example_rows
 
 - title: Shiny explorer
+  desc: Browse a base interactively in a Shiny app.
   contents:
   - hb_run_explorer
 
