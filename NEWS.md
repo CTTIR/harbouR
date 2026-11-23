@@ -25,9 +25,12 @@ Initial CRAN submission.
   again.
 * The BibTeX entry shown in the README names the maintainer as
   `citation("harbouR")` now prints him.
-* Tests now pin every problem `hb_validate_dtable()` documents, and the
+* Tests now pin every problem `hb_validate_dtable()` documents, the
   empty results of `hb_list_columns()`, `hb_list_views()` and
-  `summary()` for a table without columns or views.
+  `summary()` for a table without columns or views, and the calls
+  `hb_append_rows()`, `hb_update_rows()` and `hb_update_column()` refuse
+  before anything is sent: a `chunk_size` that is not a positive number,
+  and a column update that asks for nothing or for two things at once.
 
 # harbouR 0.1.0
 
