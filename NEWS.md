@@ -44,8 +44,8 @@ Initial CRAN submission.
   `1000.5`, sent one more request once the whole rows were read, asking
   for `limit = 0`. It now stops there. The rows it returns are
   unchanged.
-* `hb_write_xlsx()` into a folder that did not exist failed with
-  libxlsxwriter's "usually a permissions error". It now creates the
+* `hb_write_xlsx()` into a folder that did not exist failed with an
+  error from libxlsxwriter that blamed permissions. It now creates the
   folder, as `hb_write_dtable()` and `hb_write_csv()` already did; a
   workbook refused for clashing sheet names still creates nothing. The
   help pages of both say so.
