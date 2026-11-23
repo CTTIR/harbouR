@@ -71,6 +71,8 @@
 <code><a href="../reference/hb_read_table.html">hb_read_table()</a></code> on a server, given a fractional <code>n_max</code> such as <code>1000.5</code>, sent one more request once the whole rows were read, asking for <code>limit = 0</code>. It now stops there. The rows it returns are unchanged.</li>
 <li>
 <code><a href="../reference/hb_write_xlsx.html">hb_write_xlsx()</a></code> into a folder that did not exist failed with an error from the workbook writer that blamed permissions. It now creates the folder, as <code><a href="../reference/hb_write_dtable.html">hb_write_dtable()</a></code> and <code><a href="../reference/hb_write_csv.html">hb_write_csv()</a></code> already did; a workbook refused for clashing sheet names still creates nothing. The help pages of both say so.</li>
+<li>
+<code><a href="../reference/hb_write_csv.html">hb_write_csv()</a></code> gives the file of a table named like a Windows device, such as <code>CON</code>, <code>NUL</code> or <code>LPT1</code>, a leading <code>_</code> (<code>_NUL.csv</code>). Windows writes a file of such a name to the device, so the export of that table was lost there. The explorer names its downloads the same way.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="harbour-010">harbouR 0.1.0<a class="anchor" aria-label="anchor" href="#harbour-010"></a></h2>

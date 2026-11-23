@@ -53,5 +53,5 @@ Other dtable:
 path <- system.file("extdata", "example.dtable", package = "harbouR")
 base <- hb_read_dtable(path, assets = "extract")
 hb_asset_path(base, "file://dtable-bundle/asset/files/2026-07/readme.txt")
-#> [1] "/tmp/RtmpByWWye/harbour-assets-18d713aad95a/asset/files/2026-07/readme.txt"
+#> [1] "/tmp/RtmpM6Lvd5/harbour-assets-18f617332c17/asset/files/2026-07/readme.txt"
 ```

@@ -4,8 +4,11 @@ Writes one `.csv` per table into `dir`. Subject to the same losses as
 [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md);
 see its documentation. Each file is named after its table, with the
 characters a file name cannot hold on some system - `/ \ : * ? " < > |`
-and control characters - replaced by `_`. Table names that produce the
-same filename (ignoring case) are rejected before any files are written.
+and control characters - replaced by `_`. A table named like a Windows
+device, such as `CON`, `nul` or `LPT1`, gets a leading `_` (`_CON.csv`),
+since Windows would write that file to the device. Table names that
+produce the same filename (ignoring case) are rejected before any files
+are written.
 
 ## Usage
 
