@@ -40,6 +40,10 @@ Initial CRAN submission.
   panels ran past the right edge: the layout kept them at least 576
   pixels wide beside a sidebar that cannot be closed. They now narrow
   with the window, and a wide table scrolls inside its card.
+* `hb_read_table()` on a server, given a fractional `n_max` such as
+  `1000.5`, sent one more request once the whole rows were read, asking
+  for `limit = 0`. It now stops there. The rows it returns are
+  unchanged.
 
 # harbouR 0.1.0
 

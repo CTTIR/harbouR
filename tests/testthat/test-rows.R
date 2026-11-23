@@ -191,6 +191,23 @@ test_that("n_max bounds the read and stops paging early", {
   expect_identical(rec$calls[[1]]$query$limit, 10L)
 })
 
+test_that("a fractional n_max sends no request for less than one row", {
+  # 3.5 rows is three: once they are read, the half row left over asked
+  # the server for `limit = 0`, a page of nothing.
+  cl <- mock_client()
+  responder <- function(path, method, query, body) {
+    ids <- seq_len(query$limit) + query$start
+    list(rows = lapply(ids, function(i) list(`_id` = paste0("r", i))))
+  }
+  rec <- with_mocked_request(
+    out <- hb_read_table(cl, "Samples", page_size = 3L, n_max = 3.5),
+    response = responder
+  )
+  expect_identical(nrow(out), 3L)
+  limits <- vapply(rec$calls, function(call) call$query$limit, integer(1))
+  expect_identical(limits, 3L)
+})
+
 test_that("reads page until the server returns a short page", {
   cl <- mock_client()
   responder <- function(path, method, query, body) {

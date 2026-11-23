@@ -75,7 +75,9 @@ hb_read_table.harbour_client <- function(x,
   max_pages <- .hb_max_pages(page_size)
   for (page in seq_len(max_pages + 1L)) {
     want <- min(page_size, n_max - n_read)
-    if (want <= 0L) break
+    # A fractional n_max leaves less than one row to read once its whole
+    # rows are in; asking for it would send `limit = 0`.
+    if (want < 1) break
     # convert_keys defaults to false, which keys every cell by the column's
     # four-character key; the coercion layer looks cells up by name.
     q <- list(
