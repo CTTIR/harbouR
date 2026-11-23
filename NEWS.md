@@ -12,6 +12,22 @@ Initial CRAN submission.
   before its `\dontrun{}` block.
 * `CITATION.cff`, `.zenodo.json` and the README citation carry the new
   version.
+* The mapping table of the column-types vignette names the element type
+  of a list-column. Written into the table as plain text,
+  `list<character>` and `list<list>` were read as HTML tags, so the
+  table said `list` for multiple-select, collaborator, image and file
+  columns. The type names are now set as code.
+* On the website's dark theme, the values and the missing values in
+  printed example output are legible: they were dark blue and dark red
+  on a dark background.
+* The reference index of the website describes each group of functions,
+  and the authors page links the maintainer's name to his ORCID record
+  again.
+* The BibTeX entry shown in the README names the maintainer as
+  `citation("harbouR")` now prints him.
+* Tests now pin every problem `hb_validate_dtable()` documents, and the
+  empty results of `hb_list_columns()`, `hb_list_views()` and
+  `summary()` for a table without columns or views.
 
 # harbouR 0.1.0
 
