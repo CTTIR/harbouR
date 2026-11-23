@@ -51,6 +51,11 @@ Initial CRAN submission.
   creates the folder, as `hb_write_dtable()` and `hb_write_csv()`
   already did; a workbook refused for clashing sheet names still
   creates nothing. The help pages of both say so.
+* `hb_write_csv()` gives the file of a table named like a Windows
+  device, such as `CON`, `NUL` or `LPT1`, a leading `_` (`_NUL.csv`).
+  Windows writes a file of such a name to the device, so the export of
+  that table was lost there. The explorer names its downloads the same
+  way.
 
 # harbouR 0.1.0
 

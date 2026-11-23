@@ -201,9 +201,10 @@ test_that("a byte-order mark, embedded nuls and compression still read", {
   data <- hb_read_table(hb_read_csv(c(T = bom)), "T")
   expect_identical(names(data), c("Name", "Value", "_id"))
 
-  nul <- file.path(dir, "nul.csv")
-  writeBin(c(charToRaw("a,b\n1,2\n3,"), as.raw(0L), charToRaw("4\n")), nul)
-  expect_no_error(suppressWarnings(hb_read_csv(c(T = nul))))
+  # Not "nul.csv": Windows takes that name for its null device.
+  nuls <- file.path(dir, "nuls.csv")
+  writeBin(c(charToRaw("a,b\n1,2\n3,"), as.raw(0L), charToRaw("4\n")), nuls)
+  expect_no_error(suppressWarnings(hb_read_csv(c(T = nuls))))
 
   # A multibyte session that is not UTF-8 holds the text in its own
   # encoding, which may lack the character below.
@@ -666,6 +667,32 @@ test_that("table names keep their letters in CSV file names", {
   expect_identical(hb_list_tables(back)$name, "Probenübersicht")
   # Characters a file name cannot hold are still replaced.
   expect_identical(harbouR:::.hb_safe_filename("a/b:c*d?"), "a_b_c_d_")
+})
+
+test_that("a table named like a Windows device gets a file of its own", {
+  # Windows writes NUL.csv to the null device and CON.csv to the console,
+  # so the export of such a table was empty there.
+  lpt1 <- paste0("LPT", intToUtf8(0xb9))
+  devices <- c("CON", "nul", "Aux", "PRN", "com1", "LPT9", lpt1,
+               "con.backup", "nul ")
+  expect_identical(harbouR:::.hb_safe_filename(devices),
+                   paste0("_", devices))
+  others <- c("console", "nullable", "auxiliary", "com", "com10", "lpt0x",
+              "_nul", "my con", "a.nul", "")
+  expect_identical(harbouR:::.hb_safe_filename(others),
+                   c(others[-length(others)], "_"))
+
+  base <- hb_dtable(NUL = data.frame(x = 1:2), Con = data.frame(y = "a"))
+  dir <- withr::local_tempdir()
+  files <- hb_write_csv(base, dir)
+  expect_identical(basename(files), c("_NUL.csv", "_Con.csv"))
+  expect_setequal(list.files(dir), c("_NUL.csv", "_Con.csv"))
+  back <- hb_read_table(hb_read_csv(files[[1]]), "_NUL")
+  expect_identical(back$x, c(1, 2))
+  # Hence a table "NUL" and a table "_NUL" are refused together.
+  clash <- hb_dtable(NUL = data.frame(x = 1), `_nul` = data.frame(x = 2))
+  expect_error(hb_write_csv(clash, withr::local_tempdir()),
+               "duplicate CSV filenames", class = "harbour_error_bad_argument")
 })
 
 test_that("a cell with a missing or repeated field flattens", {

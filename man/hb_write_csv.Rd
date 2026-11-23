@@ -22,9 +22,11 @@ A character vector of the files written, invisibly.
 Writes one \code{.csv} per table into \code{dir}. Subject to the same losses as
 \code{\link[=hb_write_xlsx]{hb_write_xlsx()}}; see its documentation. Each file is named after its
 table, with the characters a file name cannot hold on some system -
-\verb{/ \\ : * ? " < > |} and control characters - replaced by \verb{_}. Table
-names that produce the same filename (ignoring case) are rejected
-before any files are written.
+\verb{/ \\ : * ? " < > |} and control characters - replaced by \verb{_}. A table
+named like a Windows device, such as \code{CON}, \code{nul} or \code{LPT1}, gets a
+leading \verb{_} (\verb{_CON.csv}), since Windows would write that file to the
+device. Table names that produce the same filename (ignoring case) are
+rejected before any files are written.
 }
 \examples{
 base <- hb_read_dtable(

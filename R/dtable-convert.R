@@ -116,9 +116,11 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
 #' Writes one `.csv` per table into `dir`. Subject to the same losses as
 #' [hb_write_xlsx()]; see its documentation. Each file is named after its
 #' table, with the characters a file name cannot hold on some system -
-#' `/ \ : * ? " < > |` and control characters - replaced by `_`. Table
-#' names that produce the same filename (ignoring case) are rejected
-#' before any files are written.
+#' `/ \ : * ? " < > |` and control characters - replaced by `_`. A table
+#' named like a Windows device, such as `CON`, `nul` or `LPT1`, gets a
+#' leading `_` (`_CON.csv`), since Windows would write that file to the
+#' device. Table names that produce the same filename (ignoring case) are
+#' rejected before any files are written.
 #'
 #' @param x A `harbour_dtable`, or a `harbour_client` to read from first.
 #' @param dir Destination directory. Created if it does not exist.
@@ -761,6 +763,10 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 #' Letters outside A to Z are kept, so that two tables named in Chinese do
 #' not both become `_.csv`, and a table keeps its name when re-imported.
 #'
+#' A name that Windows reserves for a device gets a leading `_`: Windows
+#' writes a file of such a name to the device, so a table called `NUL`
+#' would be exported as an empty file and `CON` to the console.
+#'
 #' @param x A table name.
 #' @return A single string.
 #' @keywords internal
@@ -768,7 +774,29 @@ hb_read_xlsx <- function(path, ..., sheets = NULL,
 .hb_safe_filename <- function(x) {
   out <- gsub("[/\\\\:*?\"<>|[:cntrl:]]+", "_", x)
   out[out %in% c("", ".", "..")] <- "_"
+  device <- .hb_windows_device(out)
+  out[device] <- paste0("_", out[device])
   out
+}
+
+#' Does a file name stand for a Windows device?
+#'
+#' The reserved names are `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9` and
+#' `LPT1` to `LPT9`, the digit also written as a superscript 1, 2 or 3
+#' (Microsoft, "Naming Files, Paths, and Namespaces",
+#' <https://learn.microsoft.com/windows/win32/fileio/naming-a-file>).
+#' Windows compares the part before the first dot, ignoring case and
+#' trailing spaces, so `nul.csv`, `Aux.backup.csv` and `con .csv` all name
+#' a device.
+#'
+#' @param x File names without directories.
+#' @return A logical vector as long as `x`.
+#' @keywords internal
+#' @noRd
+.hb_windows_device <- function(x) {
+  digit <- "[1-9\u00b9\u00b2\u00b3]"
+  pattern <- paste0("^(con|prn|aux|nul|com", digit, "|lpt", digit, ") *(\\.|$)")
+  !is.na(x) & grepl(pattern, x, ignore.case = TRUE, perl = TRUE)
 }
 
 #' Make table names legal sheet names
