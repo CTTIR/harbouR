@@ -228,6 +228,14 @@ test_that("the theme is built from the logo's palette", {
   }
 })
 
+test_that("the main panel may narrow beside the sidebar", {
+  skip_if_not_installed("shiny")
+  # bslib's 576px floor pushed the panels past the window's right edge
+  # between about 576 and 900px, since this sidebar cannot be closed.
+  css <- as.character(harbouR:::.hb_styles())
+  expect_match(css, "--bslib-page-main-min-width: 0px;", fixed = TRUE)
+})
+
 test_that("opening a base extracts its assets, so a download keeps them", {
   skip_if_no_ui()
   shiny::testServer(harbouR:::.hb_app_server(), {

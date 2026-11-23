@@ -36,6 +36,10 @@ Initial CRAN submission.
   folders become two tables called `data`, a base that
   `hb_validate_dtable()` reports and `hb_write_dtable()` refuses. Naming
   `files` avoids it. A test pins both cases.
+* In a window between about 576 and 900 pixels wide, the explorer's
+  panels ran past the right edge: the layout kept them at least 576
+  pixels wide beside a sidebar that cannot be closed. They now narrow
+  with the window, and a wide table scrolls inside its card.
 
 # harbouR 0.1.0
 

@@ -199,6 +199,12 @@ body { background: var(--hb-paper); }
 .hb-source.hb-file { background: #D7EFEC; }
 .hb-source.hb-demo { background: #FEF6B6; }
 
+/* bslib keeps the main area at least 576px wide beside an open sidebar,
+   and this sidebar cannot be closed, so in a window between about 576
+   and 900px wide the panels ran past its right edge. The main area
+   narrows instead, and a wide table scrolls inside its card. */
+.bslib-sidebar-layout { --bslib-page-main-min-width: 0px; }
+
 :focus-visible { outline: 2px solid var(--hb-tide); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
