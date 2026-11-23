@@ -8,7 +8,10 @@ hb_read_csv(files, ..., base_name = "harbouR base")
 }
 \arguments{
 \item{files}{Paths to \code{.csv} files. Table names come from the file
-names unless \code{files} is named.}
+names unless \code{files} is named. Name \code{files} when two of them share a
+file name, such as \code{a/data.csv} and \code{b/data.csv}: the tables would
+otherwise share a name, which \code{\link[=hb_validate_dtable]{hb_validate_dtable()}} reports as an
+error and \code{\link[=hb_write_dtable]{hb_write_dtable()}} refuses to write.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 

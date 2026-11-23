@@ -187,3 +187,27 @@ test_that("summary() of metadata skips a table without columns", {
     c(table = "character", column = "character", type = "character")
   )
 })
+
+# Two CSV files of the same name in different folders, as the help page
+# of hb_read_csv() describes: unnamed, their tables share a name the
+# validator reports; named, they do not.
+
+test_that("CSV files sharing a file name need names to make a valid base", {
+  dir_a <- withr::local_tempdir()
+  dir_b <- withr::local_tempdir()
+  files <- c(file.path(dir_a, "data.csv"), file.path(dir_b, "data.csv"))
+  utils::write.csv(data.frame(x = 1), files[[1L]], row.names = FALSE)
+  utils::write.csv(data.frame(y = 2), files[[2L]], row.names = FALSE)
+
+  shared <- hb_read_csv(files)
+  expect_identical(hb_list_tables(shared)$name, c("data", "data"))
+  problems <- hb_validate_dtable(shared)
+  expect_identical(
+    problems_at(problems, "tables[[2]]"),
+    "duplicate table name `data`"
+  )
+
+  named <- hb_read_csv(c(First = files[[1L]], Second = files[[2L]]))
+  expect_identical(hb_list_tables(named)$name, c("First", "Second"))
+  expect_identical(nrow(hb_validate_dtable(named)), 0L)
+})

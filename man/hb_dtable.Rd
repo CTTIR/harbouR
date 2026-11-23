@@ -7,7 +7,10 @@
 hb_dtable(..., base_name = "harbouR base", collaborators = NULL)
 }
 \arguments{
-\item{...}{Named data frames, one per table.}
+\item{...}{Named data frames, one per table. Give each table its own
+name: two tables of the same name are built as given, but
+\code{\link[=hb_validate_dtable]{hb_validate_dtable()}} reports the second as an error and
+\code{\link[=hb_write_dtable]{hb_write_dtable()}} refuses to write the base.}
 
 \item{base_name}{Name recorded for the base.}
 

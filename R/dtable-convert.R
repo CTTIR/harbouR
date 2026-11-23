@@ -190,7 +190,10 @@ hb_write_csv <- function(x, dir, ..., tables = NULL) {
 #' row ids, such as a database's keys, is dropped with a warning.
 #'
 #' @param files Paths to `.csv` files. Table names come from the file
-#'   names unless `files` is named.
+#'   names unless `files` is named. Name `files` when two of them share a
+#'   file name, such as `a/data.csv` and `b/data.csv`: the tables would
+#'   otherwise share a name, which [hb_validate_dtable()] reports as an
+#'   error and [hb_write_dtable()] refuses to write.
 #' @param ... These dots are for future extensions and must be empty.
 #' @param base_name Name recorded for the new base.
 #'

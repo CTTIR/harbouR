@@ -31,6 +31,11 @@ Initial CRAN submission.
   `hb_append_rows()`, `hb_update_rows()` and `hb_update_column()` refuse
   before anything is sent: a `chunk_size` that is not a positive number,
   and a column update that asks for nothing or for two things at once.
+* The help pages of `hb_dtable()` and `hb_read_csv()` say that tables
+  need names of their own: two CSV files called `data.csv` in different
+  folders become two tables called `data`, a base that
+  `hb_validate_dtable()` reports and `hb_write_dtable()` refuses. Naming
+  `files` avoids it. A test pins both cases.
 
 # harbouR 0.1.0
 

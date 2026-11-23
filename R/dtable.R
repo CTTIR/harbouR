@@ -382,7 +382,10 @@ hb_write_dtable <- function(x, path, ..., assets = TRUE, overwrite = TRUE) {
 #' from the same draw made without it. Set the seed after building the
 #' base when an analysis needs its random numbers not to depend on it.
 #'
-#' @param ... Named data frames, one per table.
+#' @param ... Named data frames, one per table. Give each table its own
+#'   name: two tables of the same name are built as given, but
+#'   [hb_validate_dtable()] reports the second as an error and
+#'   [hb_write_dtable()] refuses to write the base.
 #' @param base_name Name recorded for the base.
 #' @param collaborators Optional list of collaborator records.
 #'
