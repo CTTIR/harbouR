@@ -18,6 +18,15 @@ This is a new submission: harbouR 1.0.0.
 
 * This is a new submission.
 
+A local `--as-cran` run on 23 November 2026 also listed two URLs under
+that note:
+
+* `https://doi.org/10.5281/zenodo.21889936`, the DOI badge in
+  `README.md`, answered 404. The DOI is reserved at Zenodo and resolves
+  once the record is published with this release.
+* `https://api.seatable.com/`, the API documentation named in the
+  Description, answered 429 (Too Many Requests) to the automated check.
+
 CRAN's incoming spell check may also list GmbH and SeaTable as possibly
 misspelled words in DESCRIPTION. Both belong to SeaTable GmbH, the
 German company behind the 'SeaTable' software; GmbH is the German
