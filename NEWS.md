@@ -12,6 +12,7 @@ Initial CRAN submission.
   before its `\dontrun{}` block.
 * `CITATION.cff`, `.zenodo.json` and the README citation carry the new
   version.
+* `CITATION.cff` and `.zenodo.json` name the maintainer as R. Heller.
 * The mapping table of the column-types vignette names the element type
   of a list-column. Written into the table as plain text,
   `list<character>` and `list<list>` were read as HTML tags, so the
