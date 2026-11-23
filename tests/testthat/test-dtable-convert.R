@@ -556,6 +556,32 @@ test_that("the export writes what the documented losses describe", {
   expect_identical(samples$Action, c(NA_character_, NA_character_))
 })
 
+test_that("the writers create a missing folder, and a refusal creates none", {
+  skip_if_not_installed("writexl")
+  base <- hb_dtable(Samples = data.frame(x = c(1.5, 2)))
+  root <- withr::local_tempdir()
+
+  # hb_write_xlsx() failed here with libxlsxwriter's "usually a
+  # permissions error", where the other writers made the folder.
+  xlsx <- file.path(root, "new", "deeper", "base.xlsx")
+  expect_identical(suppressMessages(hb_write_xlsx(base, xlsx)), xlsx)
+  expect_true(file.exists(xlsx))
+  back <- hb_read_table(hb_read_xlsx(xlsx), "Samples")
+  expect_identical(back$x, c(1.5, 2))
+
+  dtable <- file.path(root, "other", "base.dtable")
+  hb_write_dtable(base, dtable)
+  expect_true(file.exists(dtable))
+
+  clash <- hb_dtable(Samples = data.frame(x = 1), samples = data.frame(x = 2))
+  refused <- file.path(root, "refused", "base.xlsx")
+  expect_error(
+    hb_write_xlsx(clash, refused),
+    class = "harbour_error_bad_argument"
+  )
+  expect_false(dir.exists(dirname(refused)))
+})
+
 test_that("hb_write_xlsx refuses table names that differ only in case", {
   skip_if_not_installed("writexl")
   base <- hb_dtable(Samples = data.frame(x = 1), samples = data.frame(x = 2))

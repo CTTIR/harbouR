@@ -9,7 +9,8 @@ hb_write_xlsx(x, path, ..., tables = NULL)
 \arguments{
 \item{x}{A \code{harbour_dtable}, or a \code{harbour_client} to read from first.}
 
-\item{path}{Destination \code{.xlsx} path.}
+\item{path}{Destination \code{.xlsx} path. A folder in it that does not
+exist is created.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 

@@ -39,7 +39,8 @@
 #' a `.dtable` with [hb_write_dtable()] instead.
 #'
 #' @param x A `harbour_dtable`, or a `harbour_client` to read from first.
-#' @param path Destination `.xlsx` path.
+#' @param path Destination `.xlsx` path. A folder in it that does not
+#'   exist is created.
 #' @param ... These dots are for future extensions and must be empty.
 #' @param tables Table names to export. Default: all of them.
 #'
@@ -83,6 +84,10 @@ hb_write_xlsx <- function(x, path, ..., tables = NULL) {
     )
   }
   names(sheets) <- sheet[match(names(sheets), distinct)]
+  # hb_write_dtable() and hb_write_csv() create a missing folder. Left to
+  # libxlsxwriter, one failed as "usually a permissions error".
+  parent <- dirname(path)
+  if (!dir.exists(parent)) dir.create(parent, recursive = TRUE)
   # The names are already legal and distinct, so libxlsxwriter should never
   # refuse one; should it, its error names neither table, so this says
   # what to do.

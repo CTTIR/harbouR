@@ -139,7 +139,8 @@ hb_read_dtable <- function(path, ..., assets = c("none", "extract"),
 #' with a warning of class `harbour_warning_missing_assets` naming them.
 #'
 #' @param x A `harbour_dtable`.
-#' @param path Destination path.
+#' @param path Destination path. A folder in it that does not exist is
+#'   created.
 #' @param ... These dots are for future extensions and must be empty.
 #' @param assets Whether to repack the extracted asset tree, if there is
 #'   one. Default `TRUE`.

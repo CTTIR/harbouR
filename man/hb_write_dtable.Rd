@@ -9,7 +9,8 @@ hb_write_dtable(x, path, ..., assets = TRUE, overwrite = TRUE)
 \arguments{
 \item{x}{A \code{harbour_dtable}.}
 
-\item{path}{Destination path.}
+\item{path}{Destination path. A folder in it that does not exist is
+created.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
