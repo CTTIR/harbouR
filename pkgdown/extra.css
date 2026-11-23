@@ -1,0 +1,15 @@
+/* cli prints values in ANSI blue and missing values in ANSI red, and
+   pkgdown writes both into example output as inline styles (#0000BB and
+   #BB0000). On the dark theme's code background (#2b2b2b, set by the
+   themakR template) they read at 1.16:1 and 2.10:1, below the 4.5:1
+   minimum for text (W3C, Web Content Accessibility Guidelines 2.1, 2018,
+   success criterion 1.4.3,
+   https://www.w3.org/TR/WCAG21/#contrast-minimum). The tones below read
+   at 6.72:1 and 6.20:1 there. The light theme keeps the ANSI colours. */
+[data-bs-theme="dark"] pre span[style*="#0000BB"] {
+  color: #8AB4F8 !important;
+}
+
+[data-bs-theme="dark"] pre span[style*="#BB0000"] {
+  color: #FF8A80 !important;
+}
