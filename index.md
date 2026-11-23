@@ -44,9 +44,9 @@ samples |>
   dplyr::arrange(.data$Collected)
 ```
 
-The bundled example data let you explore the data model fully offline
-before connecting a server: Writing to a base, SQL and file uploads need
-a server.
+Writing to a base, SQL and file uploads need a server. The bundled
+example data let you explore the data model fully offline before
+connecting one:
 
 ``` r
 
@@ -153,7 +153,7 @@ citation("harbouR")
 #> 
 #>   @Manual{,
 #>     title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},
-#>     author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
+#>     author = {R. Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},
 #>     year = {2026},
 #>     note = {R package version 1.0.0},
 #>     url = {https://github.com/CTTIR/harbouR},

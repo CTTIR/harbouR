@@ -17,7 +17,8 @@
 <link href="../deps/JetBrains_Mono-0.5.0/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Column types and coercion">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Column types and coercion">
 <meta name="theme-color" content="#1565c0">
 <script defer data-domain="cttir.github.io/harbour" src="https://analytics.hellebo.de/js/script.file-downloads.outbound-links.js"></script>
 <!-- Package browser icons -->
@@ -118,14 +119,19 @@ the reference.</p>
 cannot drift out of sync with the code:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">types</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hb_column_types.html">hb_column_types</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># shown as code: left as plain text, `list&lt;character&gt;` is read as an HTML</span></span>
+<span><span class="co"># tag and the table says `list`</span></span>
+<span><span class="va">types</span><span class="op">$</span><span class="va">seatable</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"`%s`"</span>, <span class="va">types</span><span class="op">$</span><span class="va">seatable</span><span class="op">)</span></span>
+<span><span class="va">types</span><span class="op">$</span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"`%s`"</span>, <span class="va">types</span><span class="op">$</span><span class="va">r</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">types</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="13%">
-<col width="13%">
+<col width="14%">
+<col width="14%">
 <col width="6%">
 <col width="8%">
-<col width="58%">
+<col width="56%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">seatable</th>
@@ -136,204 +142,200 @@ cannot drift out of sync with the code:</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">text</td>
-<td align="left">character</td>
+<td align="left"><code>text</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">free text</td>
 </tr>
 <tr class="even">
-<td align="left">long-text</td>
-<td align="left">character</td>
+<td align="left"><code>long-text</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">markdown blob</td>
 </tr>
 <tr class="odd">
-<td align="left">email</td>
-<td align="left">character</td>
+<td align="left"><code>email</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">validated as email server-side</td>
 </tr>
 <tr class="even">
-<td align="left">url</td>
-<td align="left">character</td>
+<td align="left"><code>url</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">validated as URL server-side</td>
 </tr>
 <tr class="odd">
-<td align="left">number</td>
-<td align="left">double</td>
+<td align="left"><code>number</code></td>
+<td align="left"><code>double</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">64-bit precision caveat applies</td>
 </tr>
 <tr class="even">
-<td align="left">percent</td>
-<td align="left">double</td>
+<td align="left"><code>percent</code></td>
+<td align="left"><code>double</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">stored as a fraction, displayed as a percentage</td>
 </tr>
 <tr class="odd">
-<td align="left">dollar</td>
-<td align="left">double</td>
+<td align="left"><code>dollar</code></td>
+<td align="left"><code>double</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">number with a currency format</td>
 </tr>
 <tr class="even">
-<td align="left">euro</td>
-<td align="left">double</td>
+<td align="left"><code>euro</code></td>
+<td align="left"><code>double</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">number with a currency format</td>
 </tr>
 <tr class="odd">
-<td align="left">duration</td>
-<td align="left">double</td>
+<td align="left"><code>duration</code></td>
+<td align="left"><code>double</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">seconds</td>
 </tr>
 <tr class="even">
-<td align="left">rate</td>
-<td align="left">integer</td>
+<td align="left"><code>rate</code></td>
+<td align="left"><code>integer</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">0..N stars</td>
 </tr>
 <tr class="odd">
-<td align="left">checkbox</td>
-<td align="left">logical</td>
+<td align="left"><code>checkbox</code></td>
+<td align="left"><code>logical</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">TRUE/FALSE; an unset box reads as FALSE</td>
 </tr>
 <tr class="even">
-<td align="left">date</td>
-<td align="left">POSIXct</td>
+<td align="left"><code>date</code></td>
+<td align="left"><code>POSIXct</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">UTC; date-only columns have a zero time component</td>
 </tr>
 <tr class="odd">
-<td align="left">single-select</td>
-<td align="left">character</td>
+<td align="left"><code>single-select</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">not validated on write: SeaTable adds an unknown name
 as a new option</td>
 </tr>
 <tr class="even">
-<td align="left">multiple-select</td>
-<td align="left">list<character></character>
-</td>
+<td align="left"><code>multiple-select</code></td>
+<td align="left"><code>list&lt;character&gt;</code></td>
 <td align="left">TRUE</td>
 <td align="left">FALSE</td>
 <td align="left">always a list-column</td>
 </tr>
 <tr class="odd">
-<td align="left">collaborator</td>
-<td align="left">list<character></character>
-</td>
+<td align="left"><code>collaborator</code></td>
+<td align="left"><code>list&lt;character&gt;</code></td>
 <td align="left">TRUE</td>
 <td align="left">FALSE</td>
 <td align="left">list-column of email addresses</td>
 </tr>
 <tr class="even">
-<td align="left">image</td>
-<td align="left">list<character></character>
-</td>
+<td align="left"><code>image</code></td>
+<td align="left"><code>list&lt;character&gt;</code></td>
 <td align="left">TRUE</td>
 <td align="left">FALSE</td>
 <td align="left">list-column of URLs</td>
 </tr>
 <tr class="odd">
-<td align="left">file</td>
-<td align="left">list<list></list>
-</td>
+<td align="left"><code>file</code></td>
+<td align="left"><code>list&lt;list&gt;</code></td>
 <td align="left">TRUE</td>
 <td align="left">FALSE</td>
 <td align="left">list-column of {name,size,type,url} lists</td>
 </tr>
 <tr class="even">
-<td align="left">geolocation</td>
-<td align="left">list</td>
+<td align="left"><code>geolocation</code></td>
+<td align="left"><code>list</code></td>
 <td align="left">TRUE</td>
 <td align="left">FALSE</td>
 <td align="left">list-column with lat/lng/address</td>
 </tr>
 <tr class="odd">
-<td align="left">link</td>
-<td align="left">list</td>
+<td align="left"><code>link</code></td>
+<td align="left"><code>list</code></td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
 <td align="left">managed via the link endpoints, not by writing the
 cell</td>
 </tr>
 <tr class="even">
-<td align="left">link-formula</td>
-<td align="left">list</td>
+<td align="left"><code>link-formula</code></td>
+<td align="left"><code>list</code></td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
 <td align="left">mirrors a column in a linked table</td>
 </tr>
 <tr class="odd">
-<td align="left">formula</td>
-<td align="left">character</td>
+<td align="left"><code>formula</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">computed server-side</td>
 </tr>
 <tr class="even">
-<td align="left">auto-number</td>
-<td align="left">character</td>
+<td align="left"><code>auto-number</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">server-generated identifier</td>
 </tr>
 <tr class="odd">
-<td align="left">button</td>
-<td align="left">list</td>
+<td align="left"><code>button</code></td>
+<td align="left"><code>list</code></td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
 <td align="left">carries no data</td>
 </tr>
 <tr class="even">
-<td align="left">digital-sign</td>
-<td align="left">list</td>
+<td align="left"><code>digital-sign</code></td>
+<td align="left"><code>list</code></td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
 <td align="left">signature metadata; not written, since it should come
 from the signer</td>
 </tr>
 <tr class="odd">
-<td align="left">creator</td>
-<td align="left">character</td>
+<td align="left"><code>creator</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">user email</td>
 </tr>
 <tr class="even">
-<td align="left">last-modifier</td>
-<td align="left">character</td>
+<td align="left"><code>last-modifier</code></td>
+<td align="left"><code>character</code></td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">user email</td>
 </tr>
 <tr class="odd">
-<td align="left">ctime</td>
-<td align="left">POSIXct</td>
+<td align="left"><code>ctime</code></td>
+<td align="left"><code>POSIXct</code></td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">row creation time</td>
 </tr>
 <tr class="even">
-<td align="left">mtime</td>
-<td align="left">POSIXct</td>
+<td align="left"><code>mtime</code></td>
+<td align="left"><code>POSIXct</code></td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">row modification time</td>
@@ -691,7 +693,7 @@ interactively.</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by R. Heller, Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz, Vinzent Forstmeier.</p>
+  <p>Developed by <a href="https://orcid.org/0000-0001-8006-9742" class="external-link">R. Heller</a>, Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz, Vinzent Forstmeier.</p>
 </div>
 
 <div class="pkgdown-footer-center themakr-footer-suite">

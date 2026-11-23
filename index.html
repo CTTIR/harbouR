@@ -17,7 +17,8 @@
 <link href="deps/JetBrains_Mono-0.5.0/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Work with Self-Hosted SeaTable Servers and Data Files">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
+<meta property="og:title" content="Work with Self-Hosted SeaTable Servers and Data Files">
 <meta name="description" content="An unofficial R client for self-hosted SeaTable servers and for reading and writing SeaTable data files directly. Reads a local .dtable export with no server at all, and talks to a self-hosted server over its REST (representational state transfer) application programming interface (API), returning tables, rows, columns and views as tidy tibble objects through a column-type-aware coercion layer. Includes helpers for managing bases and files, converters to and from spreadsheet formats, and an optional shiny explorer for interactive inspection. The SeaTable API is documented at &lt;https://api.seatable.com/&gt;. This is an independent, third-party client: it is not affiliated with, endorsed by, or otherwise connected to SeaTable GmbH, and SeaTable is their trademark, used here only to identify the software the package works with.">
 <meta property="og:description" content="An unofficial R client for self-hosted SeaTable servers and for reading and writing SeaTable data files directly. Reads a local .dtable export with no server at all, and talks to a self-hosted server over its REST (representational state transfer) application programming interface (API), returning tables, rows, columns and views as tidy tibble objects through a column-type-aware coercion layer. Includes helpers for managing bases and files, converters to and from spreadsheet formats, and an optional shiny explorer for interactive inspection. The SeaTable API is documented at &lt;https://api.seatable.com/&gt;. This is an independent, third-party client: it is not affiliated with, endorsed by, or otherwise connected to SeaTable GmbH, and SeaTable is their trademark, used here only to identify the software the package works with.">
 <meta property="og:image" content="https://cttir.github.io/harbouR/logo.svg">
@@ -113,7 +114,7 @@
 <span><span class="va">samples</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.data</span><span class="op">$</span><span class="va">Status</span> <span class="op">==</span> <span class="st">"ready"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">.data</span><span class="op">$</span><span class="va">Collected</span><span class="op">)</span></span></code></pre></div>
-<p>The bundled example data let you explore the data model fully offline before connecting a server: Writing to a base, SQL and file uploads need a server.</p>
+<p>Writing to a base, SQL and file uploads need a server. The bundled example data let you explore the data model fully offline before connecting one:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/harbouR" class="external-link">harbouR</a></span><span class="op">)</span></span>
 <span></span>
@@ -196,7 +197,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   @Manual{,</span></span>
 <span><span class="co">#&gt;     title = {{harbouR}: R Client for {SeaTable} Collaborative Databases},</span></span>
-<span><span class="co">#&gt;     author = {Raban Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},</span></span>
+<span><span class="co">#&gt;     author = {R. Heller and Paul Elsinghorst and Wiebke Derz and Matthias Ring and Gerhard Achatz and Vinzent Forstmeier},</span></span>
 <span><span class="co">#&gt;     year = {2026},</span></span>
 <span><span class="co">#&gt;     note = {R package version 1.0.0},</span></span>
 <span><span class="co">#&gt;     url = {https://github.com/CTTIR/harbouR},</span></span>
@@ -288,7 +289,8 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>R. Heller <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0001-8006-9742" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>
+<a href="https://orcid.org/0000-0001-8006-9742" class="external-link">R. Heller</a> <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0001-8006-9742" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Paul Elsinghorst <br><small class="roles"> Author </small>   </li>
 <li>Wiebke Derz <br><small class="roles"> Author </small>   </li>
 <li>Matthias Ring <br><small class="roles"> Author </small>   </li>
@@ -309,7 +311,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by R. Heller, Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz, Vinzent Forstmeier.</p>
+  <p>Developed by <a href="https://orcid.org/0000-0001-8006-9742" class="external-link">R. Heller</a>, Paul Elsinghorst, Wiebke Derz, Matthias Ring, Gerhard Achatz, Vinzent Forstmeier.</p>
 </div>
 
 <div class="pkgdown-footer-center themakr-footer-suite">

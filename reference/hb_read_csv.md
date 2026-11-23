@@ -17,7 +17,13 @@ hb_read_csv(files, ..., base_name = "harbouR base")
 - files:
 
   Paths to `.csv` files. Table names come from the file names unless
-  `files` is named.
+  `files` is named. Name `files` when two of them share a file name,
+  such as `a/data.csv` and `b/data.csv`: the tables would otherwise
+  share a name, which
+  [`hb_validate_dtable()`](https://cttir.github.io/harbouR/reference/hb_validate_dtable.md)
+  reports as an error and
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  refuses to write.
 
 - ...:
 

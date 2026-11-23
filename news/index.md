@@ -14,6 +14,60 @@ Initial CRAN submission.
   before its `\dontrun{}` block.
 - `CITATION.cff`, `.zenodo.json` and the README citation carry the new
   version.
+- The mapping table of the column-types vignette names the element type
+  of a list-column. Written into the table as plain text,
+  `list<character>` and `list<list>` were read as HTML tags, so the
+  table said `list` for multiple-select, collaborator, image and file
+  columns. The type names are now set as code.
+- On the website’s dark theme, the values and the missing values in
+  printed example output are legible: they were dark blue and dark red
+  on a dark background.
+- The reference index of the website describes each group of functions,
+  and the authors page links the maintainer’s name to his ORCID record
+  again.
+- The BibTeX entry shown in the README names the maintainer as
+  `citation("harbouR")` now prints him.
+- Tests now pin every problem
+  [`hb_validate_dtable()`](https://cttir.github.io/harbouR/reference/hb_validate_dtable.md)
+  documents, the empty results of
+  [`hb_list_columns()`](https://cttir.github.io/harbouR/reference/hb_list_columns.md),
+  [`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md)
+  and [`summary()`](https://rdrr.io/r/base/summary.html) for a table
+  without columns or views, and the calls
+  [`hb_append_rows()`](https://cttir.github.io/harbouR/reference/hb_append_rows.md),
+  [`hb_update_rows()`](https://cttir.github.io/harbouR/reference/hb_update_rows.md)
+  and
+  [`hb_update_column()`](https://cttir.github.io/harbouR/reference/hb_update_column.md)
+  refuse before anything is sent: a `chunk_size` that is not a positive
+  number, and a column update that asks for nothing or for two things at
+  once.
+- The help pages of
+  [`hb_dtable()`](https://cttir.github.io/harbouR/reference/hb_dtable.md)
+  and
+  [`hb_read_csv()`](https://cttir.github.io/harbouR/reference/hb_read_csv.md)
+  say that tables need names of their own: two CSV files called
+  `data.csv` in different folders become two tables called `data`, a
+  base that
+  [`hb_validate_dtable()`](https://cttir.github.io/harbouR/reference/hb_validate_dtable.md)
+  reports and
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  refuses. Naming `files` avoids it. A test pins both cases.
+- In a window between about 576 and 900 pixels wide, the explorer’s
+  panels ran past the right edge: the layout kept them at least 576
+  pixels wide beside a sidebar that cannot be closed. They now narrow
+  with the window, and a wide table scrolls inside its card.
+- [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
+  on a server, given a fractional `n_max` such as `1000.5`, sent one
+  more request once the whole rows were read, asking for `limit = 0`. It
+  now stops there. The rows it returns are unchanged.
+- [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md)
+  into a folder that did not exist failed with an error from the
+  workbook writer that blamed permissions. It now creates the folder, as
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  and
+  [`hb_write_csv()`](https://cttir.github.io/harbouR/reference/hb_write_csv.md)
+  already did; a workbook refused for clashing sheet names still creates
+  nothing. The help pages of both say so.
 
 ## harbouR 0.1.0
 

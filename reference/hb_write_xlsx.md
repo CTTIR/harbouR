@@ -18,7 +18,8 @@ hb_write_xlsx(x, path, ..., tables = NULL)
 
 - path:
 
-  Destination `.xlsx` path.
+  Destination `.xlsx` path. A folder in it that does not exist is
+  created.
 
 - ...:
 

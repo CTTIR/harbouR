@@ -2,7 +2,8 @@
 
 ## Authors
 
-- **R. Heller**. Author, maintainer, copyright holder.
+- **[R. Heller](https://orcid.org/0000-0001-8006-9742)**. Author,
+  maintainer, copyright holder.
   [](https://orcid.org/0000-0001-8006-9742)
 
 - **Paul Elsinghorst**. Author.

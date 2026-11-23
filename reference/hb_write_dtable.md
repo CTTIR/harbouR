@@ -20,7 +20,7 @@ hb_write_dtable(x, path, ..., assets = TRUE, overwrite = TRUE)
 
 - path:
 
-  Destination path.
+  Destination path. A folder in it that does not exist is created.
 
 - ...:
 

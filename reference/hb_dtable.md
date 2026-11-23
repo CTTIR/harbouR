@@ -13,7 +13,12 @@ hb_dtable(..., base_name = "harbouR base", collaborators = NULL)
 
 - ...:
 
-  Named data frames, one per table.
+  Named data frames, one per table. Give each table its own name: two
+  tables of the same name are built as given, but
+  [`hb_validate_dtable()`](https://cttir.github.io/harbouR/reference/hb_validate_dtable.md)
+  reports the second as an error and
+  [`hb_write_dtable()`](https://cttir.github.io/harbouR/reference/hb_write_dtable.md)
+  refuses to write the base.
 
 - base_name:
 

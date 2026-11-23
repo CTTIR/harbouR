@@ -12,6 +12,8 @@ rlang keep the classes rlang gives them.
 
 ## Client & authentication
 
+Describe a server and its credentials, and check that both work.
+
 - [`hb_client()`](https://cttir.github.io/harbouR/reference/hb_client.md)
   [`print(`*`<harbour_client>`*`)`](https://cttir.github.io/harbouR/reference/hb_client.md)
   [`format(`*`<harbour_client>`*`)`](https://cttir.github.io/harbouR/reference/hb_client.md)
@@ -26,6 +28,9 @@ rlang keep the classes rlang gives them.
   : Test whether an object is a harbour client
 
 ## Metadata
+
+The tables, columns and collaborators of a base, and how column types
+map to R.
 
 - [`hb_metadata()`](https://cttir.github.io/harbouR/reference/hb_metadata.md)
   : Fetch base metadata
@@ -47,6 +52,9 @@ rlang keep the classes rlang gives them.
 
 ## Rows
 
+Read rows as a tibble, query them with SQL, and add, change, lock or
+delete them.
+
 - [`hb_read_table()`](https://cttir.github.io/harbouR/reference/hb_read_table.md)
   : Read a table as a tibble
 - [`hb_query()`](https://cttir.github.io/harbouR/reference/hb_query.md)
@@ -66,6 +74,8 @@ rlang keep the classes rlang gives them.
 
 ## Tables
 
+Create, rename, duplicate and delete the tables of a base on a server.
+
 - [`hb_create_table()`](https://cttir.github.io/harbouR/reference/hb_create_table.md)
   : Create a table
 - [`hb_rename_table()`](https://cttir.github.io/harbouR/reference/hb_rename_table.md)
@@ -76,6 +86,8 @@ rlang keep the classes rlang gives them.
   : Duplicate a table
 
 ## Columns
+
+List, add, change and delete columns and the options of select columns.
 
 - [`hb_list_columns()`](https://cttir.github.io/harbouR/reference/hb_list_columns.md)
   : List columns of a table
@@ -96,6 +108,8 @@ rlang keep the classes rlang gives them.
 
 ## Views
 
+List, read, create, change and delete the views of a table.
+
 - [`hb_list_views()`](https://cttir.github.io/harbouR/reference/hb_list_views.md)
   : List views of a table
 - [`hb_get_view()`](https://cttir.github.io/harbouR/reference/hb_get_view.md)
@@ -109,6 +123,8 @@ rlang keep the classes rlang gives them.
 
 ## Files
 
+Upload files, attach them to a row, download them and delete them.
+
 - [`hb_upload_file()`](https://cttir.github.io/harbouR/reference/hb_upload_file.md)
   : Upload a file to SeaTable
 - [`hb_attach_file()`](https://cttir.github.io/harbouR/reference/hb_attach_file.md)
@@ -119,6 +135,8 @@ rlang keep the classes rlang gives them.
   : Delete an asset
 
 ## Local .dtable files
+
+Read, build, check and write a base as a file, with no server involved.
 
 - [`hb_read_dtable()`](https://cttir.github.io/harbouR/reference/hb_read_dtable.md)
   :
@@ -162,6 +180,8 @@ rlang keep the classes rlang gives them.
 
 ## Import and export
 
+Convert a base to and from Excel workbooks and CSV files.
+
 - [`hb_write_xlsx()`](https://cttir.github.io/harbouR/reference/hb_write_xlsx.md)
   : Export a base to an Excel workbook
 - [`hb_write_csv()`](https://cttir.github.io/harbouR/reference/hb_write_csv.md)
@@ -173,12 +193,16 @@ rlang keep the classes rlang gives them.
 
 ## Example data
 
+Bundled metadata and rows for trying the package offline.
+
 - [`hb_example_metadata()`](https://cttir.github.io/harbouR/reference/hb_example_metadata.md)
   : Offline example metadata
 - [`hb_example_rows()`](https://cttir.github.io/harbouR/reference/hb_example_rows.md)
   : Offline example rows
 
 ## Shiny explorer
+
+Browse a base interactively in a Shiny app.
 
 - [`hb_run_explorer()`](https://cttir.github.io/harbouR/reference/hb_run_explorer.md)
   : Launch the harbouR explorer

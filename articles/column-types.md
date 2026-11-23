@@ -15,39 +15,44 @@ so it cannot drift out of sync with the code:
 ``` r
 
 library(harbouR)
-knitr::kable(hb_column_types())
+types <- hb_column_types()
+# shown as code: left as plain text, `list<character>` is read as an HTML
+# tag and the table says `list`
+types$seatable <- sprintf("`%s`", types$seatable)
+types$r <- sprintf("`%s`", types$r)
+knitr::kable(types)
 ```
 
 | seatable | r | is_list | read_only | notes |
 |:---|:---|:---|:---|:---|
-| text | character | FALSE | FALSE | free text |
-| long-text | character | FALSE | FALSE | markdown blob |
-| email | character | FALSE | FALSE | validated as email server-side |
-| url | character | FALSE | FALSE | validated as URL server-side |
-| number | double | FALSE | FALSE | 64-bit precision caveat applies |
-| percent | double | FALSE | FALSE | stored as a fraction, displayed as a percentage |
-| dollar | double | FALSE | FALSE | number with a currency format |
-| euro | double | FALSE | FALSE | number with a currency format |
-| duration | double | FALSE | FALSE | seconds |
-| rate | integer | FALSE | FALSE | 0..N stars |
-| checkbox | logical | FALSE | FALSE | TRUE/FALSE; an unset box reads as FALSE |
-| date | POSIXct | FALSE | FALSE | UTC; date-only columns have a zero time component |
-| single-select | character | FALSE | FALSE | not validated on write: SeaTable adds an unknown name as a new option |
-| multiple-select | list | TRUE | FALSE | always a list-column |
-| collaborator | list | TRUE | FALSE | list-column of email addresses |
-| image | list | TRUE | FALSE | list-column of URLs |
-| file | list | TRUE | FALSE | list-column of {name,size,type,url} lists |
-| geolocation | list | TRUE | FALSE | list-column with lat/lng/address |
-| link | list | TRUE | TRUE | managed via the link endpoints, not by writing the cell |
-| link-formula | list | TRUE | TRUE | mirrors a column in a linked table |
-| formula | character | FALSE | TRUE | computed server-side |
-| auto-number | character | FALSE | TRUE | server-generated identifier |
-| button | list | TRUE | TRUE | carries no data |
-| digital-sign | list | TRUE | TRUE | signature metadata; not written, since it should come from the signer |
-| creator | character | FALSE | TRUE | user email |
-| last-modifier | character | FALSE | TRUE | user email |
-| ctime | POSIXct | FALSE | TRUE | row creation time |
-| mtime | POSIXct | FALSE | TRUE | row modification time |
+| `text` | `character` | FALSE | FALSE | free text |
+| `long-text` | `character` | FALSE | FALSE | markdown blob |
+| `email` | `character` | FALSE | FALSE | validated as email server-side |
+| `url` | `character` | FALSE | FALSE | validated as URL server-side |
+| `number` | `double` | FALSE | FALSE | 64-bit precision caveat applies |
+| `percent` | `double` | FALSE | FALSE | stored as a fraction, displayed as a percentage |
+| `dollar` | `double` | FALSE | FALSE | number with a currency format |
+| `euro` | `double` | FALSE | FALSE | number with a currency format |
+| `duration` | `double` | FALSE | FALSE | seconds |
+| `rate` | `integer` | FALSE | FALSE | 0..N stars |
+| `checkbox` | `logical` | FALSE | FALSE | TRUE/FALSE; an unset box reads as FALSE |
+| `date` | `POSIXct` | FALSE | FALSE | UTC; date-only columns have a zero time component |
+| `single-select` | `character` | FALSE | FALSE | not validated on write: SeaTable adds an unknown name as a new option |
+| `multiple-select` | `list<character>` | TRUE | FALSE | always a list-column |
+| `collaborator` | `list<character>` | TRUE | FALSE | list-column of email addresses |
+| `image` | `list<character>` | TRUE | FALSE | list-column of URLs |
+| `file` | `list<list>` | TRUE | FALSE | list-column of {name,size,type,url} lists |
+| `geolocation` | `list` | TRUE | FALSE | list-column with lat/lng/address |
+| `link` | `list` | TRUE | TRUE | managed via the link endpoints, not by writing the cell |
+| `link-formula` | `list` | TRUE | TRUE | mirrors a column in a linked table |
+| `formula` | `character` | FALSE | TRUE | computed server-side |
+| `auto-number` | `character` | FALSE | TRUE | server-generated identifier |
+| `button` | `list` | TRUE | TRUE | carries no data |
+| `digital-sign` | `list` | TRUE | TRUE | signature metadata; not written, since it should come from the signer |
+| `creator` | `character` | FALSE | TRUE | user email |
+| `last-modifier` | `character` | FALSE | TRUE | user email |
+| `ctime` | `POSIXct` | FALSE | TRUE | row creation time |
+| `mtime` | `POSIXct` | FALSE | TRUE | row modification time |
 
 Three of its rows are not column types of their own. `percent`, `dollar`
 and `euro` are formats of a number column: SeaTable reports such a
