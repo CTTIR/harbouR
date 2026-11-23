@@ -48,7 +48,12 @@ out of sync with the code:
 
 ```{r mapping}
 library(harbouR)
-knitr::kable(hb_column_types())
+types <- hb_column_types()
+# shown as code: left as plain text, `list<character>` is read as an HTML
+# tag and the table says `list`
+types$seatable <- sprintf("`%s`", types$seatable)
+types$r <- sprintf("`%s`", types$r)
+knitr::kable(types)
 ```
 
 Three of its rows are not column types of their own. `percent`, `dollar`
