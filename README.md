@@ -14,8 +14,9 @@ coverage](https://codecov.io/gh/CTTIR/harbouR/branch/main/graph/badge.svg)](http
 MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889936.svg)](https://doi.org/10.5281/zenodo.21889936)
 <!-- badges: end -->
+
+Zenodo DOI reserved for the release: `10.5281/zenodo.21889936` (not yet published).
 <!-- The CRAN status and download badges belong here once harbouR is
      accepted. Until then their link target, CRAN.R-project.org/package=harbouR,
      is a 404, and a submission carrying a broken URL gets bounced:
